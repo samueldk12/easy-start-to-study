@@ -72,6 +72,14 @@ class K8sScaffolder:
             self._generate_grafana_manifest()
             resources.append("grafana.yaml")
 
+        if "opentelemetry" in self.tools:
+            self._generate_opentelemetry_manifest()
+            resources.append("opentelemetry.yaml")
+
+        if "openmetadata" in self.tools:
+            self._generate_openmetadata_manifest()
+            resources.append("openmetadata.yaml")
+
         # 4. Kustomization
         self._generate_kustomization(resources)
 
@@ -642,6 +650,113 @@ spec:
     app: grafana
 """
         with open(os.path.join(self.k8s_dir, "grafana.yaml"), "w", encoding="utf-8") as f:
+            f.write(manifest)
+
+    def _generate_opentelemetry_manifest(self):
+        manifest = f"""apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opentelemetry
+  namespace: {self.namespace}
+  labels:
+    app: opentelemetry
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: opentelemetry
+  template:
+    metadata:
+      labels:
+        app: opentelemetry
+    spec:
+      containers:
+      - name: opentelemetry
+        image: otel/opentelemetry-collector-contrib:0.102.0
+        ports:
+        - containerPort: 4317
+          name: otlp-grpc
+        - containerPort: 4318
+          name: otlp-http
+        - containerPort: 13133
+          name: health
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opentelemetry
+  namespace: {self.namespace}
+  labels:
+    app: opentelemetry
+spec:
+  type: ClusterIP
+  ports:
+  - port: 4317
+    targetPort: 4317
+    name: otlp-grpc
+  - port: 4318
+    targetPort: 4318
+    name: otlp-http
+  - port: 13133
+    targetPort: 13133
+    name: health
+  selector:
+    app: opentelemetry
+"""
+        with open(os.path.join(self.k8s_dir, "opentelemetry.yaml"), "w", encoding="utf-8") as f:
+            f.write(manifest)
+
+    def _generate_openmetadata_manifest(self):
+        manifest = f"""apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openmetadata
+  namespace: {self.namespace}
+  labels:
+    app: openmetadata
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openmetadata
+  template:
+    metadata:
+      labels:
+        app: openmetadata
+    spec:
+      containers:
+      - name: openmetadata
+        image: docker.getcollate.io/openmetadata/server:1.4.2
+        ports:
+        - containerPort: 8585
+          name: http
+        env:
+        - name: DB_HOST
+          value: "postgres"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_USER
+          value: "postgres"
+        - name: DB_USER_PASSWORD
+          value: "postgres"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openmetadata
+  namespace: {self.namespace}
+  labels:
+    app: openmetadata
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8585
+    targetPort: 8585
+    name: http
+  selector:
+    app: openmetadata
+"""
+        with open(os.path.join(self.k8s_dir, "openmetadata.yaml"), "w", encoding="utf-8") as f:
             f.write(manifest)
 
     def _generate_kustomization(self, resources: List[str]):

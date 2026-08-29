@@ -142,6 +142,22 @@ CATEGORIES: List[ToolCategory] = [
                 icon="code",
                 badge="Transformations",
                 default_folders={"project": "dbt"}
+            ),
+            ToolOption(
+                id="openmetadata",
+                name="OpenMetadata & Governança",
+                category="data_engineering",
+                description="Catálogo unificado de governança de dados, linhagem ponta-a-ponta (lineage), dicionário e métricas de qualidade.",
+                icon="shield-check",
+                badge="Data Governance",
+                default_port=8585,
+                ui_url="http://localhost:8585",
+                dependencies=["postgres"],
+                env_vars={
+                    "OPENMETADATA_PORT": "8585",
+                    "DB_USER": "postgres",
+                    "DB_USER_PASSWORD": "postgres_password"
+                }
             )
         ]
     ),
@@ -356,6 +372,17 @@ CATEGORIES: List[ToolCategory] = [
                 ui_url="http://localhost:5055",
                 dependencies=["postgres"],
                 env_vars={"PGADMIN_DEFAULT_EMAIL": "admin@lakehouse.com", "PGADMIN_DEFAULT_PASSWORD": "admin"}
+            ),
+            ToolOption(
+                id="opentelemetry",
+                name="OpenTelemetry Collector",
+                category="devops",
+                description="Coletor de telemetria unificado para rastreamento distribuído (OTLP traces), métricas e logs agnóstico a vendors.",
+                icon="activity",
+                badge="OTel / Traces",
+                default_port=4318,
+                ui_url="http://localhost:13133",
+                default_folders={"config": "otel/otel-collector-config.yaml"}
             )
         ]
     )

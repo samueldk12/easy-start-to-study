@@ -108,5 +108,20 @@
     ],
     "include_templates": true,
     "created_at": "2026-08-29 12:50:00"
+  },
+  "telemetry-governance-stack": {
+    "id": "telemetry-governance-stack",
+    "name": "telemetry-governance-stack",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\telemetry-governance-stack",
+    "description": "Projeto telemetry-governance-stack criado via CLI",
+    "tools": [
+      "prometheus",
+      "postgres",
+      "openmetadata",
+      "grafana",
+      "opentelemetry"
+    ],
+    "include_templates": true,
+    "created_at": "2026-08-29 12:52:49"
   }
 }

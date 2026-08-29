@@ -54,6 +54,9 @@ class ProjectScaffolder:
         if "dbt" in self.tools:
             self._generate_dbt_files()
 
+        if "opentelemetry" in self.tools:
+            self._generate_otel_files()
+
         # 4. Generate Automation Scripts and Makefile
         self._generate_scripts()
         self._generate_makefile()
@@ -577,6 +580,46 @@ class ProjectScaffolder:
             }
             volumes["pgadmin_data"] = None
 
+        # --- OPENTELEMETRY COLLECTOR ---
+        if "opentelemetry" in self.tools:
+            port_http = self.request.custom_ports.get("opentelemetry", 4318)
+            services["opentelemetry"] = {
+                "image": "otel/opentelemetry-collector-contrib:0.102.0",
+                "container_name": f"{self.project_name}-opentelemetry",
+                "command": ["--config=/etc/otelcol-contrib/config.yaml"],
+                "ports": [
+                    "4317:4317",
+                    f"{port_http}:4318",
+                    "13133:13133",
+                    "8888:8888"
+                ],
+                "volumes": [
+                    "./otel/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml:ro"
+                ],
+                "networks": [network_name]
+            }
+
+        # --- OPENMETADATA ---
+        if "openmetadata" in self.tools:
+            port = self.request.custom_ports.get("openmetadata", 8585)
+            services["openmetadata"] = {
+                "image": "docker.getcollate.io/openmetadata/server:1.4.2",
+                "container_name": f"{self.project_name}-openmetadata",
+                "ports": [f"{port}:8585"],
+                "environment": {
+                    "DB_HOST": "postgres",
+                    "DB_PORT": "5432",
+                    "DB_USER": "${POSTGRES_USER:-postgres}",
+                    "DB_USER_PASSWORD": "${POSTGRES_PASSWORD:-postgres}",
+                    "DB_NAME": "openmetadata_db",
+                    "AUTHENTICATION_PROVIDER": "basic"
+                },
+                "depends_on": {
+                    "postgres": {"condition": "service_healthy"} if "postgres" in self.tools else {"condition": "service_started"}
+                },
+                "networks": [network_name]
+            }
+
         # --- CUSTOM PLUGINS ---
         from studio.services.plugin_manager import PluginManager
         for tool_id in self.tools:
@@ -970,6 +1013,51 @@ clean-targets:
 """
         with open(os.path.join(dbt_dir, "dbt_project.yml"), "w", encoding="utf-8") as f:
             f.write(dbt_project)
+
+    def _generate_otel_files(self):
+        otel_dir = os.path.join(self.project_dir, "otel")
+        os.makedirs(otel_dir, exist_ok=True)
+        config_path = os.path.join(otel_dir, "otel-collector-config.yaml")
+
+        config_yaml = """receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 1s
+    send_batch_size: 1024
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+exporters:
+  debug:
+    verbosity: detailed
+
+service:
+  extensions: [health_check]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]
+"""
+        with open(config_path, "w", encoding="utf-8") as f:
+            f.write(config_yaml)
 
     def _generate_scripts(self):
         scripts_dir = os.path.join(self.project_dir, "scripts")

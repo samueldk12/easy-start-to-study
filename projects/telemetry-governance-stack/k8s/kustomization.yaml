@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: stack-telemetry-governance-stack
+resources:
+- namespace.yaml
+- configmap.yaml
+- secret.yaml
+- postgres.yaml
+- prometheus.yaml
+- grafana.yaml
+- opentelemetry.yaml
+- openmetadata.yaml

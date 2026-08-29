@@ -1,0 +1,83 @@
+name: telemetry-governance-stack
+services:
+  postgres:
+    image: debezium/postgres:16-alpine
+    container_name: telemetry-governance-stack-postgres
+    command: postgres -c wal_level=logical -c max_wal_senders=10 -c max_replication_slots=10
+    ports:
+    - 5434:5432
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-oltp_db}
+    volumes:
+    - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - pg_isready -U postgres -d oltp_db
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+    - telemetry-governance-stack-net
+  grafana:
+    image: grafana/grafana:11.0.0
+    container_name: telemetry-governance-stack-grafana
+    ports:
+    - 3005:3000
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GF_SECURITY_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD:-admin}
+    volumes:
+    - grafana_data:/var/lib/grafana
+    networks:
+    - telemetry-governance-stack-net
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    container_name: telemetry-governance-stack-prometheus
+    ports:
+    - 9095:9090
+    volumes:
+    - prometheus_data:/prometheus
+    networks:
+    - telemetry-governance-stack-net
+  opentelemetry:
+    image: otel/opentelemetry-collector-contrib:0.102.0
+    container_name: telemetry-governance-stack-opentelemetry
+    command:
+    - --config=/etc/otelcol-contrib/config.yaml
+    ports:
+    - 4317:4317
+    - 4318:4318
+    - 13133:13133
+    - 8888:8888
+    volumes:
+    - ./otel/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml:ro
+    networks:
+    - telemetry-governance-stack-net
+  openmetadata:
+    image: docker.getcollate.io/openmetadata/server:1.4.2
+    container_name: telemetry-governance-stack-openmetadata
+    ports:
+    - 8585:8585
+    environment:
+      DB_HOST: postgres
+      DB_PORT: '5432'
+      DB_USER: ${POSTGRES_USER:-postgres}
+      DB_USER_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DB_NAME: openmetadata_db
+      AUTHENTICATION_PROVIDER: basic
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+    - telemetry-governance-stack-net
+networks:
+  telemetry-governance-stack-net:
+    driver: bridge
+volumes:
+  pg_data: {}
+  grafana_data: {}
+  prometheus_data: {}

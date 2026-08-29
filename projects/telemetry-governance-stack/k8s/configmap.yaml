@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: telemetry-governance-stack-config
+  namespace: stack-telemetry-governance-stack
+data:
+  ENVIRONMENT: development
+  PROJECT_NAME: telemetry-governance-stack
