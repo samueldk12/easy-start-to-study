@@ -1,0 +1,36 @@
+id: custom_node_api
+name: Custom Node API
+category: backend
+description: ''
+icon: box
+badge: Node.js
+default_port: 3030
+ui_url: null
+env_vars: {}
+default_folders: {}
+dependencies: []
+compose_services:
+  custom-node-api:
+    container_name: ${PROJECT_NAME}-custom-node-api
+    build:
+      context: ./plugins/custom_node_api
+    ports:
+    - ${CUSTOM_NODE_API_PORT:-3030}:3000
+volumes: []
+test_type: http
+test_path: /
+author: User
+version: 1.0.0
+source_type: dockerfile
+image: null
+dockerfile_content: 'FROM node:20-alpine
+
+  WORKDIR /app
+
+  CMD [node, -e, console.log(''running'')]'
+git_url: null
+git_branch: main
+git_dockerfile_path: Dockerfile
+git_compose_path: docker-compose.yml
+command: null
+container_port: 3000

@@ -1,0 +1,32 @@
+id: custom_github_worker
+name: Custom GitHub Worker
+category: backend
+description: ''
+icon: box
+badge: Worker
+default_port: 9090
+ui_url: null
+env_vars: {}
+default_folders: {}
+dependencies: []
+compose_services:
+  custom-github-worker:
+    container_name: ${PROJECT_NAME}-custom-github-worker
+    build:
+      context: https://github.com/example/worker.git#main
+    ports:
+    - ${CUSTOM_GITHUB_WORKER_PORT:-9090}:9090
+volumes: []
+test_type: http
+test_path: /
+author: User
+version: 1.0.0
+source_type: github
+image: null
+dockerfile_content: null
+git_url: https://github.com/example/worker.git
+git_branch: main
+git_dockerfile_path: Dockerfile
+git_compose_path: docker-compose.yml
+command: null
+container_port: 9090

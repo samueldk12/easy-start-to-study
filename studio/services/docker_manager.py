@@ -17,8 +17,8 @@ class DockerManager:
     _STATUS_CHANGE_TIMES: Dict[str, float] = {}
 
     @staticmethod
-    async def run_command(project_dir: str, cmd: List[str]) -> Dict[str, Any]:
-        """Runs a docker compose command in the project directory."""
+    async def run_command(project_dir: str, cmd: List[str], timeout: float = 30.0) -> Dict[str, Any]:
+        """Runs a docker compose command in the project directory with a safety timeout."""
         if not os.path.exists(project_dir):
             return {"success": False, "error": f"Directory not found: {project_dir}"}
 
@@ -30,7 +30,15 @@ class DockerManager:
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
             )
-            stdout, stderr = await process.communicate()
+            try:
+                stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=timeout)
+            except asyncio.TimeoutError:
+                try:
+                    process.kill()
+                except Exception:
+                    pass
+                return {"success": False, "error": f"Command timed out after {timeout}s: {' '.join(full_cmd)}"}
+
             return {
                 "success": process.returncode == 0,
                 "returncode": process.returncode,

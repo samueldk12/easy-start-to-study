@@ -1,0 +1,31 @@
+id: custom_redis_cache
+name: Custom Redis Cache
+category: backend
+description: ''
+icon: box
+badge: Cache
+default_port: 6389
+ui_url: null
+env_vars: {}
+default_folders: {}
+dependencies: []
+compose_services:
+  custom-redis-cache:
+    container_name: ${PROJECT_NAME}-custom-redis-cache
+    image: redis:7-alpine
+    ports:
+    - ${CUSTOM_REDIS_CACHE_PORT:-6389}:6379
+volumes: []
+test_type: http
+test_path: /
+author: User
+version: 1.0.0
+source_type: image
+image: redis:7-alpine
+dockerfile_content: null
+git_url: null
+git_branch: main
+git_dockerfile_path: Dockerfile
+git_compose_path: docker-compose.yml
+command: null
+container_port: 6379
