@@ -333,22 +333,22 @@
       <!-- PROJECTS GRID -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <template x-for="project in filteredProjects" :key="project.id">
-          <div class="bg-dark-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between hover:border-slate-700 transition shadow-xl">
+          <div class="bg-dark-900 border border-slate-800 rounded-2xl p-5 sm:p-6 flex flex-col justify-between hover:border-slate-700 transition shadow-xl overflow-hidden">
             <div>
               <!-- Header Card -->
-              <div class="flex items-start justify-between gap-4 mb-3">
-                <div>
-                  <div class="flex items-center gap-2">
-                    <h3 class="text-lg font-bold text-white" x-text="project.name"></h3>
+              <div class="flex flex-wrap sm:flex-nowrap items-start justify-between gap-3 mb-3">
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <h3 class="text-lg font-bold text-white truncate" x-text="project.name"></h3>
                     
                     <!-- Template Badge -->
-                    <span class="px-2 py-0.5 rounded text-[10px] font-semibold"
+                    <span class="px-2 py-0.5 rounded text-[10px] font-semibold shrink-0"
                       :class="project.include_templates ? 'bg-indigo-500/10 text-indigo-300 border border-indigo-500/20' : 'bg-slate-800 text-slate-400 border border-slate-700'"
                       x-text="project.include_templates ? 'Com Templates' : 'Estrutura Limpa'">
                     </span>
 
                     <!-- Status Badge (Green / Yellow / Orange / Red) -->
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold"
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold shrink-0"
                       :class="{
                         'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30': project.visual_status === 'green',
                         'bg-amber-500/10 text-amber-400 border border-amber-500/30': project.visual_status === 'yellow',
@@ -365,32 +365,33 @@
                       <span x-text="project.visual_status === 'green' ? 'Online' : (project.visual_status === 'yellow' ? 'Subindo...' : (project.status === 'paused' ? 'Pausado' : (project.visual_status === 'orange' ? 'Parado' : 'Erro / Caiu')))"></span>
                     </span>
                   </div>
-                  <p class="text-xs text-slate-400 mt-1 truncate max-w-sm" x-text="project.description || project.path"></p>
+                  <p class="text-xs text-slate-400 mt-1 truncate" :title="project.description || project.path" x-text="project.description || project.path"></p>
                 </div>
 
-                <div class="flex items-center space-x-1">
-                  <!-- VS Code Web Button (Blue / External App) -->
-                  <button @click.stop="openVsCode(project)" title="Abrir Código no VS Code Web (Navegador)" class="p-2 text-blue-400 hover:text-white bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition cursor-pointer">
+                <!-- Action Toolbar Pill (Compact, Never Overflows) -->
+                <div class="flex items-center gap-1 shrink-0 bg-dark-950/80 p-1 rounded-xl border border-slate-800 shadow-inner">
+                  <!-- VS Code Web Button -->
+                  <button @click.stop="openVsCode(project)" title="Abrir Código no VS Code Web (Navegador)" class="p-1.5 text-blue-400 hover:text-white bg-blue-500/10 hover:bg-blue-500/25 rounded-lg transition cursor-pointer">
                     <svg class="w-4 h-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                   </button>
-                  <!-- Topology Graph Button (Brand / Network Nodes) -->
-                  <button @click.stop="openGraphModal(project)" title="Ver Topologia & Grafo da Arquitetura" class="p-2 text-brand-400 hover:text-white bg-brand-500/10 hover:bg-brand-500/20 rounded-lg transition cursor-pointer">
+                  <!-- Topology Graph Button -->
+                  <button @click.stop="openGraphModal(project)" title="Ver Topologia & Grafo da Arquitetura" class="p-1.5 text-brand-400 hover:text-white bg-brand-500/10 hover:bg-brand-500/25 rounded-lg transition cursor-pointer">
                     <svg class="w-4 h-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
                   </button>
-                  <!-- Edit Project Button (Cyan / Config Sliders) -->
-                  <button @click.stop="openEditModal(project)" title="Editar Ferramentas & Configurações" class="p-2 text-cyan-400 hover:text-white bg-cyan-500/10 hover:bg-cyan-500/20 rounded-lg transition cursor-pointer">
+                  <!-- Edit Project Button -->
+                  <button @click.stop="openEditModal(project)" title="Editar Ferramentas & Configurações" class="p-1.5 text-cyan-400 hover:text-white bg-cyan-500/10 hover:bg-cyan-500/25 rounded-lg transition cursor-pointer">
                     <svg class="w-4 h-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
                   </button>
-                  <!-- Logs Stream Button (Sky / Log Lines) -->
-                  <button @click.stop="openLogs(project)" title="Ver Logs em Tempo Real (Separados por Serviço)" class="p-2 text-sky-400 hover:text-white bg-sky-500/10 hover:bg-sky-500/20 rounded-lg transition cursor-pointer">
+                  <!-- Logs Stream Button -->
+                  <button @click.stop="openLogs(project)" title="Ver Logs em Tempo Real (Separados por Serviço)" class="p-1.5 text-sky-400 hover:text-white bg-sky-500/10 hover:bg-sky-500/25 rounded-lg transition cursor-pointer">
                     <svg class="w-4 h-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h12M4 18h16"/></svg>
                   </button>
-                  <!-- Manifests & Code Button (Emerald / Document YAML) -->
-                  <button @click.stop="openManifestsModal(project)" title="Ver docker-compose.yml, Manifestos K8s e Comandos CLI" class="p-2 text-emerald-400 hover:text-white bg-emerald-500/10 hover:bg-emerald-500/20 rounded-lg transition cursor-pointer">
+                  <!-- Manifests & Code Button -->
+                  <button @click.stop="openManifestsModal(project)" title="Ver docker-compose.yml, Manifestos K8s e Comandos CLI" class="p-1.5 text-emerald-400 hover:text-white bg-emerald-500/10 hover:bg-emerald-500/25 rounded-lg transition cursor-pointer">
                     <svg class="w-4 h-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                   </button>
-                  <!-- Delete Button (Rose / Trash) -->
-                  <button @click.stop="deleteProject(project)" title="Excluir Registro" class="p-2 text-rose-400/80 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 rounded-lg transition cursor-pointer">
+                  <!-- Delete Button -->
+                  <button @click.stop="deleteProject(project)" title="Excluir Registro" class="p-1.5 text-rose-400 hover:text-white bg-rose-500/10 hover:bg-rose-500/25 rounded-lg transition cursor-pointer">
                     <svg class="w-4 h-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                   </button>
                 </div>
@@ -429,8 +430,8 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
                   <template x-for="c in getVisibleContainers(project)" :key="c.name">
-                    <div class="p-2.5 bg-dark-950 border border-slate-800 rounded-xl flex items-center justify-between gap-2 text-xs transition hover:border-slate-700">
-                      <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div class="p-2.5 bg-dark-950 border border-slate-800 rounded-xl flex items-center justify-between gap-2 text-xs transition hover:border-slate-700 min-w-0">
+                      <div class="flex items-center gap-2 min-w-0 flex-1">
                         <!-- Status Dot: Green / Yellow / Orange / Red -->
                         <span class="w-2.5 h-2.5 rounded-full shrink-0"
                           :class="{
@@ -440,9 +441,9 @@
                             'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)] animate-pulse': c.visual_status === 'red'
                           }"></span>
                         
-                        <div class="truncate flex-1">
-                          <div class="flex items-center gap-1.5">
-                            <span class="font-bold text-slate-200 text-xs" x-text="c.service"></span>
+                        <div class="truncate flex-1 min-w-0">
+                          <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="font-bold text-slate-200 text-xs truncate" x-text="c.service"></span>
                             <!-- Status Tag -->
                             <span class="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase shrink-0"
                               :class="{
@@ -454,7 +455,7 @@
                               x-text="c.visual_status === 'green' ? 'Online' : (c.visual_status === 'yellow' ? 'Subindo' : (c.state === 'paused' ? 'Pausado' : (c.visual_status === 'orange' ? 'Parado' : 'Erro')))">
                             </span>
                           </div>
-                          <span class="text-[10px] text-slate-400 block truncate" x-text="c.status"></span>
+                          <span class="text-[10px] text-slate-400 block truncate" :title="c.status" x-text="c.status"></span>
                         </div>
                       </div>
 
@@ -512,38 +513,38 @@
             </div>
 
             <!-- Action Controls -->
-            <div class="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between gap-3">
-              <div class="text-xs text-slate-400">
+            <div class="mt-6 pt-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2.5">
+              <div class="text-xs text-slate-400 shrink-0">
                 <span x-text="project.containers ? project.containers.length : 0"></span> container(s)
               </div>
 
-              <div class="flex items-center space-x-2">
+              <div class="flex flex-wrap items-center gap-1.5">
                 <!-- Start Button -->
-                <button type="button" @click="startProject(project)" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-emerald-600/20 transition active:scale-95 cursor-pointer">
+                <button type="button" @click="startProject(project)" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-emerald-600/20 transition active:scale-95 cursor-pointer">
                   <svg class="w-3.5 h-3.5 fill-current pointer-events-none" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                   <span>Start</span>
                 </button>
 
                 <!-- Test Button -->
-                <button type="button" @click="testProject(project)" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md transition active:scale-95 cursor-pointer" title="Testar Saúde e Conexão dos Serviços">
+                <button type="button" @click="testProject(project)" class="px-2.5 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md transition active:scale-95 cursor-pointer" title="Testar Saúde e Conexão dos Serviços">
                   <svg class="w-3.5 h-3.5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                   <span>Testar</span>
                 </button>
 
                 <!-- K8s Deploy Button -->
-                <button type="button" @click="deployK8s(project)" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md transition active:scale-95 cursor-pointer" title="Deploy no Cluster Kubernetes (kubectl apply -k k8s/)">
+                <button type="button" @click="deployK8s(project)" class="px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md transition active:scale-95 cursor-pointer" title="Deploy no Cluster Kubernetes (kubectl apply -k k8s/)">
                   <svg class="w-3.5 h-3.5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                   <span>K8s</span>
                 </button>
 
                 <!-- Pause Button -->
-                <button type="button" @click="pauseProject(project)" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md transition active:scale-95 cursor-pointer">
+                <button type="button" @click="pauseProject(project)" class="px-2.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md transition active:scale-95 cursor-pointer">
                   <svg class="w-3.5 h-3.5 fill-current pointer-events-none" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
                   <span>Pausar</span>
                 </button>
 
                 <!-- Stop Button -->
-                <button type="button" @click="stopProject(project)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition active:scale-95 cursor-pointer">
+                <button type="button" @click="stopProject(project)" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition active:scale-95 cursor-pointer">
                   <svg class="w-3.5 h-3.5 fill-current pointer-events-none" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16"/></svg>
                   <span>Parar</span>
                 </button>
