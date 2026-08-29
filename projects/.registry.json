@@ -159,5 +159,53 @@
     ],
     "include_templates": false,
     "created_at": "2026-08-29 13:32:43"
+  },
+  "velocelog-lakehouse": {
+    "id": "velocelog-lakehouse",
+    "name": "Velocelog Lakehouse",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\velocelog-lakehouse",
+    "description": "Projeto auto-detectado: velocelog-lakehouse",
+    "tools": [],
+    "include_templates": true,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "created_at": "2026-08-29 15:10:06"
+  },
+  "test-llm-os-stack": {
+    "id": "test-llm-os-stack",
+    "name": "Test Llm Os Stack",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\test-llm-os-stack",
+    "description": "Projeto auto-detectado: test-llm-os-stack",
+    "tools": [],
+    "include_templates": true,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "created_at": "2026-08-29 15:11:08"
+  },
+  "test-os-sandbox": {
+    "id": "test-os-sandbox",
+    "name": "Test Os Sandbox",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\test-os-sandbox",
+    "description": "Projeto auto-detectado: test-os-sandbox",
+    "tools": [],
+    "include_templates": true,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "created_at": "2026-08-29 15:11:08"
+  },
+  "venda": {
+    "id": "venda",
+    "name": "venda",
+    "path": "C:\\Users\\samue\\projects\\venda",
+    "description": "Projeto importado de venda com Python, Node.js [app], Airflow, Mailpit",
+    "tools": [
+      "airflow",
+      "mailpit",
+      "postgres"
+    ],
+    "include_templates": false,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "created_at": "2026-08-29 16:08:09"
   }
 }

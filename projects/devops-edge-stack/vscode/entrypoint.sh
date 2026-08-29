@@ -4,8 +4,8 @@ set -e
 echo "=== [StackStudio VS Code Web IDE] Inicializando Workspace ==="
 
 if [ "$AUTO_INSTALL_EXTENSIONS" = "true" ] && [ -f /home/coder/project/.vscode/extensions.json ]; then
-  echo "Instalando extensoes oficiais recomendadas do projeto..."
-  for ext in redhat.vscode-yaml eamodio.gitlens ms-azuretools.vscode-docker cweijan.vscode-database-client2 redhat.ansible hashicorp.terraform ahmadalli.vscode-nginx-conf ckolkman.vscode-postgres mtxr.sqltools; do
+  echo "Instalando extensoes oficiais recomendadas do projeto (Docker, Python, SQL/Database, etc)..."
+  for ext in ms-azuretools.vscode-docker ms-python.python ms-python.vscode-pylance ms-toolsai.jupyter cweijan.vscode-database-client2 mtxr.sqltools mtxr.sqltools-driver-pg ckolkman.vscode-postgres redhat.vscode-yaml eamodio.gitlens redhat.ansible hashicorp.terraform ahmadalli.vscode-nginx-conf; do
     echo " -> Instalando extensao: $ext"
     code-server --install-extension "$ext" --force || echo "  [AVISO] Nao foi possivel instalar $ext, continuando..."
   done

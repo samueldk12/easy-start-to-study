@@ -220,7 +220,7 @@ services:
     environment:
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow
       AIRFLOW_USER: ${AIRFLOW_USER:-admin}
-      AIRFLOW_PASSWORD: ${AIRFLOW_PASSWORD:-admin}
+      AIRFLOW_PASSWORD: ${AIRFLOW_PASSWORD:-admin123}
     command: bash -c "airflow db migrate && (airflow users create --username $$AIRFLOW_USER --firstname Admin --lastname User --role Admin --email admin@example.com --password $$AIRFLOW_PASSWORD || airflow users set-password --username $$AIRFLOW_USER --password $$AIRFLOW_PASSWORD || true)"
     networks:
     - velocelog-net

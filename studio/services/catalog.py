@@ -15,13 +15,13 @@ CATEGORIES: List[ToolCategory] = [
         tools=[
             ToolOption(
                 id="postgres",
-                name="PostgreSQL (OLTP + CDC)",
+                name="PostgreSQL 16 (OLTP)",
                 category="data_engineering",
                 description="Banco relacional OLTP configurado com replicação lógica (wal_level=logical) para CDC com Debezium.",
                 icon="database",
                 badge="OLTP / CDC",
                 default_port=5434,
-                env_vars={"POSTGRES_USER": "postgres", "POSTGRES_PASSWORD": "postgres", "POSTGRES_DB": "oltp_db"},
+                env_vars={"POSTGRES_USER": "admin", "POSTGRES_PASSWORD": "admin123", "POSTGRES_DB": "oltp_db"},
                 default_folders={"init_sql": "postgres/init.sql"}
             ),
             ToolOption(
@@ -32,7 +32,7 @@ CATEGORIES: List[ToolCategory] = [
                 icon="database",
                 badge="OLTP / CDC",
                 default_port=3306,
-                env_vars={"MYSQL_ROOT_PASSWORD": "rootpassword", "MYSQL_DATABASE": "app_db", "MYSQL_USER": "dbuser", "MYSQL_PASSWORD": "dbpassword"},
+                env_vars={"MYSQL_ROOT_PASSWORD": "admin123", "MYSQL_DATABASE": "app_db", "MYSQL_USER": "admin", "MYSQL_PASSWORD": "admin123"},
                 default_folders={"init_sql": "mysql/init.sql"}
             ),
             ToolOption(
@@ -185,7 +185,7 @@ CATEGORIES: List[ToolCategory] = [
                 badge="BI & Analytics",
                 default_port=8094,
                 ui_url="http://localhost:8094",
-                env_vars={"SUPERSET_ADMIN_USER": "admin", "SUPERSET_ADMIN_PASSWORD": "admin"},
+                env_vars={"SUPERSET_ADMIN_USER": "admin", "SUPERSET_ADMIN_PASSWORD": "admin123"},
                 default_folders={"dashboards": "superset/dashboards", "sqllab": "superset/sqllab"}
             ),
             ToolOption(
@@ -395,7 +395,7 @@ CATEGORIES: List[ToolCategory] = [
                 badge="Auth / IAM",
                 default_port=8090,
                 ui_url="http://localhost:8090",
-                env_vars={"KEYCLOAK_ADMIN": "admin", "KEYCLOAK_ADMIN_PASSWORD": "admin"}
+                env_vars={"KEYCLOAK_ADMIN": "admin", "KEYCLOAK_ADMIN_PASSWORD": "admin123"}
             ),
             ToolOption(
                 id="hasura",
@@ -457,7 +457,7 @@ CATEGORIES: List[ToolCategory] = [
                 badge="Dashboards",
                 default_port=3005,
                 ui_url="http://localhost:3005",
-                env_vars={"GF_SECURITY_ADMIN_USER": "admin", "GF_SECURITY_ADMIN_PASSWORD": "admin"}
+                env_vars={"GF_SECURITY_ADMIN_USER": "admin", "GF_SECURITY_ADMIN_PASSWORD": "admin123"}
             ),
             ToolOption(
                 id="prometheus",
@@ -532,7 +532,7 @@ CATEGORIES: List[ToolCategory] = [
                 default_port=5055,
                 ui_url="http://localhost:5055",
                 dependencies=["postgres"],
-                env_vars={"PGADMIN_DEFAULT_EMAIL": "admin@lakehouse.com", "PGADMIN_DEFAULT_PASSWORD": "admin"}
+                env_vars={"PGADMIN_DEFAULT_EMAIL": "admin@example.com", "PGADMIN_DEFAULT_PASSWORD": "admin123"}
             ),
             ToolOption(
                 id="opentelemetry",
@@ -572,7 +572,7 @@ CATEGORIES: List[ToolCategory] = [
                 badge="Web IDE",
                 default_port=8443,
                 ui_url="http://localhost:8443/?folder=/home/coder/project",
-                env_vars={"PASSWORD": "admin"}
+                env_vars={"PASSWORD": "admin123"}
             )
         ]
     ),
@@ -736,7 +736,7 @@ CATEGORIES: List[ToolCategory] = [
                 badge="Vulnerability Mgmt",
                 default_port=8096,
                 ui_url="http://localhost:8096",
-                env_vars={"DEFECT_DOJO_ADMIN_USER": "admin", "DEFECT_DOJO_ADMIN_PASSWORD": "adminpassword123"},
+                env_vars={"DEFECT_DOJO_ADMIN_USER": "admin", "DEFECT_DOJO_ADMIN_PASSWORD": "admin123"},
                 default_folders={"imports": "defectdojo/imports"}
             ),
             ToolOption(
@@ -943,7 +943,7 @@ CATEGORIES: List[ToolCategory] = [
                 badge="Orchestrator",
                 default_port=8088,
                 ui_url="http://localhost:8088",
-                env_vars={"AIRFLOW_USER": "admin", "AIRFLOW_PASSWORD": "admin"},
+                env_vars={"AIRFLOW_USER": "admin", "AIRFLOW_PASSWORD": "admin123"},
                 default_folders={"dags": "airflow/dags", "plugins": "airflow/plugins"}
             ),
             ToolOption(

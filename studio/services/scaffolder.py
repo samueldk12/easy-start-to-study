@@ -169,6 +169,10 @@ class ProjectScaffolder:
         volumes: Dict[str, Any] = {}
         network_name = f"{self.project_name}-net"
 
+        user = getattr(self.request, "default_user", None) or "admin"
+        password = getattr(self.request, "default_password", None) or "admin123"
+        project_db = self.project_name.lower().replace("-", "_")
+
         # --- POSTGRESQL ---
         if "postgres" in self.tools:
             port = self.request.custom_ports.get("postgres", 5434)
@@ -179,9 +183,9 @@ class ProjectScaffolder:
                 "command": "postgres -c wal_level=logical -c max_wal_senders=10 -c max_replication_slots=10",
                 "ports": [f"{port}:5432"],
                 "environment": {
-                    "POSTGRES_USER": "${POSTGRES_USER:-admin}",
-                    "POSTGRES_PASSWORD": "${POSTGRES_PASSWORD:-admin123}",
-                    "POSTGRES_DB": "${POSTGRES_DB:-oltp_db}"
+                    "POSTGRES_USER": f"${{POSTGRES_USER:-{user}}}",
+                    "POSTGRES_PASSWORD": f"${{POSTGRES_PASSWORD:-{password}}}",
+                    "POSTGRES_DB": f"${{POSTGRES_DB:-{project_db}}}"
                 },
                 "volumes": [
                     f"./{init_folder}:/docker-entrypoint-initdb.d/init.sql",
@@ -206,10 +210,10 @@ class ProjectScaffolder:
                 "command": "--server-id=1 --log-bin=mysql-bin --binlog-format=ROW --binlog-row-image=FULL --default-authentication-plugin=mysql_native_password",
                 "ports": [f"{port}:3306"],
                 "environment": {
-                    "MYSQL_ROOT_PASSWORD": "${MYSQL_ROOT_PASSWORD:-rootpassword}",
+                    "MYSQL_ROOT_PASSWORD": f"${{MYSQL_ROOT_PASSWORD:-{password}}}",
                     "MYSQL_DATABASE": "${MYSQL_DATABASE:-app_db}",
-                    "MYSQL_USER": "${MYSQL_USER:-dbuser}",
-                    "MYSQL_PASSWORD": "${MYSQL_PASSWORD:-dbpassword}"
+                    "MYSQL_USER": f"${{MYSQL_USER:-{user}}}",
+                    "MYSQL_PASSWORD": f"${{MYSQL_PASSWORD:-{password}}}"
                 },
                 "volumes": ["mysql_data:/var/lib/mysql", "./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql"],
                 "networks": [network_name]
@@ -424,8 +428,8 @@ class ProjectScaffolder:
                 "command": 'server /data --console-address ":9001"',
                 "ports": [f"{api_port}:9000", f"{console_port}:9001"],
                 "environment": {
-                    "MINIO_ROOT_USER": "${MINIO_ROOT_USER:-admin}",
-                    "MINIO_ROOT_PASSWORD": "${MINIO_ROOT_PASSWORD:-admin123}"
+                    "MINIO_ROOT_USER": f"${{MINIO_ROOT_USER:-{user}}}",
+                    "MINIO_ROOT_PASSWORD": f"${{MINIO_ROOT_PASSWORD:-{password}}}"
                 },
                 "volumes": ["minio_data:/data"],
                 "healthcheck": {
@@ -443,8 +447,8 @@ class ProjectScaffolder:
                 "container_name": f"{self.project_name}-minio-init",
                 "depends_on": ["minio"],
                 "environment": {
-                    "MINIO_ROOT_USER": "${MINIO_ROOT_USER:-admin}",
-                    "MINIO_ROOT_PASSWORD": "${MINIO_ROOT_PASSWORD:-admin123}"
+                    "MINIO_ROOT_USER": f"${{MINIO_ROOT_USER:-{user}}}",
+                    "MINIO_ROOT_PASSWORD": f"${{MINIO_ROOT_PASSWORD:-{password}}}"
                 },
                 "entrypoint": '/bin/sh -c "until (/usr/bin/mc alias set myminio http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD); do echo \'Waiting for MinIO...\'; sleep 2; done; /usr/bin/mc mb --ignore-existing myminio/lakehouse; /usr/bin/mc mb --ignore-existing myminio/warehouse; echo \'Buckets created successfully!\'; exit 0;"',
                 "networks": [network_name]
@@ -463,8 +467,8 @@ class ProjectScaffolder:
                     "CATALOG_IO__IMPL": "org.apache.iceberg.aws.s3.S3FileIO",
                     "CATALOG_S3_ENDPOINT": "http://minio:9000",
                     "CATALOG_S3_PATH__STYLE__ACCESS": "true",
-                    "AWS_ACCESS_KEY_ID": "${MINIO_ROOT_USER:-admin}",
-                    "AWS_SECRET_ACCESS_KEY": "${MINIO_ROOT_PASSWORD:-admin123}",
+                    "AWS_ACCESS_KEY_ID": f"${{MINIO_ROOT_USER:-{user}}}",
+                    "AWS_SECRET_ACCESS_KEY": f"${{MINIO_ROOT_PASSWORD:-{password}}}",
                     "AWS_REGION": "us-east-1"
                 },
                 "networks": [network_name]
@@ -554,8 +558,8 @@ class ProjectScaffolder:
                 "ports": [f"{port}:8088"],
                 "environment": {
                     "SUPERSET_SECRET_KEY": "supersecretkey123456789",
-                    "ADMIN_USERNAME": "${SUPERSET_ADMIN_USER:-admin}",
-                    "ADMIN_PASSWORD": "${SUPERSET_ADMIN_PASSWORD:-admin}"
+                    "ADMIN_USERNAME": f"${{SUPERSET_ADMIN_USER:-{user}}}",
+                    "ADMIN_PASSWORD": f"${{SUPERSET_ADMIN_PASSWORD:-{password}}}"
                 },
                 "volumes": ["superset_home:/app/superset_home"],
                 "networks": [network_name]
@@ -605,7 +609,8 @@ class ProjectScaffolder:
                 "container_name": f"{self.project_name}-ranger",
                 "ports": [f"{port}:6080"],
                 "environment": {
-                    "RANGER_ADMIN_PASSWORD": "${RANGER_ADMIN_PASSWORD:-admin123}",
+                    "RANGER_ADMIN_USER": f"${{RANGER_ADMIN_USER:-{user}}}",
+                    "RANGER_ADMIN_PASSWORD": f"${{RANGER_ADMIN_PASSWORD:-{password}}}",
                     "DB_HOST": "postgres" if "postgres" in self.tools else "localhost"
                 },
                 "networks": [network_name]
@@ -644,10 +649,13 @@ class ProjectScaffolder:
                 },
                 "environment": {
                     "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN": "postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow",
-                    "AIRFLOW_USER": "${AIRFLOW_USER:-admin}",
-                    "AIRFLOW_PASSWORD": "${AIRFLOW_PASSWORD:-admin}"
+                    "AIRFLOW_USER": f"${{AIRFLOW_USER:-{user}}}",
+                    "AIRFLOW_PASSWORD": f"${{AIRFLOW_PASSWORD:-{password}}}",
+                    "_AIRFLOW_WWW_USER_CREATE": "true",
+                    "_AIRFLOW_WWW_USER_USERNAME": f"${{AIRFLOW_USER:-{user}}}",
+                    "_AIRFLOW_WWW_USER_PASSWORD": f"${{AIRFLOW_PASSWORD:-{password}}}"
                 },
-                "command": 'bash -c "airflow db migrate && (airflow users create --username $$AIRFLOW_USER --firstname Admin --lastname User --role Admin --email admin@example.com --password $$AIRFLOW_PASSWORD || airflow users set-password --username $$AIRFLOW_USER --password $$AIRFLOW_PASSWORD || true)"',
+                "command": 'bash -c "airflow db migrate && (airflow users create --username $$AIRFLOW_USER --firstname Admin --lastname User --role Admin --email admin@example.com --password $$AIRFLOW_PASSWORD || airflow users reset-password --username $$AIRFLOW_USER --password $$AIRFLOW_PASSWORD || true)"',
                 "networks": [network_name]
             }
 
@@ -660,6 +668,11 @@ class ProjectScaffolder:
                 },
                 "environment": {
                     "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN": "postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow",
+                    "AIRFLOW_USER": f"${{AIRFLOW_USER:-{user}}}",
+                    "AIRFLOW_PASSWORD": f"${{AIRFLOW_PASSWORD:-{password}}}",
+                    "_AIRFLOW_WWW_USER_CREATE": "true",
+                    "_AIRFLOW_WWW_USER_USERNAME": f"${{AIRFLOW_USER:-{user}}}",
+                    "_AIRFLOW_WWW_USER_PASSWORD": f"${{AIRFLOW_PASSWORD:-{password}}}",
                     "AIRFLOW__CORE__LOAD_EXAMPLES": "false",
                     "AIRFLOW__CORE__EXECUTOR": "LocalExecutor"
                 },
@@ -679,6 +692,11 @@ class ProjectScaffolder:
                 },
                 "environment": {
                     "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN": "postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow",
+                    "AIRFLOW_USER": f"${{AIRFLOW_USER:-{user}}}",
+                    "AIRFLOW_PASSWORD": f"${{AIRFLOW_PASSWORD:-{password}}}",
+                    "_AIRFLOW_WWW_USER_CREATE": "true",
+                    "_AIRFLOW_WWW_USER_USERNAME": f"${{AIRFLOW_USER:-{user}}}",
+                    "_AIRFLOW_WWW_USER_PASSWORD": f"${{AIRFLOW_PASSWORD:-{password}}}",
                     "AIRFLOW__CORE__LOAD_EXAMPLES": "false",
                     "AIRFLOW__CORE__EXECUTOR": "LocalExecutor"
                 },
@@ -892,8 +910,8 @@ class ProjectScaffolder:
                 "command": "start-dev",
                 "ports": [f"{port}:8080"],
                 "environment": {
-                    "KEYCLOAK_ADMIN": "${KEYCLOAK_ADMIN:-admin}",
-                    "KEYCLOAK_ADMIN_PASSWORD": "${KEYCLOAK_ADMIN_PASSWORD:-admin}"
+                    "KEYCLOAK_ADMIN": f"${{KEYCLOAK_ADMIN:-{user}}}",
+                    "KEYCLOAK_ADMIN_PASSWORD": f"${{KEYCLOAK_ADMIN_PASSWORD:-{password}}}"
                 },
                 "volumes": ["keycloak_data:/opt/keycloak/data"],
                 "networks": [network_name]
@@ -908,10 +926,10 @@ class ProjectScaffolder:
                 "container_name": f"{self.project_name}-hasura",
                 "ports": [f"{port}:8080"],
                 "environment": {
-                    "HASURA_GRAPHQL_DATABASE_URL": "postgres://admin:admin123@postgres:5432/oltp_db",
+                    "HASURA_GRAPHQL_DATABASE_URL": f"postgres://{user}:{password}@postgres:5432/{project_db}",
                     "HASURA_GRAPHQL_ENABLE_CONSOLE": "true",
                     "HASURA_GRAPHQL_DEV_MODE": "true",
-                    "HASURA_GRAPHQL_ADMIN_SECRET": "myadminsecretkey"
+                    "HASURA_GRAPHQL_ADMIN_SECRET": f"{password}"
                 },
                 "networks": [network_name]
             }
@@ -926,8 +944,8 @@ class ProjectScaffolder:
                 "container_name": f"{self.project_name}-grafana",
                 "ports": [f"{port}:3000"],
                 "environment": {
-                    "GF_SECURITY_ADMIN_USER": "${GF_SECURITY_ADMIN_USER:-admin}",
-                    "GF_SECURITY_ADMIN_PASSWORD": "${GF_SECURITY_ADMIN_PASSWORD:-admin}"
+                    "GF_SECURITY_ADMIN_USER": f"${{GF_SECURITY_ADMIN_USER:-{user}}}",
+                    "GF_SECURITY_ADMIN_PASSWORD": f"${{GF_SECURITY_ADMIN_PASSWORD:-{password}}}"
                 },
                 "volumes": ["grafana_data:/var/lib/grafana"],
                 "networks": [network_name]
@@ -1032,7 +1050,7 @@ class ProjectScaffolder:
                 "ports": [f"{port}:8000", "8088:8088", "9997:9997"],
                 "environment": {
                     "SPLUNK_START_ARGS": "${SPLUNK_START_ARGS:---accept-license}",
-                    "SPLUNK_PASSWORD": "${SPLUNK_PASSWORD:-AdminPassword123!}"
+                    "SPLUNK_PASSWORD": f"${{SPLUNK_PASSWORD:-{password}}}"
                 },
                 "volumes": ["splunk_data:/opt/splunk/var", "./splunk/apps:/opt/splunk/etc/apps"],
                 "networks": [network_name]
@@ -1186,8 +1204,8 @@ class ProjectScaffolder:
                 "container_name": f"{self.project_name}-defectdojo",
                 "ports": [f"{port}:8080"],
                 "environment": {
-                    "DD_ADMIN_USER": "${DEFECT_DOJO_ADMIN_USER:-admin}",
-                    "DD_ADMIN_PASSWORD": "${DEFECT_DOJO_ADMIN_PASSWORD:-adminpassword123}"
+                    "DD_ADMIN_USER": f"${{DEFECT_DOJO_ADMIN_USER:-{user}}}",
+                    "DD_ADMIN_PASSWORD": f"${{DEFECT_DOJO_ADMIN_PASSWORD:-{password}}}"
                 },
                 "volumes": ["defectdojo_media:/app/media", "./defectdojo/imports:/imports"],
                 "networks": [network_name]
@@ -1285,8 +1303,8 @@ class ProjectScaffolder:
                 "container_name": f"{self.project_name}-pgadmin",
                 "ports": [f"{port}:80"],
                 "environment": {
-                    "PGADMIN_DEFAULT_EMAIL": "admin@lakehouse.com",
-                    "PGADMIN_DEFAULT_PASSWORD": "${PGADMIN_DEFAULT_PASSWORD:-admin}"
+                    "PGADMIN_DEFAULT_EMAIL": "${PGADMIN_DEFAULT_EMAIL:-admin@example.com}",
+                    "PGADMIN_DEFAULT_PASSWORD": f"${{PGADMIN_DEFAULT_PASSWORD:-{password}}}"
                 },
                 "volumes": ["pgadmin_data:/var/lib/pgadmin"],
                 "networks": [network_name]
@@ -1314,8 +1332,8 @@ class ProjectScaffolder:
                 "environment": {
                     "DB_HOST": "postgres",
                     "DB_PORT": "5432",
-                    "DB_USER": "${POSTGRES_USER:-admin}",
-                    "DB_USER_PASSWORD": "${POSTGRES_PASSWORD:-admin123}",
+                    "DB_USER": f"${{POSTGRES_USER:-{user}}}",
+                    "DB_USER_PASSWORD": f"${{POSTGRES_PASSWORD:-{password}}}",
                     "DB_SCHEME": "postgresql"
                 },
                 "depends_on": ["postgres"] if "postgres" in self.tools else [],
@@ -1406,8 +1424,8 @@ class ProjectScaffolder:
                 "environment": {
                     "HIVE_CORE_CONF_javax_jdo_option_ConnectionURL": "jdbc:postgresql://postgres:5432/metastore_db",
                     "HIVE_CORE_CONF_javax_jdo_option_ConnectionDriverName": "org.postgresql.Driver",
-                    "HIVE_CORE_CONF_javax_jdo_option_ConnectionUserName": "${POSTGRES_USER:-admin}",
-                    "HIVE_CORE_CONF_javax_jdo_option_ConnectionPassword": "${POSTGRES_PASSWORD:-admin123}",
+                    "HIVE_CORE_CONF_javax_jdo_option_ConnectionUserName": f"${{POSTGRES_USER:-{user}}}",
+                    "HIVE_CORE_CONF_javax_jdo_option_ConnectionPassword": f"${{POSTGRES_PASSWORD:-{password}}}",
                     "CORE_CONF_fs_defaultFS": "hdfs://namenode:9000" if "hdfs" in self.tools else "file:///tmp/warehouse"
                 },
                 "ports": ["9083:9083"],
@@ -1420,8 +1438,8 @@ class ProjectScaffolder:
                 "environment": {
                     "HIVE_CORE_CONF_javax_jdo_option_ConnectionURL": "jdbc:postgresql://postgres:5432/metastore_db",
                     "HIVE_CORE_CONF_javax_jdo_option_ConnectionDriverName": "org.postgresql.Driver",
-                    "HIVE_CORE_CONF_javax_jdo_option_ConnectionUserName": "${POSTGRES_USER:-admin}",
-                    "HIVE_CORE_CONF_javax_jdo_option_ConnectionPassword": "${POSTGRES_PASSWORD:-admin123}",
+                    "HIVE_CORE_CONF_javax_jdo_option_ConnectionUserName": f"${{POSTGRES_USER:-{user}}}",
+                    "HIVE_CORE_CONF_javax_jdo_option_ConnectionPassword": f"${{POSTGRES_PASSWORD:-{password}}}",
                     "CORE_CONF_fs_defaultFS": "hdfs://namenode:9000" if "hdfs" in self.tools else "file:///tmp/warehouse"
                 },
                 "ports": [f"{hive_ui_port}:10002", "10000:10000"],
@@ -1575,15 +1593,20 @@ class ProjectScaffolder:
             yaml.dump(compose_dict, f, sort_keys=False, default_flow_style=False)
 
     def _generate_env_files(self):
+        user = getattr(self.request, "default_user", None) or "admin"
+        password = getattr(self.request, "default_password", None) or "admin123"
+        project_db = self.project_name.lower().replace("-", "_")
+
         env_lines = [
             f"# =============================================================================",
             f"# ENVIRONMENT CONFIGURATION: {self.project_name.upper()}",
             f"# =============================================================================",
+            "",
+            "# Core Defaults",
+            f"DEFAULT_USER={user}",
+            f"DEFAULT_PASSWORD={password}",
             ""
         ]
-
-        user = self.request.default_user or "admin"
-        password = self.request.default_password or "admin123"
 
         for tool_id in sorted(self.tools):
             tool = get_tool_by_id(tool_id)
@@ -1591,9 +1614,9 @@ class ProjectScaffolder:
                 env_lines.append(f"# {tool.name}")
                 for k, v in tool.env_vars.items():
                     val = v
-                    if "USER" in k or k == "KEYCLOAK_ADMIN" or k == "GF_SECURITY_ADMIN_USER":
+                    if "USER" in k or k in ("KEYCLOAK_ADMIN", "GF_SECURITY_ADMIN_USER", "DD_ADMIN_USER", "SPLUNK_USER", "AIRFLOW_USER"):
                         val = user
-                    elif "PASSWORD" in k or "PASS" in k or k == "KEYCLOAK_ADMIN_PASSWORD" or k == "GF_SECURITY_ADMIN_PASSWORD":
+                    elif "PASSWORD" in k or "PASS" in k or k in ("KEYCLOAK_ADMIN_PASSWORD", "GF_SECURITY_ADMIN_PASSWORD", "DD_ADMIN_PASSWORD", "SPLUNK_PASSWORD", "AIRFLOW_PASSWORD"):
                         val = password
                     env_lines.append(f"{k}={val}")
                 env_lines.append("")
@@ -1601,6 +1624,12 @@ class ProjectScaffolder:
         if "vscode" in self.tools:
             env_lines.append(f"# VS Code Web (IDE)")
             env_lines.append(f"PASSWORD={password}")
+            env_lines.append("")
+
+        if hasattr(self.request, "custom_envs") and self.request.custom_envs:
+            env_lines.append("# Custom Overrides")
+            for k, v in self.request.custom_envs.items():
+                env_lines.append(f"{k}={v}")
             env_lines.append("")
 
         env_path = os.path.join(self.project_dir, ".env")

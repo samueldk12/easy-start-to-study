@@ -1,0 +1,792 @@
+[
+  {
+    "id": "venda",
+    "name": "venda",
+    "path": "C:\\Users\\samue\\projects\\venda",
+    "description": "Projeto importado de venda com Python, Node.js [app], Airflow, Mailpit",
+    "tools": [
+      "airflow",
+      "mailpit",
+      "postgres"
+    ],
+    "include_templates": false,
+    "created_at": "2026-08-29 16:08:09",
+    "status": "running",
+    "visual_status": "green",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "containers": [
+      {
+        "name": "venda-airflow",
+        "service": "airflow",
+        "state": "running",
+        "status": "Up 10 minutes",
+        "health": null,
+        "exit_code": 0,
+        "ports": "8081->8080/tcp, 8081->8080/tcp",
+        "retry_count": 1,
+        "visual_status": "green",
+        "last_changed": 1788036803.9860017
+      },
+      {
+        "name": "venda-mailpit",
+        "service": "mailpit",
+        "state": "running",
+        "status": "Up 10 minutes (healthy)",
+        "health": "healthy",
+        "exit_code": 0,
+        "ports": "1025->1025/tcp, 1025->1025/tcp, 8025->8025/tcp, 8025->8025/tcp",
+        "retry_count": 1,
+        "visual_status": "green",
+        "last_changed": 1788036803.9860017
+      },
+      {
+        "name": "venda-postgres",
+        "service": "postgres",
+        "state": "running",
+        "status": "Up 12 minutes (healthy)",
+        "health": "healthy",
+        "exit_code": 0,
+        "ports": "5433->5432/tcp, 5433->5432/tcp",
+        "retry_count": 0,
+        "visual_status": "green",
+        "last_changed": 1788036803.9860017
+      }
+    ],
+    "ui_links": [
+      {
+        "name": "Apache Airflow 2.9",
+        "url": "http://localhost:8088",
+        "icon": "git-merge"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "last_cached": "2026-08-29 17:54:03"
+  },
+  {
+    "id": "velocelog-lakehouse",
+    "name": "Velocelog Lakehouse",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\velocelog-lakehouse",
+    "description": "Projeto auto-detectado: velocelog-lakehouse",
+    "tools": [],
+    "include_templates": true,
+    "created_at": "2026-08-29 15:10:06",
+    "status": "stopped",
+    "visual_status": "orange",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "containers": [],
+    "ui_links": [],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "last_cached": "2026-08-29 17:54:03"
+  },
+  {
+    "id": "velocelog",
+    "name": "velocelog",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\velocelog",
+    "description": "Projeto gerado via StackStudio",
+    "tools": [
+      "spark",
+      "kafka_connect",
+      "kafka",
+      "kafka_ui",
+      "minio",
+      "postgres",
+      "schema_registry",
+      "trino",
+      "iceberg_rest",
+      "airflow",
+      "vscode"
+    ],
+    "include_templates": false,
+    "created_at": "2026-08-29 13:32:43",
+    "status": "error",
+    "visual_status": "red",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "containers": [
+      {
+        "name": "velocelog-trino",
+        "service": "trino",
+        "state": "running",
+        "status": "Up 8 minutes (unhealthy)",
+        "health": "unhealthy",
+        "exit_code": 0,
+        "ports": "8085->8080/tcp, 8085->8080/tcp",
+        "retry_count": 5,
+        "visual_status": "red",
+        "last_changed": 1788036804.0220232
+      },
+      {
+        "name": "velocelog-iceberg-rest",
+        "service": "iceberg-rest",
+        "state": "running",
+        "status": "Up 10 minutes",
+        "health": null,
+        "exit_code": 0,
+        "ports": "8181->8181/tcp, 8181->8181/tcp",
+        "retry_count": 1,
+        "visual_status": "green",
+        "last_changed": 1788036804.0220232
+      },
+      {
+        "name": "velocelog-kafka",
+        "service": "kafka",
+        "state": "running",
+        "status": "Up 10 minutes",
+        "health": null,
+        "exit_code": 0,
+        "ports": "9092->9092/tcp, 9092->9092/tcp",
+        "retry_count": 1,
+        "visual_status": "green",
+        "last_changed": 1788036804.0220232
+      },
+      {
+        "name": "velocelog-kafka-connect",
+        "service": "kafka-connect",
+        "state": "running",
+        "status": "Up 10 minutes",
+        "health": null,
+        "exit_code": 0,
+        "ports": "8083->8083/tcp, 8083->8083/tcp",
+        "retry_count": 1,
+        "visual_status": "green",
+        "last_changed": 1788036804.0220232
+      },
+      {
+        "name": "velocelog-kafka-ui",
+        "service": "kafka-ui",
+        "state": "running",
+        "status": "Up 10 minutes",
+        "health": null,
+        "exit_code": 0,
+        "ports": "8087->8080/tcp, 8087->8080/tcp",
+        "retry_count": 1,
+        "visual_status": "green",
+        "last_changed": 1788036804.0220232
+      },
+      {
+        "name": "velocelog-minio",
+        "service": "minio",
+        "state": "running",
+        "status": "Up 10 minutes (healthy)",
+        "health": "healthy",
+        "exit_code": 0,
+        "ports": "9000->9000/tcp, 9000->9000/tcp, 9001->9001/tcp, 9001->9001/tcp",
+        "retry_count": 1,
+        "visual_status": "green",
+        "last_changed": 1788036804.0220232
+      },
+      {
+        "name": "velocelog-postgres",
+        "service": "postgres",
+        "state": "running",
+        "status": "Up 10 minutes (healthy)",
+        "health": "healthy",
+        "exit_code": 0,
+        "ports": "5434->5432/tcp, 5434->5432/tcp",
+        "retry_count": 1,
+        "visual_status": "green",
+        "last_changed": 1788036804.0220232
+      },
+      {
+        "name": "velocelog-schema-registry",
+        "service": "schema-registry",
+        "state": "running",
+        "status": "Up 10 minutes",
+        "health": null,
+        "exit_code": 0,
+        "ports": "8086->8081/tcp, 8086->8081/tcp",
+        "retry_count": 1,
+        "visual_status": "green",
+        "last_changed": 1788036804.0220232
+      },
+      {
+        "name": "velocelog-spark-master",
+        "service": "spark-master",
+        "state": "running",
+        "status": "Up 10 minutes",
+        "health": null,
+        "exit_code": 0,
+        "ports": "7077->7077/tcp, 7077->7077/tcp, 8082->8080/tcp, 8082->8080/tcp",
+        "retry_count": 1,
+        "visual_status": "green",
+        "last_changed": 1788036804.0220232
+      },
+      {
+        "name": "velocelog-spark-worker",
+        "service": "spark-worker",
+        "state": "running",
+        "status": "Up 10 minutes",
+        "health": null,
+        "exit_code": 0,
+        "ports": "",
+        "retry_count": 1,
+        "visual_status": "green",
+        "last_changed": 1788036804.0220232
+      },
+      {
+        "name": "velocelog-vscode",
+        "service": "vscode",
+        "state": "running",
+        "status": "Up 10 minutes",
+        "health": null,
+        "exit_code": 0,
+        "ports": "8443->8080/tcp, 8443->8080/tcp",
+        "retry_count": 1,
+        "visual_status": "green",
+        "last_changed": 1788036804.0220232
+      },
+      {
+        "name": "velocelog-minio-init",
+        "service": "minio-init",
+        "state": "exited",
+        "status": "Exited (0) 3 hours ago",
+        "health": null,
+        "exit_code": 0,
+        "ports": "",
+        "retry_count": 0,
+        "visual_status": "orange",
+        "last_changed": 1788036804.0220232
+      },
+      {
+        "name": "velocelog-airflow-db",
+        "service": "airflow-db",
+        "state": "running",
+        "status": "Up 10 minutes (healthy)",
+        "health": "healthy",
+        "exit_code": 0,
+        "ports": "5432/tcp",
+        "retry_count": 1,
+        "visual_status": "green",
+        "last_changed": 1788036804.021495
+      },
+      {
+        "name": "velocelog-airflow-scheduler",
+        "service": "airflow-scheduler",
+        "state": "running",
+        "status": "Up 10 minutes",
+        "health": null,
+        "exit_code": 0,
+        "ports": "8080/tcp",
+        "retry_count": 1,
+        "visual_status": "green",
+        "last_changed": 1788036804.021495
+      },
+      {
+        "name": "velocelog-airflow-webserver",
+        "service": "airflow-webserver",
+        "state": "running",
+        "status": "Up 10 minutes",
+        "health": null,
+        "exit_code": 0,
+        "ports": "8088->8080/tcp, 8088->8080/tcp",
+        "retry_count": 1,
+        "visual_status": "green",
+        "last_changed": 1788036804.021495
+      },
+      {
+        "name": "velocelog-airflow-init",
+        "service": "airflow-init",
+        "state": "exited",
+        "status": "Exited (0) 4 hours ago",
+        "health": null,
+        "exit_code": 0,
+        "ports": "",
+        "retry_count": 0,
+        "visual_status": "orange",
+        "last_changed": 1788036145.8396661
+      }
+    ],
+    "ui_links": [
+      {
+        "name": "Apache Spark 3.5 Cluster",
+        "url": "http://localhost:8082",
+        "icon": "zap"
+      },
+      {
+        "name": "Kafka Connect + Debezium",
+        "url": "http://localhost:8083",
+        "icon": "repeat"
+      },
+      {
+        "name": "Kafka UI (Provectus)",
+        "url": "http://localhost:8087",
+        "icon": "layout"
+      },
+      {
+        "name": "MinIO Object Storage",
+        "url": "http://localhost:9001",
+        "icon": "hard-drive"
+      },
+      {
+        "name": "Schema Registry",
+        "url": "http://localhost:8086",
+        "icon": "shield-check"
+      },
+      {
+        "name": "Trino SQL Engine",
+        "url": "http://localhost:8085",
+        "icon": "search"
+      },
+      {
+        "name": "Apache Iceberg REST Catalog",
+        "url": "http://localhost:8181/v1/config",
+        "icon": "layers"
+      },
+      {
+        "name": "Apache Airflow 2.9",
+        "url": "http://localhost:8088",
+        "icon": "git-merge"
+      },
+      {
+        "name": "VS Code Web (IDE)",
+        "url": "http://localhost:8443/?folder=/home/coder/project",
+        "icon": "code"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "last_cached": "2026-08-29 17:54:03"
+  },
+  {
+    "id": "devops-edge-stack",
+    "name": "devops-edge-stack",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\devops-edge-stack",
+    "description": "Projeto devops-edge-stack criado via CLI",
+    "tools": [
+      "redis",
+      "nginx",
+      "apigateway",
+      "ansible",
+      "terraform",
+      "postgres",
+      "vscode"
+    ],
+    "include_templates": true,
+    "created_at": "2026-08-29 13:14:45",
+    "status": "stopped",
+    "visual_status": "orange",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "containers": [],
+    "ui_links": [
+      {
+        "name": "Redis & Redis Commander",
+        "url": "http://localhost:8089",
+        "icon": "archive"
+      },
+      {
+        "name": "NGINX Proxy & Web Server",
+        "url": "http://localhost:8088",
+        "icon": "globe"
+      },
+      {
+        "name": "Kong API Gateway",
+        "url": "http://localhost:8002",
+        "icon": "shield"
+      },
+      {
+        "name": "VS Code Web (IDE)",
+        "url": "http://localhost:8443/?folder=/home/coder/project",
+        "icon": "code"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "last_cached": "2026-08-29 17:54:03"
+  },
+  {
+    "id": "velosec-log",
+    "name": "velosec-log",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\velosec-log",
+    "description": "Projeto gerado via StackStudio",
+    "tools": [
+      "minio",
+      "iceberg_rest",
+      "postgres",
+      "kafka",
+      "trino",
+      "schema_registry",
+      "spark",
+      "kafka_ui",
+      "kafka_connect",
+      "airflow"
+    ],
+    "include_templates": false,
+    "created_at": "2026-08-29 13:01:26",
+    "status": "stopped",
+    "visual_status": "orange",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "containers": [],
+    "ui_links": [
+      {
+        "name": "MinIO Object Storage",
+        "url": "http://localhost:9001",
+        "icon": "hard-drive"
+      },
+      {
+        "name": "Apache Iceberg REST Catalog",
+        "url": "http://localhost:8181/v1/config",
+        "icon": "layers"
+      },
+      {
+        "name": "Trino SQL Engine",
+        "url": "http://localhost:8085",
+        "icon": "search"
+      },
+      {
+        "name": "Schema Registry",
+        "url": "http://localhost:8086",
+        "icon": "shield-check"
+      },
+      {
+        "name": "Apache Spark 3.5 Cluster",
+        "url": "http://localhost:8082",
+        "icon": "zap"
+      },
+      {
+        "name": "Kafka UI (Provectus)",
+        "url": "http://localhost:8087",
+        "icon": "layout"
+      },
+      {
+        "name": "Kafka Connect + Debezium",
+        "url": "http://localhost:8083",
+        "icon": "repeat"
+      },
+      {
+        "name": "Apache Airflow 2.9",
+        "url": "http://localhost:8088",
+        "icon": "git-merge"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "last_cached": "2026-08-29 17:54:03"
+  },
+  {
+    "id": "telemetry-governance-stack",
+    "name": "telemetry-governance-stack",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\telemetry-governance-stack",
+    "description": "Projeto telemetry-governance-stack criado via CLI",
+    "tools": [
+      "prometheus",
+      "postgres",
+      "openmetadata",
+      "grafana",
+      "opentelemetry"
+    ],
+    "include_templates": true,
+    "created_at": "2026-08-29 12:52:49",
+    "status": "stopped",
+    "visual_status": "orange",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "containers": [],
+    "ui_links": [
+      {
+        "name": "Prometheus",
+        "url": "http://localhost:9095",
+        "icon": "trending-up"
+      },
+      {
+        "name": "OpenMetadata & Governança",
+        "url": "http://localhost:8585",
+        "icon": "shield-check"
+      },
+      {
+        "name": "Grafana Dashboards",
+        "url": "http://localhost:3005",
+        "icon": "layout-dashboard"
+      },
+      {
+        "name": "OpenTelemetry Collector",
+        "url": "http://localhost:13133",
+        "icon": "activity"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "last_cached": "2026-08-29 17:54:03"
+  },
+  {
+    "id": "crypto-trading-stream",
+    "name": "crypto-trading-stream",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\crypto-trading-stream",
+    "description": "Projeto crypto-trading-stream criado via CLI",
+    "tools": [
+      "postgres",
+      "redis",
+      "rabbitmq"
+    ],
+    "include_templates": true,
+    "created_at": "2026-08-29 12:50:00",
+    "status": "stopped",
+    "visual_status": "orange",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "containers": [],
+    "ui_links": [
+      {
+        "name": "Redis & Redis Commander",
+        "url": "http://localhost:8089",
+        "icon": "archive"
+      },
+      {
+        "name": "RabbitMQ + Management",
+        "url": "http://localhost:15672",
+        "icon": "send"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "last_cached": "2026-08-29 17:54:03"
+  },
+  {
+    "id": "graph-nosql-study",
+    "name": "graph-nosql-study",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\graph-nosql-study",
+    "description": "Projeto de Grafos e NoSQL com plugins customizados",
+    "tools": [
+      "mongodb",
+      "neo4j"
+    ],
+    "include_templates": true,
+    "created_at": "2026-08-29 12:18:04",
+    "status": "stopped",
+    "visual_status": "orange",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "containers": [],
+    "ui_links": [
+      {
+        "name": "MongoDB & Mongo Express",
+        "url": "http://localhost:8091",
+        "icon": "database"
+      },
+      {
+        "name": "Neo4j Graph Database & Browser",
+        "url": "http://localhost:7474",
+        "icon": "share-2"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "last_cached": "2026-08-29 17:54:03"
+  },
+  {
+    "id": "ecommerce-mlops",
+    "name": "ecommerce-mlops",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\ecommerce-mlops",
+    "description": "Stack Completa de MLOps: Rastreamento com MLflow, Vector DB Qdrant, JupyterLab e Feature Store Redis",
+    "tools": [
+      "qdrant",
+      "postgres",
+      "minio",
+      "jupyterlab",
+      "redis",
+      "mlflow"
+    ],
+    "include_templates": true,
+    "created_at": "2026-08-29 12:14:08",
+    "status": "stopped",
+    "visual_status": "orange",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "containers": [],
+    "ui_links": [
+      {
+        "name": "Qdrant Vector DB",
+        "url": "http://localhost:6333/dashboard",
+        "icon": "box"
+      },
+      {
+        "name": "MinIO Object Storage",
+        "url": "http://localhost:9001",
+        "icon": "hard-drive"
+      },
+      {
+        "name": "JupyterLab Workspace",
+        "url": "http://localhost:8888",
+        "icon": "book-open"
+      },
+      {
+        "name": "Redis & Redis Commander",
+        "url": "http://localhost:8089",
+        "icon": "archive"
+      },
+      {
+        "name": "MLflow Tracking & Registry",
+        "url": "http://localhost:5001",
+        "icon": "compass"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "last_cached": "2026-08-29 17:54:03"
+  },
+  {
+    "id": "fintech-backend-queue",
+    "name": "fintech-backend-queue",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\fintech-backend-queue",
+    "description": "Microservicos Financeiros: Postgres + Redis Cache + RabbitMQ Filas + Hasura GraphQL + Keycloak IAM",
+    "tools": [
+      "postgres",
+      "rabbitmq",
+      "keycloak",
+      "redis",
+      "hasura"
+    ],
+    "include_templates": true,
+    "created_at": "2026-08-29 12:14:08",
+    "status": "stopped",
+    "visual_status": "orange",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "containers": [],
+    "ui_links": [
+      {
+        "name": "RabbitMQ + Management",
+        "url": "http://localhost:15672",
+        "icon": "send"
+      },
+      {
+        "name": "Keycloak IAM",
+        "url": "http://localhost:8090",
+        "icon": "key"
+      },
+      {
+        "name": "Redis & Redis Commander",
+        "url": "http://localhost:8089",
+        "icon": "archive"
+      },
+      {
+        "name": "Hasura GraphQL Engine",
+        "url": "http://localhost:8095",
+        "icon": "share-2"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "last_cached": "2026-08-29 17:54:03"
+  },
+  {
+    "id": "observability-devops-stack",
+    "name": "observability-devops-stack",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\observability-devops-stack",
+    "description": "Monitoramento e Metricas: ClickHouse OLAP + Prometheus + Grafana Dashboards + Portainer + pgAdmin",
+    "tools": [
+      "grafana",
+      "prometheus",
+      "pgadmin",
+      "portainer",
+      "clickhouse",
+      "postgres"
+    ],
+    "include_templates": true,
+    "created_at": "2026-08-29 12:14:08",
+    "status": "stopped",
+    "visual_status": "orange",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "containers": [],
+    "ui_links": [
+      {
+        "name": "Grafana Dashboards",
+        "url": "http://localhost:3005",
+        "icon": "layout-dashboard"
+      },
+      {
+        "name": "Prometheus",
+        "url": "http://localhost:9095",
+        "icon": "trending-up"
+      },
+      {
+        "name": "pgAdmin 4",
+        "url": "http://localhost:5055",
+        "icon": "terminal"
+      },
+      {
+        "name": "Portainer CE",
+        "url": "https://localhost:9443",
+        "icon": "box"
+      },
+      {
+        "name": "ClickHouse OLAP",
+        "url": "http://localhost:8123/play",
+        "icon": "bar-chart-2"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "last_cached": "2026-08-29 17:54:03"
+  },
+  {
+    "id": "clean-lakehouse",
+    "name": "clean-lakehouse",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\clean-lakehouse",
+    "description": "Lakehouse limpo sem templates iniciais",
+    "tools": [
+      "kafka",
+      "spark",
+      "airflow",
+      "minio",
+      "iceberg_rest",
+      "postgres",
+      "trino"
+    ],
+    "include_templates": true,
+    "created_at": "2026-08-29 12:03:58",
+    "status": "stopped",
+    "visual_status": "orange",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "containers": [],
+    "ui_links": [
+      {
+        "name": "Apache Spark 3.5 Cluster",
+        "url": "http://localhost:8082",
+        "icon": "zap"
+      },
+      {
+        "name": "Apache Airflow 2.9",
+        "url": "http://localhost:8088",
+        "icon": "git-merge"
+      },
+      {
+        "name": "MinIO Object Storage",
+        "url": "http://localhost:9001",
+        "icon": "hard-drive"
+      },
+      {
+        "name": "Apache Iceberg REST Catalog",
+        "url": "http://localhost:8181/v1/config",
+        "icon": "layers"
+      },
+      {
+        "name": "Trino SQL Engine",
+        "url": "http://localhost:8085",
+        "icon": "search"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "last_cached": "2026-08-29 17:54:03"
+  }
+]
