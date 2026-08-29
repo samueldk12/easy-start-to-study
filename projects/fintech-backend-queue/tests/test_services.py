@@ -14,7 +14,7 @@ import urllib.request
 import urllib.error
 import json
 
-ENABLED_TOOLS = set(['postgres', 'rabbitmq', 'keycloak', 'redis', 'hasura'])
+ENABLED_TOOLS = set(['keycloak', 'postgres', 'rabbitmq', 'redis', 'hasura'])
 CUSTOM_PORTS = {'postgres': 5437, 'redis': 6382, 'rabbitmq': 15673, 'hasura': 8095, 'keycloak': 8090}
 
 class Colors:

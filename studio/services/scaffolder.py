@@ -64,6 +64,11 @@ class ProjectScaffolder:
         # 6. Generate Custom README.md
         self._generate_readme()
 
+        # 7. Generate Kubernetes Manifests and Kustomization
+        from studio.services.k8s_scaffolder import K8sScaffolder
+        k8s_scaffolder = K8sScaffolder(self.request, self.tools, self.project_dir)
+        k8s_scaffolder.scaffold()
+
         return self.project_dir
 
     def _generate_docker_compose(self):

@@ -186,6 +186,48 @@ async def test_project(project_id: str):
     }
 
 
+from studio.services.k8s_manager import K8sManager
+
+
+@app.post("/api/projects/{project_id}/k8s/deploy")
+async def deploy_k8s_project(project_id: str):
+    proj = ProjectStore.get_project(project_id)
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found.")
+
+    res = await K8sManager.deploy_project(proj.path)
+    if not res["success"]:
+        raise HTTPException(status_code=500, detail=res.get("stderr") or res.get("error") or "Failed to deploy to Kubernetes")
+    return {"message": "Project deployed to Kubernetes", "details": res}
+
+
+@app.post("/api/projects/{project_id}/k8s/destroy")
+async def destroy_k8s_project(project_id: str):
+    proj = ProjectStore.get_project(project_id)
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found.")
+
+    res = await K8sManager.destroy_project(proj.path)
+    if not res["success"]:
+        raise HTTPException(status_code=500, detail=res.get("stderr") or res.get("error") or "Failed to destroy Kubernetes resources")
+    return {"message": "Kubernetes resources deleted", "details": res}
+
+
+@app.get("/api/projects/{project_id}/k8s/status")
+async def get_k8s_project_status(project_id: str):
+    proj = ProjectStore.get_project(project_id)
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found.")
+
+    pods = await K8sManager.get_project_pods(proj.name)
+    cluster_online = await K8sManager.is_cluster_available()
+    return {
+        "cluster_online": cluster_online,
+        "namespace": f"stack-{proj.name}",
+        "pods": pods
+    }
+
+
 @app.delete("/api/projects/{project_id}")
 async def delete_project(project_id: str):
     proj = ProjectStore.get_project(project_id)

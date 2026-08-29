@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: observability-devops-stack-config
+  namespace: stack-observability-devops-stack
+data:
+  ENVIRONMENT: development
+  PROJECT_NAME: observability-devops-stack

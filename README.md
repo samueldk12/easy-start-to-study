@@ -160,6 +160,43 @@ projects/
 
 ---
 
+## ☸️ Suporte Nativo ao Kubernetes (K8s)
+
+Além de rodar localmente via Docker Compose, **todos os projetos gerados no StackStudio criam automaticamente manifests Kubernetes prontos para produção**:
+
+```text
+k8s/
+├── namespace.yaml                    # Namespace isolado (ex: stack-fintech-backend-queue)
+├── configmap.yaml                    # Variáveis de ambiente centralizadas
+├── secret.yaml                       # Credenciais e senhas criptografadas
+├── postgres.yaml                     # Deployment + ClusterIP Service
+├── redis.yaml                        # Deployment + ClusterIP Service
+├── rabbitmq.yaml                     # Deployment + ClusterIP Service (AMQP 5672 + UI 15672)
+├── minio.yaml / kafka.yaml / spark.yaml
+└── kustomization.yaml                # Orquestração Kustomize declarativa
+```
+
+### Como Fazer Deploy e Testar no Kubernetes:
+
+```bash
+# 1. Aplicar todos os manifests no cluster K8s:
+kubectl apply -k k8s/
+
+# 2. Verificar os pods e serviços em tempo real:
+kubectl get pods -n stack-fintech-backend-queue
+kubectl get svc -n stack-fintech-backend-queue
+
+# 3. Rodar os testes automatizados do Kubernetes:
+python -m pytest tests/integration/test_kubernetes_deployment.py
+
+# 4. Destruir os recursos no cluster:
+kubectl delete -k k8s/
+```
+
+*(Você também pode fazer o deploy no Kubernetes com 1 clique usando o botão **"K8s"** na Web UI).*
+
+---
+
 ## 🧪 Suíte de Testes Automatizados
 
 Todos os projetos gerados contam com uma estrutura padronizada com `pytest`:

@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: velocelog-lakehouse-config
+  namespace: stack-velocelog-lakehouse
+data:
+  ENVIRONMENT: development
+  PROJECT_NAME: velocelog-lakehouse

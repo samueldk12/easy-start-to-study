@@ -243,6 +243,12 @@
                   Testar
                 </button>
 
+                <!-- K8s Deploy Button -->
+                <button @click="deployK8s(project)" :disabled="actionLoading[project.id]" class="px-3 py-1.5 bg-indigo-600/80 hover:bg-indigo-600 disabled:opacity-50 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md transition active:scale-95" title="Deploy no Cluster Kubernetes (kubectl apply -k k8s/)">
+                  <i data-lucide="anchor" class="w-3.5 h-3.5"></i>
+                  K8s
+                </button>
+
                 <!-- Pause Button -->
                 <button @click="pauseProject(project)" :disabled="actionLoading[project.id]" class="px-3 py-1.5 bg-amber-600/80 hover:bg-amber-600 disabled:opacity-50 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md transition active:scale-95">
                   <i data-lucide="pause" class="w-3.5 h-3.5 fill-current"></i>
@@ -884,6 +890,42 @@
             this.logsContent += '\n' + (data.output || 'Testes concluídos.');
           } catch (e) {
             this.logsContent += `\nErro ao executar testes: ${e.message}\n`;
+          } finally {
+            this.actionLoading[project.id] = false;
+            this.$nextTick(() => {
+              const el = document.getElementById('terminal-body');
+              if (el) el.scrollTop = el.scrollHeight;
+            });
+          }
+        },
+
+        async deployK8s(project) {
+          this.selectedProject = project;
+          this.logsContent = `[KUBERNETES DEPLOY] Aplicando manifests K8s para ${project.name} (kubectl apply -k k8s/)...\n`;
+          this.showLogsModal = true;
+          this.actionLoading[project.id] = true;
+
+          try {
+            const res = await fetch(`/api/projects/${project.id}/k8s/deploy`, { method: 'POST' });
+            const data = await res.json();
+            this.logsContent += '\n' + (data.details?.stdout || data.message || 'Deploy aplicado com sucesso.');
+            if (data.details?.stderr) {
+              this.logsContent += '\n' + data.details.stderr;
+            }
+
+            // Fetch live pod status
+            const statusRes = await fetch(`/api/projects/${project.id}/k8s/status`);
+            const statusData = await statusRes.json();
+            this.logsContent += `\n\n[K8S STATUS] Namespace: ${statusData.namespace}\n`;
+            if (statusData.pods && statusData.pods.length > 0) {
+              statusData.pods.forEach(p => {
+                this.logsContent += `  - Pod: ${p.name} | Status: ${p.phase} | Ready: ${p.ready} | Restarts: ${p.restarts}\n`;
+              });
+            } else {
+              this.logsContent += '  Pods sendo criados...\n';
+            }
+          } catch (e) {
+            this.logsContent += `\nErro no deploy K8s: ${e.message}\n`;
           } finally {
             this.actionLoading[project.id] = false;
             this.$nextTick(() => {

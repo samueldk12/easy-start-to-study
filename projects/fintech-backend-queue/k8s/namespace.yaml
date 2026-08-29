@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: stack-fintech-backend-queue
+  labels:
+    app.kubernetes.io/name: fintech-backend-queue
+    app.kubernetes.io/managed-by: StackStudio
