@@ -28,9 +28,34 @@ async def serve_ui(request: Request):
         return HTMLResponse(content=f.read())
 
 
+from studio.services.catalog import get_catalog as fetch_catalog, PRESETS
+from studio.services.plugin_manager import PluginManager
+from studio.models import ToolPlugin
+
+
 @app.get("/api/catalog", response_model=List[ToolCategory])
 async def get_catalog():
-    return CATEGORIES
+    return fetch_catalog()
+
+
+@app.get("/api/plugins", response_model=List[ToolPlugin])
+async def list_plugins():
+    return PluginManager.list_plugins()
+
+
+@app.post("/api/plugins", response_model=ToolPlugin)
+async def create_plugin(plugin: ToolPlugin):
+    if not plugin.id or not plugin.name:
+        raise HTTPException(status_code=400, detail="Plugin ID and name are required.")
+    return PluginManager.save_plugin(plugin)
+
+
+@app.delete("/api/plugins/{plugin_id}")
+async def delete_plugin(plugin_id: str):
+    success = PluginManager.delete_plugin(plugin_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Plugin not found.")
+    return {"message": f"Plugin '{plugin_id}' deleted successfully."}
 
 
 @app.get("/api/presets", response_model=List[ProjectPreset])

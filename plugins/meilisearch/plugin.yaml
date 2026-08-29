@@ -1,0 +1,26 @@
+id: meilisearch
+name: Meilisearch Search Engine
+category: backend
+description: Mecanismo de busca textual ultra-rápido, tipagem tolerante e indexação instantânea para aplicações web.
+icon: search
+badge: Full-Text Search
+default_port: 7700
+ui_url: http://localhost:7700
+env_vars:
+  MEILI_MASTER_KEY: masterKey123
+volumes:
+  - meili_data
+test_type: http
+test_path: /health
+author: Community / Plugin System
+version: 1.0.0
+compose_services:
+  meilisearch:
+    image: getmeili/meilisearch:v1.8
+    ports:
+      - "7700:7700"
+    environment:
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-masterKey123}
+      MEILI_ENV: development
+    volumes:
+      - meili_data:/meili_data

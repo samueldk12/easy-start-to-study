@@ -37,10 +37,45 @@ Acesse no seu navegador: **[http://localhost:5050](http://localhost:5050)**
 
 ### Funcionalidades do Painel:
 1. **Criar Novos Projetos**: Escolha o nome, selecione as ferramentas ou aplique **Presets de 1-Clique**.
-2. **Controle de Templates & Pastas**: Alterne entre estrutura limpa ou com código starter; customize portas e nomes de pastas montadas nos volumes.
-3. **Orquestração com 1-Clique**: Botões **Start**, **Pausar**, **Parar** e **Reiniciar** por projeto.
-4. **Testes Automatizados com 1-Clique**: O botão **"Testar"** roda a bateria de testes do projeto e exibe o relatório de conformidade no terminal integrado.
-5. **Acesso Direto às Web UIs**: Links automáticos para o Airflow, Kafka UI, Spark Master, MinIO Console, Trino, RabbitMQ, Redis Commander, Grafana, MLflow, etc.
+2. **🧩 Sistema de Plugins Extensível**: Adicione qualquer nova ferramenta via arquivo YAML ou diretamente pela Web UI sem alterar o código-fonte.
+3. **Controle de Templates & Pastas**: Alterne entre estrutura limpa ou com código starter; customize portas e nomes de pastas montadas nos volumes.
+4. **Orquestração com 1-Clique**: Botões **Start**, **Pausar**, **Parar** e **Reiniciar** por projeto.
+5. **Testes Automatizados com 1-Clique**: O botão **"Testar"** roda a bateria de testes do projeto e exibe o relatório de conformidade no terminal integrado.
+6. **Acesso Direto às Web UIs**: Links automáticos para o Airflow, Kafka UI, Spark Master, MinIO Console, Trino, RabbitMQ, Redis Commander, Grafana, MLflow, etc.
+
+---
+
+## 🧩 Como Adicionar Novas Ferramentas via Plugins
+
+O StackStudio é **100% extensível**. Você pode plugar qualquer banco de dados, broker ou ferramenta adicionando uma pasta em `plugins/` com um arquivo `plugin.yaml`:
+
+### Exemplo: `plugins/mongodb/plugin.yaml`
+```yaml
+id: mongodb
+name: MongoDB & Mongo Express
+category: backend
+description: Banco de dados NoSQL orientado a documentos com UI visual.
+badge: NoSQL / Doc DB
+default_port: 27017
+ui_url: http://localhost:8091
+compose_services:
+  mongodb:
+    image: mongo:7.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+  mongo-express:
+    image: mongo-express:latest
+    ports:
+      - "8091:8081"
+    depends_on:
+      - mongodb
+volumes:
+  - mongodb_data
+```
+
+*(Você também pode instalar plugins com 1 clique pela interface web no botão **"Plugins"** no topo da página).*
 
 ---
 

@@ -572,6 +572,33 @@ class ProjectScaffolder:
             }
             volumes["pgadmin_data"] = None
 
+        # --- CUSTOM PLUGINS ---
+        from studio.services.plugin_manager import PluginManager
+        for tool_id in self.tools:
+            plugin = PluginManager.get_plugin(tool_id)
+            if plugin and plugin.compose_services:
+                for svc_name, svc_cfg in plugin.compose_services.items():
+                    svc_copy = dict(svc_cfg)
+                    svc_copy["networks"] = [network_name]
+                    if "container_name" not in svc_copy:
+                        svc_copy["container_name"] = f"{self.project_name}-{svc_name}"
+                    
+                    if plugin.default_port and plugin.id in self.request.custom_ports:
+                        cust_port = self.request.custom_ports[plugin.id]
+                        new_ports = []
+                        for p in svc_copy.get("ports", []):
+                            if isinstance(p, str) and ":" in p:
+                                target = p.split(":")[1]
+                                new_ports.append(f"{cust_port}:{target}")
+                            else:
+                                new_ports.append(p)
+                        svc_copy["ports"] = new_ports
+
+                    services[svc_name] = svc_copy
+
+                for vol in plugin.volumes:
+                    volumes[vol] = None
+
         compose_dict = {
             "name": self.project_name,
             "services": services,

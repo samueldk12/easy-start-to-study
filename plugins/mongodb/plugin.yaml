@@ -1,0 +1,38 @@
+id: mongodb
+name: MongoDB & Mongo Express
+category: backend
+description: Banco de dados NoSQL orientador a documentos com interface visual Mongo Express para consultas e administração.
+icon: database
+badge: NoSQL / Doc DB
+default_port: 27017
+ui_url: http://localhost:8091
+env_vars:
+  MONGO_INITDB_ROOT_USERNAME: admin
+  MONGO_INITDB_ROOT_PASSWORD: password123
+volumes:
+  - mongodb_data
+test_type: tcp
+test_path: /
+author: Community / Plugin System
+version: 1.0.0
+compose_services:
+  mongodb:
+    image: mongo:7.0
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-password123}
+    volumes:
+      - mongodb_data:/data/db
+  mongo-express:
+    image: mongo-express:latest
+    ports:
+      - "8091:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: password123
+      ME_CONFIG_MONGODB_SERVER: mongodb
+      ME_CONFIG_BASICAUTH: "false"
+    depends_on:
+      - mongodb

@@ -393,9 +393,46 @@ PRESETS: List[ProjectPreset] = [
 ]
 
 
+def get_catalog() -> List[ToolCategory]:
+    from studio.services.plugin_manager import PluginManager
+    import copy
+
+    categories_copy = copy.deepcopy(CATEGORIES)
+    plugins = PluginManager.list_plugins()
+
+    cat_map = {c.id: c for c in categories_copy}
+    custom_plugins_cat = None
+
+    for plugin in plugins:
+        tool_opt = PluginManager.plugin_to_tool_option(plugin)
+        if plugin.category in cat_map:
+            cat_map[plugin.category].tools.append(tool_opt)
+        else:
+            if not custom_plugins_cat:
+                custom_plugins_cat = ToolCategory(
+                    id="plugins",
+                    name="🧩 Plugins & Ferramentas Customizadas",
+                    icon="puzzle",
+                    description="Ferramentas adicionadas dinamicamente via sistema de plugins.",
+                    tools=[]
+                )
+                categories_copy.append(custom_plugins_cat)
+            custom_plugins_cat.tools.append(tool_opt)
+
+    return categories_copy
+
+
 def get_tool_by_id(tool_id: str) -> ToolOption:
+    # 1. Search in static catalog
     for cat in CATEGORIES:
         for tool in cat.tools:
             if tool.id == tool_id:
                 return tool
-    raise ValueError(f"Tool with id '{tool_id}' not found in catalog.")
+
+    # 2. Search in plugins
+    from studio.services.plugin_manager import PluginManager
+    plugin = PluginManager.get_plugin(tool_id)
+    if plugin:
+        return PluginManager.plugin_to_tool_option(plugin)
+
+    raise ValueError(f"Tool with id '{tool_id}' not found in catalog or plugins.")

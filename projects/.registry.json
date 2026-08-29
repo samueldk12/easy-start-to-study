@@ -83,5 +83,17 @@
     ],
     "include_templates": true,
     "created_at": "2026-08-29 12:14:08"
+  },
+  "graph-nosql-study": {
+    "id": "graph-nosql-study",
+    "name": "graph-nosql-study",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\graph-nosql-study",
+    "description": "Projeto de Grafos e NoSQL com plugins customizados",
+    "tools": [
+      "mongodb",
+      "neo4j"
+    ],
+    "include_templates": true,
+    "created_at": "2026-08-29 12:18:04"
   }
 }

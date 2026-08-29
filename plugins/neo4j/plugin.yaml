@@ -1,0 +1,27 @@
+id: neo4j
+name: Neo4j Graph Database & Browser
+category: data_engineering
+description: Banco de dados em grafos nativo líder de mercado para modelagem e análise de redes, fraudes e relacionamentos complexos.
+icon: share-2
+badge: Graph DB
+default_port: 7474
+ui_url: http://localhost:7474
+env_vars:
+  NEO4J_AUTH: neo4j/password123
+volumes:
+  - neo4j_data
+test_type: http
+test_path: /
+author: Community / Plugin System
+version: 1.0.0
+compose_services:
+  neo4j:
+    image: neo4j:5.20.0
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      NEO4J_AUTH: ${NEO4J_AUTH:-neo4j/password123}
+      NEO4J_PLUGINS: '["apoc"]'
+    volumes:
+      - neo4j_data:/data

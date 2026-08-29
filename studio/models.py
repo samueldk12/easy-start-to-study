@@ -1,5 +1,5 @@
 """
-Pydantic Data Models for StackStudio with Custom Configuration & Template Choices
+Pydantic Data Models for StackStudio with Plugin Support, Custom Configuration & Template Choices
 """
 
 from typing import List, Dict, Optional, Any
@@ -18,6 +18,27 @@ class ToolOption(BaseModel):
     env_vars: Dict[str, str] = Field(default_factory=dict)
     default_folders: Dict[str, str] = Field(default_factory=dict)
     dependencies: List[str] = Field(default_factory=list)
+    is_plugin: bool = False
+
+
+class ToolPlugin(BaseModel):
+    id: str
+    name: str
+    category: str = "backend"  # data_engineering, mlops, backend, devops, orchestration
+    description: str
+    icon: str = "box"
+    badge: str = "Plugin"
+    default_port: Optional[int] = None
+    ui_url: Optional[str] = None
+    env_vars: Dict[str, str] = Field(default_factory=dict)
+    default_folders: Dict[str, str] = Field(default_factory=dict)
+    dependencies: List[str] = Field(default_factory=list)
+    compose_services: Dict[str, Any] = Field(default_factory=dict)
+    volumes: List[str] = Field(default_factory=list)
+    test_type: str = "http"  # "http", "tcp"
+    test_path: str = "/"
+    author: Optional[str] = "Community"
+    version: Optional[str] = "1.0.0"
 
 
 class ToolCategory(BaseModel):
