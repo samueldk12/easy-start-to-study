@@ -57,6 +57,18 @@ class ProjectScaffolder:
         if "opentelemetry" in self.tools:
             self._generate_otel_files()
 
+        if "nginx" in self.tools:
+            self._generate_nginx_files()
+
+        if "apigateway" in self.tools:
+            self._generate_kong_files()
+
+        if "ansible" in self.tools:
+            self._generate_ansible_files()
+
+        if "terraform" in self.tools:
+            self._generate_terraform_files()
+
         # 4. Generate Automation Scripts and Makefile
         self._generate_scripts()
         self._generate_makefile()
@@ -620,6 +632,48 @@ class ProjectScaffolder:
                 "networks": [network_name]
             }
 
+        # --- NGINX REVERSE PROXY ---
+        if "nginx" in self.tools:
+            port = self.request.custom_ports.get("nginx", 8080)
+            services["nginx"] = {
+                "image": "nginx:alpine",
+                "container_name": f"{self.project_name}-nginx",
+                "ports": [f"{port}:80"],
+                "volumes": [
+                    "./nginx/nginx.conf:/etc/nginx/nginx.conf:ro",
+                    "./nginx/html:/usr/share/nginx/html:ro"
+                ],
+                "networks": [network_name]
+            }
+
+        # --- KONG API GATEWAY ---
+        if "apigateway" in self.tools:
+            port_proxy = self.request.custom_ports.get("apigateway", 8000)
+            services["apigateway"] = {
+                "image": "kong:3.6",
+                "container_name": f"{self.project_name}-kong",
+                "environment": {
+                    "KONG_DATABASE": "off",
+                    "KONG_DECLARATIVE_CONFIG": "/etc/kong/kong.yml",
+                    "KONG_PROXY_ACCESS_LOG": "/dev/stdout",
+                    "KONG_ADMIN_ACCESS_LOG": "/dev/stdout",
+                    "KONG_PROXY_ERROR_LOG": "/dev/stderr",
+                    "KONG_ADMIN_ERROR_LOG": "/dev/stderr",
+                    "KONG_ADMIN_LISTEN": "0.0.0.0:8001",
+                    "KONG_ADMIN_GUI_LISTEN": "0.0.0.0:8002",
+                    "KONG_ADMIN_GUI_URL": "http://localhost:8002"
+                },
+                "ports": [
+                    f"{port_proxy}:8000",
+                    "8001:8001",
+                    "8002:8002"
+                ],
+                "volumes": [
+                    "./kong/kong.yml:/etc/kong/kong.yml:ro"
+                ],
+                "networks": [network_name]
+            }
+
         # --- CUSTOM PLUGINS ---
         from studio.services.plugin_manager import PluginManager
         for tool_id in self.tools:
@@ -1058,6 +1112,163 @@ service:
 """
         with open(config_path, "w", encoding="utf-8") as f:
             f.write(config_yaml)
+
+    def _generate_nginx_files(self):
+        nginx_dir = os.path.join(self.project_dir, "nginx")
+        html_dir = os.path.join(nginx_dir, "html")
+        os.makedirs(html_dir, exist_ok=True)
+
+        conf_content = """events { worker_connections 1024; }
+
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+    sendfile        on;
+    keepalive_timeout  65;
+
+    server {
+        listen       80;
+        server_name  localhost;
+
+        location / {
+            root   /usr/share/nginx/html;
+            index  index.html index.htm;
+        }
+
+        location /health {
+            access_log off;
+            return 200 "OK\\n";
+            add_header Content-Type text/plain;
+        }
+    }
+}
+"""
+        with open(os.path.join(nginx_dir, "nginx.conf"), "w", encoding="utf-8") as f:
+            f.write(conf_content)
+
+        index_html = f"""<!DOCTYPE html>
+<html>
+<head><title>{self.project_name} - NGINX</title></head>
+<body style="font-family: sans-serif; background: #0f172a; color: #f8fafc; text-align: center; padding: 50px;">
+    <h1>🚀 {self.project_name}</h1>
+    <p>NGINX Reverse Proxy & Web Server Operational.</p>
+</body>
+</html>
+"""
+        with open(os.path.join(html_dir, "index.html"), "w", encoding="utf-8") as f:
+            f.write(index_html)
+
+    def _generate_kong_files(self):
+        kong_dir = os.path.join(self.project_dir, "kong")
+        os.makedirs(kong_dir, exist_ok=True)
+
+        kong_yml = """_format_version: "3.0"
+_transform: true
+
+services:
+  - name: example-service
+    url: http://localhost:80
+    routes:
+      - name: example-route
+        paths:
+          - /api
+plugins:
+  - name: rate-limiting
+    config:
+      minute: 100
+      policy: local
+"""
+        with open(os.path.join(kong_dir, "kong.yml"), "w", encoding="utf-8") as f:
+            f.write(kong_yml)
+
+    def _generate_ansible_files(self):
+        ansible_dir = os.path.join(self.project_dir, "ansible")
+        playbooks_dir = os.path.join(ansible_dir, "playbooks")
+        inventory_dir = os.path.join(ansible_dir, "inventory")
+        os.makedirs(playbooks_dir, exist_ok=True)
+        os.makedirs(inventory_dir, exist_ok=True)
+
+        ansible_cfg = """[defaults]
+inventory = inventory/hosts.ini
+host_key_checking = False
+retry_files_enabled = False
+stdout_callback = yaml
+"""
+        with open(os.path.join(ansible_dir, "ansible.cfg"), "w", encoding="utf-8") as f:
+            f.write(ansible_cfg)
+
+        hosts_ini = """[local]
+localhost ansible_connection=local
+
+[servers]
+# server1.example.com ansible_user=ubuntu
+"""
+        with open(os.path.join(inventory_dir, "hosts.ini"), "w", encoding="utf-8") as f:
+            f.write(hosts_ini)
+
+        site_yml = f"""---
+- name: Deploy and Configure {self.project_name}
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Ping target hosts
+      ansible.builtin.debug:
+        msg: "StackStudio Ansible Automation: {self.project_name} is ready!"
+"""
+        with open(os.path.join(playbooks_dir, "site.yml"), "w", encoding="utf-8") as f:
+            f.write(site_yml)
+
+    def _generate_terraform_files(self):
+        tf_dir = os.path.join(self.project_dir, "terraform")
+        os.makedirs(tf_dir, exist_ok=True)
+
+        main_tf = f"""terraform {{
+  required_version = ">= 1.5.0"
+  required_providers {{
+    local = {{
+      source  = "hashicorp/local"
+      version = "~> 2.4"
+    }}
+  }}
+}}
+
+provider "local" {{}}
+
+resource "local_file" "environment_metadata" {{
+  filename = "${{path.module}}/deployment-metadata.json"
+  content = jsonencode({{
+    project_name = "{self.project_name}"
+    environment  = var.environment
+    created_by   = "StackStudio"
+  }})
+}}
+"""
+        with open(os.path.join(tf_dir, "main.tf"), "w", encoding="utf-8") as f:
+            f.write(main_tf)
+
+        vars_tf = """variable "environment" {
+  type        = string
+  description = "Target deployment environment"
+  default     = "development"
+}
+"""
+        with open(os.path.join(tf_dir, "variables.tf"), "w", encoding="utf-8") as f:
+            f.write(vars_tf)
+
+        outputs_tf = """output "project_metadata_file" {
+  value       = local_file.environment_metadata.filename
+  description = "Path to generated deployment metadata"
+}
+"""
+        with open(os.path.join(tf_dir, "outputs.tf"), "w", encoding="utf-8") as f:
+            f.write(outputs_tf)
+
+        tfvars = """environment = "development"
+"""
+        with open(os.path.join(tf_dir, "terraform.tfvars"), "w", encoding="utf-8") as f:
+            f.write(tfvars)
 
     def _generate_scripts(self):
         scripts_dir = os.path.join(self.project_dir, "scripts")

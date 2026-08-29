@@ -123,5 +123,21 @@
     ],
     "include_templates": true,
     "created_at": "2026-08-29 12:52:49"
+  },
+  "devops-edge-stack": {
+    "id": "devops-edge-stack",
+    "name": "devops-edge-stack",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\devops-edge-stack",
+    "description": "Projeto devops-edge-stack criado via CLI",
+    "tools": [
+      "terraform",
+      "apigateway",
+      "ansible",
+      "nginx",
+      "postgres",
+      "redis"
+    ],
+    "include_templates": true,
+    "created_at": "2026-08-29 12:56:21"
   }
 }

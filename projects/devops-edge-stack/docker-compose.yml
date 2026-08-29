@@ -1,0 +1,81 @@
+name: devops-edge-stack
+services:
+  postgres:
+    image: debezium/postgres:16-alpine
+    container_name: devops-edge-stack-postgres
+    command: postgres -c wal_level=logical -c max_wal_senders=10 -c max_replication_slots=10
+    ports:
+    - 5434:5432
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-oltp_db}
+    volumes:
+    - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - pg_isready -U postgres -d oltp_db
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+    - devops-edge-stack-net
+  redis:
+    image: redis:7-alpine
+    container_name: devops-edge-stack-redis
+    ports:
+    - 6380:6379
+    volumes:
+    - redis_data:/data
+    networks:
+    - devops-edge-stack-net
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: devops-edge-stack-redis-commander
+    ports:
+    - 8089:8081
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    depends_on:
+    - redis
+    networks:
+    - devops-edge-stack-net
+  nginx:
+    image: nginx:alpine
+    container_name: devops-edge-stack-nginx
+    ports:
+    - 8080:80
+    volumes:
+    - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    - ./nginx/html:/usr/share/nginx/html:ro
+    networks:
+    - devops-edge-stack-net
+  apigateway:
+    image: kong:3.6
+    container_name: devops-edge-stack-kong
+    environment:
+      KONG_DATABASE: 'off'
+      KONG_DECLARATIVE_CONFIG: /etc/kong/kong.yml
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001
+      KONG_ADMIN_GUI_LISTEN: 0.0.0.0:8002
+      KONG_ADMIN_GUI_URL: http://localhost:8002
+    ports:
+    - 8000:8000
+    - 8001:8001
+    - 8002:8002
+    volumes:
+    - ./kong/kong.yml:/etc/kong/kong.yml:ro
+    networks:
+    - devops-edge-stack-net
+networks:
+  devops-edge-stack-net:
+    driver: bridge
+volumes:
+  pg_data: {}
+  redis_data: {}

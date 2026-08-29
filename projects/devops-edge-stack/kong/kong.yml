@@ -1,0 +1,15 @@
+_format_version: "3.0"
+_transform: true
+
+services:
+  - name: example-service
+    url: http://localhost:80
+    routes:
+      - name: example-route
+        paths:
+          - /api
+plugins:
+  - name: rate-limiting
+    config:
+      minute: 100
+      policy: local

@@ -1,0 +1,10 @@
+---
+- name: Deploy and Configure devops-edge-stack
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Ping target hosts
+      ansible.builtin.debug:
+        msg: "StackStudio Ansible Automation: devops-edge-stack is ready!"

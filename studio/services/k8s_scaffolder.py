@@ -80,6 +80,14 @@ class K8sScaffolder:
             self._generate_openmetadata_manifest()
             resources.append("openmetadata.yaml")
 
+        if "nginx" in self.tools:
+            self._generate_nginx_manifest()
+            resources.append("nginx.yaml")
+
+        if "apigateway" in self.tools:
+            self._generate_apigateway_manifest()
+            resources.append("apigateway.yaml")
+
         # 4. Kustomization
         self._generate_kustomization(resources)
 
@@ -757,6 +765,111 @@ spec:
     app: openmetadata
 """
         with open(os.path.join(self.k8s_dir, "openmetadata.yaml"), "w", encoding="utf-8") as f:
+            f.write(manifest)
+
+    def _generate_nginx_manifest(self):
+        manifest = f"""apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  namespace: {self.namespace}
+  labels:
+    app: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+          name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  namespace: {self.namespace}
+  labels:
+    app: nginx
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 80
+    name: http
+  selector:
+    app: nginx
+"""
+        with open(os.path.join(self.k8s_dir, "nginx.yaml"), "w", encoding="utf-8") as f:
+            f.write(manifest)
+
+    def _generate_apigateway_manifest(self):
+        manifest = f"""apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kong
+  namespace: {self.namespace}
+  labels:
+    app: kong
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kong
+  template:
+    metadata:
+      labels:
+        app: kong
+    spec:
+      containers:
+      - name: kong
+        image: kong:3.6
+        ports:
+        - containerPort: 8000
+          name: proxy
+        - containerPort: 8001
+          name: admin
+        - containerPort: 8002
+          name: gui
+        env:
+        - name: KONG_DATABASE
+          value: "off"
+        - name: KONG_PROXY_ACCESS_LOG
+          value: "/dev/stdout"
+        - name: KONG_ADMIN_ACCESS_LOG
+          value: "/dev/stdout"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kong
+  namespace: {self.namespace}
+  labels:
+    app: kong
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8000
+    targetPort: 8000
+    name: proxy
+  - port: 8001
+    targetPort: 8001
+    name: admin
+  - port: 8002
+    targetPort: 8002
+    name: gui
+  selector:
+    app: kong
+"""
+        with open(os.path.join(self.k8s_dir, "apigateway.yaml"), "w", encoding="utf-8") as f:
             f.write(manifest)
 
     def _generate_kustomization(self, resources: List[str]):

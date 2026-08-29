@@ -286,15 +286,16 @@ print(f"Projeto gerado em: {project_path}")
 
 ---
 
-## 🛠️ Catálogo Completo de Ferramentas (24+)
+## 🛠️ Catálogo Completo de Ferramentas (30+)
 
 | Categoria | Ferramentas Suportadas |
 | :--- | :--- |
-| **Engenharia de Dados** | PostgreSQL (CDC), MySQL 8, ClickHouse OLAP, Apache Kafka (KRaft), Confluent Schema Registry, Kafka Connect (Debezium), Kafka UI, MinIO S3, Apache Iceberg REST, Apache Spark 3.5, Trino SQL, dbt Core. |
-| **MLOps** | MLflow, JupyterLab, Qdrant Vector DB, Redis Feature Store. |
+| **Engenharia de Dados** | PostgreSQL (CDC), MySQL 8, ClickHouse OLAP, Apache Kafka (KRaft), Confluent Schema Registry, Kafka Connect (Debezium), Kafka UI, MinIO S3, Apache Iceberg REST, Apache Spark 3.5, Trino SQL, dbt Core, OpenMetadata & Governança. |
+| **MLOps & IA** | MLflow Tracking & Registry, JupyterLab Workspace, Qdrant Vector DB, Redis Feature Store. |
 | **Orquestração** | Apache Airflow 2.9, Mage.ai, Prefect. |
-| **Backend & Mensageria** | Redis & Redis Commander, RabbitMQ, Hasura GraphQL Engine, Keycloak IAM. |
-| **DevOps & Monitoramento** | Grafana, Prometheus, Portainer CE, pgAdmin 4. |
+| **Backend & Mensageria** | Redis & Redis Commander, RabbitMQ, Hasura GraphQL Engine, Keycloak IAM, NGINX Reverse Proxy, Kong API Gateway, Elasticsearch + Kibana. |
+| **DevOps, IaC & Observabilidade** | Ansible Automation, Terraform (IaC), OpenTelemetry Collector, Grafana 11, Prometheus, Portainer CE, pgAdmin 4. |
+| **🧩 Plugins Ativos** | MongoDB 7 & Mongo Express, Neo4j Graph DB, Meilisearch Search Engine, Apache Cassandra. |
 
 ---
 

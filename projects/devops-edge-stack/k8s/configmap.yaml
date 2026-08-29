@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: devops-edge-stack-config
+  namespace: stack-devops-edge-stack
+data:
+  ENVIRONMENT: development
+  PROJECT_NAME: devops-edge-stack

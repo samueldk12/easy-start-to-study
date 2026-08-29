@@ -321,6 +321,28 @@ CATEGORIES: List[ToolCategory] = [
                 badge="Search Engine",
                 default_port=5601,
                 ui_url="http://localhost:5601"
+            ),
+            ToolOption(
+                id="nginx",
+                name="NGINX Proxy & Web Server",
+                category="backend",
+                description="Servidor web de alta performance, proxy reverso, balanceador de carga HTTP e terminação SSL/TLS.",
+                icon="globe",
+                badge="Reverse Proxy / Web",
+                default_port=8080,
+                ui_url="http://localhost:8080",
+                default_folders={"config": "nginx/nginx.conf", "html": "nginx/html"}
+            ),
+            ToolOption(
+                id="apigateway",
+                name="Kong API Gateway",
+                category="backend",
+                description="Gateway de APIs nativo de nuvem de alta performance para controle de tráfego, autenticação e rate limiting.",
+                icon="shield",
+                badge="API Gateway",
+                default_port=8000,
+                ui_url="http://localhost:8002",
+                default_folders={"config": "kong/kong.yml"}
             )
         ]
     ),
@@ -383,6 +405,24 @@ CATEGORIES: List[ToolCategory] = [
                 default_port=4318,
                 ui_url="http://localhost:13133",
                 default_folders={"config": "otel/otel-collector-config.yaml"}
+            ),
+            ToolOption(
+                id="ansible",
+                name="Ansible Automation",
+                category="devops",
+                description="Automação de infraestrutura como código (IaC) e configuração de servidores com playbooks YAML sem agentes.",
+                icon="terminal",
+                badge="IaC / Automation",
+                default_folders={"playbooks": "ansible/playbooks", "inventory": "ansible/inventory"}
+            ),
+            ToolOption(
+                id="terraform",
+                name="Terraform (IaC)",
+                category="devops",
+                description="Provisionamento e orquestração declarativa de infraestrutura como código multi-cloud com HashiCorp HCL.",
+                icon="layers",
+                badge="Infrastructure as Code",
+                default_folders={"root": "terraform"}
             )
         ]
     )
