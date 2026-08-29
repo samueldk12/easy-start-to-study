@@ -3,7 +3,7 @@ Architecture Topology and Dependency Graph Engine
 Maps relationships, data flows, and architectural dependencies between all tools in StackStudio.
 """
 
-from typing import List, Dict, Any, Set
+from typing import List, Dict, Any, Set, Optional
 from studio.services.catalog import get_tool_by_id
 
 
@@ -81,16 +81,52 @@ CATEGORY_COLORS = {
 
 class TopologyGraphEngine:
     @staticmethod
-    def build_graph(tool_ids: List[str]) -> Dict[str, Any]:
-        """Builds nodes and filtered edges for the selected list of tools."""
+    def build_graph(tool_ids: List[str], containers_info: Optional[List[Any]] = None) -> Dict[str, Any]:
+        """Builds nodes and filtered edges for the selected list of tools, enriched with real-time health data."""
         tools_set: Set[str] = set(tool_ids)
         
         # Add internal services if present in catalog (like redis_commander if redis is selected)
         if "redis" in tools_set:
             tools_set.add("redis_commander")
 
+        # Map containers by normalized service name
+        containers_map: Dict[str, Dict[str, Any]] = {}
+        if containers_info:
+            for c in containers_info:
+                c_dict = c if isinstance(c, dict) else (c.dict() if hasattr(c, "dict") else c.__dict__)
+                svc = str(c_dict.get("service", "")).lower()
+                cname = str(c_dict.get("name", "")).lower()
+                containers_map[svc] = c_dict
+                containers_map[cname] = c_dict
+
         nodes = []
+        node_status_map = {}
+
         for tid in sorted(tools_set):
+            # Match live container data
+            c_data = containers_map.get(tid)
+            if not c_data:
+                # Fuzzy match (e.g. spark -> spark-master, postgres -> project-postgres)
+                for k, v in containers_map.items():
+                    if tid in k or k in tid:
+                        c_data = v
+                        break
+
+            if c_data:
+                v_status = c_data.get("visual_status", "orange")
+                state = c_data.get("state", "stopped")
+                status_text = c_data.get("status", "Stopped")
+                health = c_data.get("health")
+                retry_count = c_data.get("retry_count", 0)
+            else:
+                v_status = "orange"
+                state = "stopped"
+                status_text = "Parado"
+                health = None
+                retry_count = 0
+
+            node_status_map[tid] = v_status
+
             try:
                 tool = get_tool_by_id(tid)
                 cat_info = CATEGORY_COLORS.get(tool.category, CATEGORY_COLORS["devops"])
@@ -103,7 +139,12 @@ class TopologyGraphEngine:
                     "icon": tool.icon,
                     "port": tool.default_port,
                     "ui_url": tool.ui_url,
-                    "color": cat_info
+                    "color": cat_info,
+                    "visual_status": v_status,
+                    "state": state,
+                    "status_text": status_text,
+                    "health": health,
+                    "retry_count": retry_count
                 })
             except Exception:
                 nodes.append({
@@ -115,17 +156,35 @@ class TopologyGraphEngine:
                     "icon": "box",
                     "port": None,
                     "ui_url": None,
-                    "color": CATEGORY_COLORS["devops"]
+                    "color": CATEGORY_COLORS["devops"],
+                    "visual_status": v_status,
+                    "state": state,
+                    "status_text": status_text,
+                    "health": health,
+                    "retry_count": retry_count
                 })
 
         edges = []
         for rel in RELATIONSHIPS:
             if rel["source"] in tools_set and rel["target"] in tools_set:
+                src_status = node_status_map.get(rel["source"], "orange")
+                tgt_status = node_status_map.get(rel["target"], "orange")
+
+                if src_status == "green" and tgt_status == "green":
+                    edge_status = "active"  # Fluxo operando
+                elif src_status == "red" or tgt_status == "red":
+                    edge_status = "broken"  # Fluxo quebrado / com erro
+                elif src_status == "yellow" or tgt_status == "yellow":
+                    edge_status = "starting"  # Aguardando serviços inicializarem
+                else:
+                    edge_status = "inactive"  # Parado
+
                 edges.append({
                     "source": rel["source"],
                     "target": rel["target"],
                     "label": rel["label"],
-                    "type": rel["type"]
+                    "type": rel["type"],
+                    "status": edge_status
                 })
 
         return {
@@ -136,15 +195,23 @@ class TopologyGraphEngine:
         }
 
     @staticmethod
-    def generate_mermaid(tool_ids: List[str]) -> str:
-        """Generates a Mermaid.js flowchart markdown string for the project topology."""
-        graph_data = TopologyGraphEngine.build_graph(tool_ids)
+    def generate_mermaid(tool_ids: List[str], containers_info: Optional[List[Any]] = None) -> str:
+        """Generates a Mermaid.js flowchart markdown string for the project topology with health markers."""
+        graph_data = TopologyGraphEngine.build_graph(tool_ids, containers_info)
         lines = ["flowchart TD"]
         
+        status_emojis = {
+            "green": "🟢",
+            "yellow": "🟡",
+            "orange": "🟠",
+            "red": "🔴"
+        }
+
         # Nodes
         for n in graph_data["nodes"]:
+            emoji = status_emojis.get(n.get("visual_status", "orange"), "⚪")
             port_str = f" : {n['port']}" if n["port"] else ""
-            lines.append(f'    {n["id"]}["{n["name"]}{port_str}"]')
+            lines.append(f'    {n["id"]}["{emoji} {n["name"]}{port_str}"]')
 
         # Edges
         for e in graph_data["edges"]:
@@ -153,23 +220,35 @@ class TopologyGraphEngine:
         return "\n".join(lines)
 
     @staticmethod
-    def generate_ascii_graph(tool_ids: List[str]) -> str:
-        """Generates an ASCII text representation of the topology for CLI output."""
-        graph_data = TopologyGraphEngine.build_graph(tool_ids)
+    def generate_ascii_graph(tool_ids: List[str], containers_info: Optional[List[Any]] = None) -> str:
+        """Generates an ASCII text representation of the topology with real-time health indicators."""
+        graph_data = TopologyGraphEngine.build_graph(tool_ids, containers_info)
         lines = [
-            "================================================================",
-            " 🕸️ TOPOLOGIA DA ARQUITETURA & FLUXO DE DADOS",
-            "================================================================"
+            "================================================================================",
+            " 🕸️ TOPOLOGIA DA ARQUITETURA & SAÚDE DOS SERVIÇOS EM TEMPO REAL",
+            "================================================================================"
         ]
 
-        if not graph_data["edges"]:
-            lines.append("Serviços ativos (sem conexões diretas entre si):")
-            for n in graph_data["nodes"]:
-                lines.append(f"  • [{n['name']}] (Porta: {n['port'] or '-'})")
-        else:
-            lines.append("Conexões e Fluxo de Dados:")
-            for e in graph_data["edges"]:
-                lines.append(f"  [{e['source']}] ────({e['label']})────► [{e['target']}]")
+        status_emojis = {
+            "green": "🟢 ONLINE",
+            "yellow": "🟡 SUBINDO",
+            "orange": "🟠 PARADO",
+            "red": "🔴 ERRO/CAIU"
+        }
 
-        lines.append("================================================================")
+        lines.append("NÓS E SAÚDE:")
+        for n in graph_data["nodes"]:
+            badge = status_emojis.get(n.get("visual_status", "orange"), "🟠 PARADO")
+            port = f"Porta: {n['port']}" if n['port'] else ""
+            lines.append(f"  [{badge}] {n['name']} ({n['id']}) {port} | Status: {n.get('status_text', '-')}")
+
+        lines.append("\nFLUXO DE DADOS & CONEXÕES:")
+        if not graph_data["edges"]:
+            lines.append("  (Sem conexões diretas entre os serviços selecionados)")
+        else:
+            for e in graph_data["edges"]:
+                edge_indicator = "==[ATIVO]==" if e["status"] == "active" else ("--[SUBINDO]--" if e["status"] == "starting" else ("xx[FALHA]xx" if e["status"] == "broken" else "──(PARADO)──"))
+                lines.append(f"  [{e['source']}] {edge_indicator} ({e['label']}) ────► [{e['target']}]")
+
+        lines.append("================================================================================")
         return "\n".join(lines)

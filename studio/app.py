@@ -157,7 +157,10 @@ async def get_project_topology_graph(project_id: str):
     proj = ProjectStore.get_project(project_id)
     if not proj:
         raise HTTPException(status_code=404, detail="Project not found.")
-    return TopologyGraphEngine.build_graph(proj.tools)
+    
+    # Asynchronously enrich with live Docker container health
+    status_data = await DockerManager.get_project_status(proj.path)
+    return TopologyGraphEngine.build_graph(proj.tools, status_data.get("containers", []))
 
 
 @app.post("/api/graph/preview")

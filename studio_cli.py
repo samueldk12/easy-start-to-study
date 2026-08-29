@@ -285,16 +285,19 @@ async def cmd_edit(args):
     print(f"{CYAN}Ferramentas Ativas ({len(current_tools)}):{RESET} {', '.join(sorted(current_tools))}")
 
 
-def cmd_graph(args):
+async def cmd_graph(args):
     proj = ProjectStore.get_project(args.project_id)
     if not proj:
         print(f"{RED}Erro: Projeto '{args.project_id}' não encontrado.{RESET}")
         return
 
+    status_data = await DockerManager.get_project_status(proj.path)
+    containers = status_data.get("containers", [])
+
     if args.mermaid:
-        print(f"\n```mermaid\n{TopologyGraphEngine.generate_mermaid(proj.tools)}\n```")
+        print(f"\n```mermaid\n{TopologyGraphEngine.generate_mermaid(proj.tools, containers)}\n```")
     else:
-        print(f"\n{TopologyGraphEngine.generate_ascii_graph(proj.tools)}")
+        print(f"\n{TopologyGraphEngine.generate_ascii_graph(proj.tools, containers)}")
 
 
 def main():
@@ -372,7 +375,7 @@ def main():
     elif args.command == "edit":
         asyncio.run(cmd_edit(args))
     elif args.command == "graph":
-        cmd_graph(args)
+        asyncio.run(cmd_graph(args))
     elif args.command == "k8s":
         asyncio.run(cmd_k8s(args))
     elif args.command == "plugins":
