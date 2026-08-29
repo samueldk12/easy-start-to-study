@@ -9,3 +9,4 @@ resources:
 - minio.yaml
 - kafka.yaml
 - spark.yaml
+- vscode.yaml

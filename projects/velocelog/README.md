@@ -16,6 +16,7 @@
 | **Schema Registry** | `data_engineering` | `8086` | http://localhost:8086 |
 | **Apache Spark 3.5 Cluster** | `data_engineering` | `8082` | http://localhost:8082 |
 | **Trino SQL Engine** | `data_engineering` | `8085` | http://localhost:8085 |
+| **VS Code Web (IDE)** | `devops` | `8443` | http://localhost:8443/?folder=/home/coder/project |
 
 ## ⚡ Como Iniciar o Projeto e Rodar os Testes
 

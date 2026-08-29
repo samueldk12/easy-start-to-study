@@ -229,6 +229,87 @@ async def restart_project(project_id: str):
     return {"message": "Project restarted successfully", "details": res}
 
 
+@app.post("/api/projects/{project_id}/services/{service_name}/start")
+async def start_single_service(project_id: str, service_name: str):
+    proj = ProjectStore.get_project(project_id)
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found.")
+    res = await DockerManager.start_service(proj.path, service_name)
+    if not res["success"]:
+        raise HTTPException(status_code=500, detail=res.get("stderr") or res.get("error") or "Failed to start service")
+    return {"message": f"Service {service_name} started successfully", "details": res}
+
+
+@app.post("/api/projects/{project_id}/services/{service_name}/stop")
+async def stop_single_service(project_id: str, service_name: str):
+    proj = ProjectStore.get_project(project_id)
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found.")
+    res = await DockerManager.stop_service(proj.path, service_name)
+    if not res["success"]:
+        raise HTTPException(status_code=500, detail=res.get("stderr") or res.get("error") or "Failed to stop service")
+    return {"message": f"Service {service_name} stopped successfully", "details": res}
+
+
+@app.post("/api/projects/{project_id}/services/{service_name}/restart")
+async def restart_single_service(project_id: str, service_name: str):
+    proj = ProjectStore.get_project(project_id)
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found.")
+    res = await DockerManager.restart_service(proj.path, service_name)
+    if not res["success"]:
+        raise HTTPException(status_code=500, detail=res.get("stderr") or res.get("error") or "Failed to restart service")
+    return {"message": f"Service {service_name} restarted successfully", "details": res}
+
+
+@app.get("/api/projects/{project_id}/manifests")
+async def get_project_manifests(project_id: str):
+    proj = ProjectStore.get_project(project_id)
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found.")
+    
+    compose_path = os.path.join(proj.path, "docker-compose.yml")
+    docker_compose_content = ""
+    if os.path.exists(compose_path):
+        with open(compose_path, "r", encoding="utf-8") as f:
+            docker_compose_content = f.read()
+
+    k8s_dir = os.path.join(proj.path, "k8s")
+    k8s_files = {}
+    if os.path.exists(k8s_dir) and os.path.isdir(k8s_dir):
+        for root, _, files in os.walk(k8s_dir):
+            for file in files:
+                if file.endswith((".yaml", ".yml")):
+                    full_path = os.path.join(root, file)
+                    rel_path = os.path.relpath(full_path, proj.path).replace("\\", "/")
+                    try:
+                        with open(full_path, "r", encoding="utf-8") as f:
+                            k8s_files[rel_path] = f.read()
+                    except Exception:
+                        pass
+
+    cli_instructions = {
+        "docker_compose_up": "docker compose up -d",
+        "docker_compose_down": "docker compose down",
+        "docker_compose_restart": "docker compose restart",
+        "docker_service_start": "docker compose up -d <service>",
+        "docker_service_restart": "docker compose restart <service>",
+        "docker_service_logs": "docker compose logs -f <service>",
+        "k8s_apply": "kubectl apply -k k8s/",
+        "k8s_delete": "kubectl delete -k k8s/",
+        "k8s_status": f"kubectl get all -n stack-{proj.name}"
+    }
+
+    return {
+        "project_id": proj.id,
+        "project_name": proj.name,
+        "project_path": proj.path,
+        "docker_compose": docker_compose_content,
+        "k8s_files": k8s_files,
+        "cli_instructions": cli_instructions
+    }
+
+
 @app.post("/api/projects/{project_id}/test")
 async def test_project(project_id: str):
     import sys

@@ -60,6 +60,26 @@ class DockerManager:
     async def restart_project(project_dir: str) -> Dict[str, Any]:
         return await DockerManager.run_command(project_dir, ["restart"])
 
+    @staticmethod
+    async def start_service(project_dir: str, service: str) -> Dict[str, Any]:
+        """Starts or recreates an individual service."""
+        return await DockerManager.run_command(project_dir, ["up", "-d", service])
+
+    @staticmethod
+    async def stop_service(project_dir: str, service: str) -> Dict[str, Any]:
+        """Stops an individual service container."""
+        return await DockerManager.run_command(project_dir, ["stop", service])
+
+    @staticmethod
+    async def restart_service(project_dir: str, service: str) -> Dict[str, Any]:
+        """Restarts an individual service container."""
+        return await DockerManager.run_command(project_dir, ["restart", service])
+
+    @staticmethod
+    async def get_service_logs(project_dir: str, service: str, tail: int = 150) -> Dict[str, Any]:
+        """Retrieves non-blocking tail logs for a specific service."""
+        return await DockerManager.run_command(project_dir, ["logs", f"--tail={tail}", service])
+
     _RETRY_TRACKER: Dict[str, int] = {}
     _MAX_RETRIES: int = 5
 

@@ -242,6 +242,10 @@
                   <button @click.stop="openLogs(project)" title="Ver Logs em Tempo Real (Separados por Serviço)" class="p-2 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg transition">
                     <svg class="w-4 h-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                   </button>
+                  <!-- Manifests & Code Button -->
+                  <button @click.stop="openManifestsModal(project)" title="Ver docker-compose.yml, Manifestos K8s e Comandos CLI" class="p-2 text-emerald-400 hover:text-white bg-emerald-500/10 hover:bg-emerald-500/20 rounded-lg transition cursor-pointer">
+                    <svg class="w-4 h-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                  </button>
                   <!-- Delete Button -->
                   <button @click.stop="deleteProject(project)" title="Excluir Registro" class="p-2 text-slate-400 hover:text-red-400 bg-slate-800 hover:bg-red-500/10 rounded-lg transition">
                     <svg class="w-4 h-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
@@ -282,8 +286,8 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
                   <template x-for="c in getVisibleContainers(project)" :key="c.name">
-                    <div class="p-2 bg-dark-950 border border-slate-800 rounded-lg flex items-center justify-between text-xs transition hover:border-slate-700">
-                      <div class="flex items-center gap-2 min-w-0">
+                    <div class="p-2.5 bg-dark-950 border border-slate-800 rounded-xl flex items-center justify-between gap-2 text-xs transition hover:border-slate-700">
+                      <div class="flex items-center gap-2.5 min-w-0 flex-1">
                         <!-- Status Dot: Green / Yellow / Orange / Red -->
                         <span class="w-2.5 h-2.5 rounded-full shrink-0"
                           :class="{
@@ -293,22 +297,41 @@
                             'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)] animate-pulse': c.visual_status === 'red'
                           }"></span>
                         
-                        <div class="truncate">
-                          <span class="font-bold text-slate-200 text-[11px]" x-text="c.service"></span>
+                        <div class="truncate flex-1">
+                          <div class="flex items-center gap-1.5">
+                            <span class="font-bold text-slate-200 text-xs" x-text="c.service"></span>
+                            <!-- Status Tag -->
+                            <span class="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase shrink-0"
+                              :class="{
+                                'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20': c.visual_status === 'green',
+                                'bg-amber-500/10 text-amber-400 border border-amber-500/20': c.visual_status === 'yellow',
+                                'bg-orange-500/10 text-orange-400 border border-orange-500/20': c.visual_status === 'orange',
+                                'bg-red-500/10 text-red-400 border border-red-500/20': c.visual_status === 'red'
+                              }"
+                              x-text="c.visual_status === 'green' ? 'Online' : (c.visual_status === 'yellow' ? 'Subindo' : (c.state === 'paused' ? 'Pausado' : (c.visual_status === 'orange' ? 'Parado' : 'Erro')))">
+                            </span>
+                          </div>
                           <span class="text-[10px] text-slate-400 block truncate" x-text="c.status"></span>
                         </div>
                       </div>
 
-                      <!-- Status Tag -->
-                      <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase shrink-0"
-                        :class="{
-                          'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20': c.visual_status === 'green',
-                          'bg-amber-500/10 text-amber-400 border border-amber-500/20': c.visual_status === 'yellow',
-                          'bg-orange-500/10 text-orange-400 border border-orange-500/20': c.visual_status === 'orange',
-                          'bg-red-500/10 text-red-400 border border-red-500/20': c.visual_status === 'red'
-                        }"
-                        x-text="c.visual_status === 'green' ? 'Online' : (c.visual_status === 'yellow' ? 'Subindo' : (c.state === 'paused' ? 'Pausado' : (c.visual_status === 'orange' ? 'Parado' : 'Erro')))">
-                      </span>
+                      <!-- Individual Container Actions -->
+                      <div class="flex items-center gap-1 shrink-0">
+                        <!-- Start / Restart Container Button -->
+                        <button type="button" @click.stop="startSingleService(project, c.service)" :title="c.visual_status === 'green' ? 'Reiniciar container (docker compose restart)' : 'Iniciar container (docker compose up -d)'" class="p-1 text-emerald-400 hover:text-white bg-emerald-500/10 hover:bg-emerald-500/20 rounded transition cursor-pointer">
+                          <svg class="w-3.5 h-3.5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </button>
+                        
+                        <!-- Stop Container Button -->
+                        <button type="button" @click.stop="stopSingleService(project, c.service)" title="Parar este container (docker compose stop)" class="p-1 text-amber-400 hover:text-white bg-amber-500/10 hover:bg-amber-500/20 rounded transition cursor-pointer">
+                          <svg class="w-3.5 h-3.5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>
+                        </button>
+
+                        <!-- Specific Logs & Diagnostics Button -->
+                        <button type="button" @click.stop="openServiceLogs(project, c.service)" title="Ver logs e diagnóstico deste container" class="p-1 text-brand-400 hover:text-white bg-brand-500/10 hover:bg-brand-500/20 rounded transition cursor-pointer">
+                          <svg class="w-3.5 h-3.5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        </button>
+                      </div>
                     </div>
                   </template>
                 </div>
@@ -940,6 +963,131 @@
     </div>
   </div>
 
+  <!-- MANIFESTS & GENERATED CODE MODAL -->
+  <div x-show="showManifestsModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div @click.away="showManifestsModal = false" class="bg-dark-900 border border-slate-800 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <!-- Modal Header -->
+      <div class="p-5 border-b border-slate-800 flex items-center justify-between bg-dark-950">
+        <div class="flex items-center space-x-3">
+          <div class="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl">
+            <svg class="w-6 h-6 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              Manifestos & Código: <span class="text-emerald-400" x-text="manifestsData.project_name"></span>
+            </h3>
+            <p class="text-xs text-slate-400">Códigos gerados (Docker Compose, Kubernetes) e comandos CLI de inicialização e reinicialização</p>
+          </div>
+        </div>
+
+        <button @click="showManifestsModal = false" class="p-2 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition cursor-pointer">
+          <svg class="w-5 h-5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="px-5 pt-3 border-b border-slate-800 bg-dark-950 flex items-center gap-2">
+        <button type="button" @click="manifestTab = 'compose'" class="px-4 py-2 text-xs font-bold rounded-t-xl transition border-b-2 cursor-pointer"
+          :class="manifestTab === 'compose' ? 'text-emerald-400 border-emerald-400 bg-dark-900' : 'text-slate-400 border-transparent hover:text-slate-200'">
+          🐳 docker-compose.yml
+        </button>
+        <button type="button" @click="manifestTab = 'k8s'" class="px-4 py-2 text-xs font-bold rounded-t-xl transition border-b-2 cursor-pointer"
+          :class="manifestTab === 'k8s' ? 'text-indigo-400 border-indigo-400 bg-dark-900' : 'text-slate-400 border-transparent hover:text-slate-200'">
+          ⚓ Kubernetes (k8s/)
+        </button>
+        <button type="button" @click="manifestTab = 'cli'" class="px-4 py-2 text-xs font-bold rounded-t-xl transition border-b-2 cursor-pointer"
+          :class="manifestTab === 'cli' ? 'text-cyan-400 border-cyan-400 bg-dark-900' : 'text-slate-400 border-transparent hover:text-slate-200'">
+          ⚡ Comandos CLI (Start & Restart)
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-5 overflow-y-auto flex-1 space-y-4">
+        <!-- Tab 1: Docker Compose -->
+        <div x-show="manifestTab === 'compose'" class="space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-slate-400 font-mono" x-text="manifestsData.project_path + '/docker-compose.yml'"></span>
+            <button @click="copyToClipboard(manifestsData.docker_compose, 'docker-compose.yml copiado!')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer">
+              <svg class="w-3.5 h-3.5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+              Copiar YAML
+            </button>
+          </div>
+          <pre class="p-4 bg-dark-950 border border-slate-800 rounded-xl font-mono text-xs text-emerald-300 overflow-x-auto max-h-[50vh] leading-relaxed select-all" x-text="manifestsData.docker_compose || '# docker-compose.yml vazio'"></pre>
+        </div>
+
+        <!-- Tab 2: Kubernetes Files -->
+        <div x-show="manifestTab === 'k8s'" class="space-y-3">
+          <div class="flex items-center justify-between gap-4">
+            <div class="flex items-center gap-2 flex-1">
+              <label class="text-xs text-slate-400">Arquivo K8s:</label>
+              <select x-model="selectedK8sFile" class="bg-dark-950 border border-slate-700 text-white rounded-lg px-3 py-1 text-xs focus:outline-none focus:border-indigo-500">
+                <template x-for="fileName in Object.keys(manifestsData.k8s_files || {})" :key="fileName">
+                  <option :value="fileName" x-text="fileName"></option>
+                </template>
+              </select>
+            </div>
+            <button @click="copyToClipboard(manifestsData.k8s_files[selectedK8sFile], 'Manifest K8s copiado!')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer">
+              <svg class="w-3.5 h-3.5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+              Copiar Manifest
+            </button>
+          </div>
+          <pre class="p-4 bg-dark-950 border border-slate-800 rounded-xl font-mono text-xs text-indigo-300 overflow-x-auto max-h-[50vh] leading-relaxed select-all" x-text="manifestsData.k8s_files ? (manifestsData.k8s_files[selectedK8sFile] || '# Nenhum arquivo selecionado') : '# Nenhum manifesto K8s'"></pre>
+        </div>
+
+        <!-- Tab 3: CLI Commands -->
+        <div x-show="manifestTab === 'cli'" class="space-y-4">
+          <div class="p-4 bg-dark-950 border border-slate-800 rounded-xl space-y-3">
+            <h4 class="text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-2">
+              <svg class="w-4 h-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+              Comandos Docker Compose (Diretório do Projeto)
+            </h4>
+            <div class="space-y-2 text-xs font-mono">
+              <div class="p-2.5 bg-dark-900 rounded-lg flex items-center justify-between border border-slate-800/80">
+                <span class="text-slate-300">cd <span x-text="manifestsData.project_path"></span> && docker compose up -d</span>
+                <button @click="copyToClipboard(`cd ${manifestsData.project_path} && docker compose up -d`, 'Comando copiado!')" class="text-slate-400 hover:text-white text-[11px] cursor-pointer">Copiar</button>
+              </div>
+              <div class="p-2.5 bg-dark-900 rounded-lg flex items-center justify-between border border-slate-800/80">
+                <span class="text-slate-300">docker compose restart [nome-do-serviço]</span>
+                <button @click="copyToClipboard('docker compose restart', 'Comando copiado!')" class="text-slate-400 hover:text-white text-[11px] cursor-pointer">Copiar</button>
+              </div>
+              <div class="p-2.5 bg-dark-900 rounded-lg flex items-center justify-between border border-slate-800/80">
+                <span class="text-slate-300">docker compose logs -f [nome-do-serviço]</span>
+                <button @click="copyToClipboard('docker compose logs -f', 'Comando copiado!')" class="text-slate-400 hover:text-white text-[11px] cursor-pointer">Copiar</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-4 bg-dark-950 border border-slate-800 rounded-xl space-y-3">
+            <h4 class="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-2">
+              <svg class="w-4 h-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+              Comandos Kubernetes (kubectl)
+            </h4>
+            <div class="space-y-2 text-xs font-mono">
+              <div class="p-2.5 bg-dark-900 rounded-lg flex items-center justify-between border border-slate-800/80">
+                <span class="text-slate-300">kubectl apply -k <span x-text="manifestsData.project_path + '/k8s'"></span></span>
+                <button @click="copyToClipboard(`kubectl apply -k ${manifestsData.project_path}/k8s`, 'Comando K8s copiado!')" class="text-slate-400 hover:text-white text-[11px] cursor-pointer">Copiar</button>
+              </div>
+              <div class="p-2.5 bg-dark-900 rounded-lg flex items-center justify-between border border-slate-800/80">
+                <span class="text-slate-300">kubectl get all -n stack-<span x-text="manifestsData.project_name"></span></span>
+                <button @click="copyToClipboard(`kubectl get all -n stack-${manifestsData.project_name}`, 'Comando K8s copiado!')" class="text-slate-400 hover:text-white text-[11px] cursor-pointer">Copiar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 border-t border-slate-800 bg-dark-950 flex items-center justify-between">
+        <div class="text-xs text-slate-400">
+          Você também pode abrir e editar todos estes arquivos no <strong>VS Code Web</strong> pelo navegador.
+        </div>
+        <button type="button" @click="showManifestsModal = false" class="px-5 py-2 text-xs font-bold text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition cursor-pointer">
+          Fechar
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- LOGS TERMINAL DRAWER (WITH SERVICE SELECTOR) -->
   <div x-show="showLogsModal" x-cloak class="fixed inset-0 z-50 overflow-hidden bg-black/70 backdrop-blur-sm flex justify-end">
     <div @click.away="closeLogs()" class="bg-dark-950 border-l border-slate-800 w-full max-w-4xl h-full flex flex-col shadow-2xl">
@@ -997,6 +1145,17 @@
         showEditModal: false,
         showGraphModal: false,
         showLogsModal: false,
+        showManifestsModal: false,
+        manifestTab: 'compose',
+        selectedK8sFile: '',
+        manifestsData: {
+          project_id: '',
+          project_name: '',
+          project_path: '',
+          docker_compose: '',
+          k8s_files: {},
+          cli_instructions: {}
+        },
         showPluginsModal: false,
         showNewPluginForm: false,
         showAdvancedConfig: false,
@@ -1029,6 +1188,69 @@
             return project.containers;
           }
           return project.containers.slice(0, 4);
+        },
+
+        async openManifestsModal(project) {
+          this.selectedProject = project;
+          this.showToast('Carregando Códigos', `Carregando manifestos de ${project.name}...`, 'info');
+          try {
+            const res = await fetch(`/api/projects/${project.id}/manifests`);
+            this.manifestsData = await res.json();
+            const files = Object.keys(this.manifestsData.k8s_files || {});
+            this.selectedK8sFile = files.length > 0 ? files[0] : '';
+            this.showManifestsModal = true;
+          } catch (e) {
+            this.showToast('Erro ao Carregar', e.message, 'error');
+          }
+        },
+
+        async startSingleService(project, serviceName) {
+          this.showToast('Iniciando Serviço', `Subindo serviço "${serviceName}" de ${project.name}...`, 'info');
+          try {
+            const res = await fetch(`/api/projects/${project.id}/services/${serviceName}/start`, { method: 'POST' });
+            if (res.ok) {
+              this.showToast('Serviço Iniciado', `Container "${serviceName}" está ativo!`, 'success');
+            } else {
+              const err = await res.json();
+              this.showToast('Falha no Serviço', err.detail || 'Erro ao subir container', 'error');
+            }
+            await this.refreshProjects();
+          } catch (e) {
+            this.showToast('Erro', e.message, 'error');
+          }
+        },
+
+        async stopSingleService(project, serviceName) {
+          this.showToast('Parando Serviço', `Parando serviço "${serviceName}" de ${project.name}...`, 'info');
+          try {
+            const res = await fetch(`/api/projects/${project.id}/services/${serviceName}/stop`, { method: 'POST' });
+            if (res.ok) {
+              this.showToast('Serviço Parado', `Container "${serviceName}" foi parado.`, 'info');
+            } else {
+              const err = await res.json();
+              this.showToast('Erro', err.detail || 'Erro ao parar container', 'error');
+            }
+            await this.refreshProjects();
+          } catch (e) {
+            this.showToast('Erro', e.message, 'error');
+          }
+        },
+
+        openServiceLogs(project, serviceName) {
+          this.selectedProject = project;
+          this.selectedLogService = serviceName;
+          this.showLogsModal = true;
+          this.connectLogsStream();
+          this.showToast('Logs do Serviço', `Visualizando logs específicos de "${serviceName}"`, 'info');
+        },
+
+        copyToClipboard(text, toastMsg = 'Copiado para a área de transferência!') {
+          if (!text) return;
+          navigator.clipboard.writeText(text).then(() => {
+            this.showToast('Copiado', toastMsg, 'success');
+          }).catch(() => {
+            this.showToast('Erro', 'Não foi possível copiar o texto.', 'error');
+          });
         },
 
         showToast(title, message, type = 'info') {

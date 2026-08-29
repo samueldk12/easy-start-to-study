@@ -16,7 +16,7 @@ services:
     healthcheck:
       test:
       - CMD-SHELL
-      - pg_isready -U postgres -d oltp_db
+      - pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB || pg_isready
       interval: 5s
       timeout: 5s
       retries: 5
@@ -250,6 +250,16 @@ services:
     - ./airflow/dags:/opt/airflow/dags
     - ./airflow/plugins:/opt/airflow/plugins
     command: airflow scheduler
+    networks:
+    - velocelog-net
+  vscode:
+    image: codercom/code-server:latest
+    container_name: velocelog-vscode
+    command: --auth none --bind-addr 0.0.0.0:8080 /home/coder/project
+    ports:
+    - 8443:8080
+    volumes:
+    - ./:/home/coder/project
     networks:
     - velocelog-net
 networks:
