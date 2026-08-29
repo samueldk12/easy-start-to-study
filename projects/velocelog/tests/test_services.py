@@ -14,7 +14,7 @@ import urllib.request
 import urllib.error
 import json
 
-ENABLED_TOOLS = set(['spark', 'kafka_connect', 'kafka', 'kafka_ui', 'minio', 'postgres', 'schema_registry', 'trino', 'iceberg_rest', 'airflow', 'vscode'])
+ENABLED_TOOLS = set(['spark', 'postgres', 'airflow', 'kafka', 'kafka_connect', 'vscode', 'trino', 'minio', 'iceberg_rest', 'schema_registry', 'kafka_ui'])
 CUSTOM_PORTS = {}
 
 class Colors:

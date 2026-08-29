@@ -68,6 +68,8 @@ class ProjectCreateRequest(BaseModel):
     custom_ports: Dict[str, int] = Field(default_factory=dict)
     custom_envs: Dict[str, str] = Field(default_factory=dict)
     custom_folders: Dict[str, str] = Field(default_factory=dict)
+    auto_install_extensions: bool = True
+    custom_vscode_extensions: List[str] = Field(default_factory=list)
 
 
 class ProjectUpdateRequest(BaseModel):
@@ -78,6 +80,8 @@ class ProjectUpdateRequest(BaseModel):
     custom_ports: Dict[str, int] = Field(default_factory=dict)
     custom_envs: Dict[str, str] = Field(default_factory=dict)
     custom_folders: Dict[str, str] = Field(default_factory=dict)
+    auto_install_extensions: Optional[bool] = True
+    custom_vscode_extensions: Optional[List[str]] = None
 
 
 class ContainerInfo(BaseModel):
@@ -104,5 +108,7 @@ class ProjectInfo(BaseModel):
     status: str = "stopped"  # "running", "starting", "stopped", "paused", "error", "partial"
     visual_status: str = "orange"  # "green", "yellow", "orange", "red"
     retry_count: int = 0
+    auto_install_extensions: bool = True
+    custom_vscode_extensions: List[str] = Field(default_factory=list)
     containers: List[ContainerInfo] = Field(default_factory=list)
     ui_links: List[Dict[str, str]] = Field(default_factory=list)

@@ -76,7 +76,11 @@ services:
   vscode:
     image: codercom/code-server:latest
     container_name: devops-edge-stack-vscode
-    command: --auth none --bind-addr 0.0.0.0:8080 /home/coder/project
+    entrypoint:
+    - /bin/sh
+    - /home/coder/project/vscode/entrypoint.sh
+    environment:
+      AUTO_INSTALL_EXTENSIONS: 'true'
     ports:
     - 8443:8080
     volumes:
@@ -89,4 +93,3 @@ networks:
 volumes:
   pg_data: {}
   redis_data: {}
-  vscode_config: {}

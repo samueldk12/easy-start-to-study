@@ -31,7 +31,7 @@ class ProjectStore:
             json.dump(registry, f, indent=2, ensure_ascii=False)
 
     @staticmethod
-    def register_project(project_id: str, name: str, path: str, description: str, tools: List[str], include_templates: bool = True) -> ProjectInfo:
+    def register_project(project_id: str, name: str, path: str, description: str, tools: List[str], include_templates: bool = True, auto_install_extensions: bool = True, custom_vscode_extensions: Optional[List[str]] = None) -> ProjectInfo:
         registry = ProjectStore._load_registry()
         data = {
             "id": project_id,
@@ -40,6 +40,8 @@ class ProjectStore:
             "description": description,
             "tools": tools,
             "include_templates": include_templates,
+            "auto_install_extensions": auto_install_extensions,
+            "custom_vscode_extensions": custom_vscode_extensions or [],
             "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
         registry[project_id] = data
@@ -89,6 +91,8 @@ class ProjectStore:
             description=data.get("description", ""),
             tools=data.get("tools", []),
             include_templates=data.get("include_templates", True),
+            auto_install_extensions=data.get("auto_install_extensions", True),
+            custom_vscode_extensions=data.get("custom_vscode_extensions", []),
             created_at=data.get("created_at", ""),
             ui_links=ui_links
         )

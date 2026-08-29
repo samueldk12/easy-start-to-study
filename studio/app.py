@@ -106,7 +106,9 @@ async def create_project(request: ProjectCreateRequest):
         path=project_dir,
         description=request.description or "Projeto gerado via StackStudio",
         tools=list(scaffolder.tools),
-        include_templates=request.include_templates
+        include_templates=request.include_templates,
+        auto_install_extensions=request.auto_install_extensions,
+        custom_vscode_extensions=request.custom_vscode_extensions
     )
     return proj
 
@@ -124,6 +126,9 @@ async def update_project(project_id: str, update_req: ProjectUpdateRequest):
     if not update_req.tools:
         raise HTTPException(status_code=400, detail="At least one tool must remain in the project.")
 
+    auto_ext = update_req.auto_install_extensions if update_req.auto_install_extensions is not None else proj.auto_install_extensions
+    custom_exts = update_req.custom_vscode_extensions if update_req.custom_vscode_extensions is not None else proj.custom_vscode_extensions
+
     # Build create request to trigger re-scaffold with updated tools
     create_req = ProjectCreateRequest(
         name=proj.name,
@@ -135,7 +140,9 @@ async def update_project(project_id: str, update_req: ProjectUpdateRequest):
         default_password=update_req.default_password or "admin123",
         custom_ports=update_req.custom_ports,
         custom_envs=update_req.custom_envs,
-        custom_folders=update_req.custom_folders
+        custom_folders=update_req.custom_folders,
+        auto_install_extensions=auto_ext,
+        custom_vscode_extensions=custom_exts
     )
 
     scaffolder = ProjectScaffolder(create_req)
@@ -147,7 +154,9 @@ async def update_project(project_id: str, update_req: ProjectUpdateRequest):
         path=proj.path,
         description=create_req.description,
         tools=list(scaffolder.tools),
-        include_templates=proj.include_templates
+        include_templates=proj.include_templates,
+        auto_install_extensions=auto_ext,
+        custom_vscode_extensions=custom_exts
     )
     return updated_proj
 

@@ -3,6 +3,7 @@ Project Scaffolding and Code Generation Engine with Automated Service Health & F
 """
 
 import os
+import json
 import shutil
 import yaml
 from typing import Dict, List, Any
@@ -68,6 +69,9 @@ class ProjectScaffolder:
 
         if "terraform" in self.tools:
             self._generate_terraform_files()
+
+        # Generate .vscode extensions & settings
+        self._generate_vscode_files()
 
         # 4. Generate Automation Scripts and Makefile
         self._generate_scripts()
@@ -677,10 +681,14 @@ class ProjectScaffolder:
         # --- VS CODE WEB (CODE-SERVER) ---
         if "vscode" in self.tools:
             port = self.request.custom_ports.get("vscode", 8443)
+            auto_ext = "true" if getattr(self.request, "auto_install_extensions", True) else "false"
             services["vscode"] = {
                 "image": "codercom/code-server:latest",
                 "container_name": f"{self.project_name}-vscode",
-                "command": "--auth none --bind-addr 0.0.0.0:8080 /home/coder/project",
+                "entrypoint": ["/bin/sh", "/home/coder/project/vscode/entrypoint.sh"],
+                "environment": {
+                    "AUTO_INSTALL_EXTENSIONS": auto_ext
+                },
                 "ports": [f"{port}:8080"],
                 "volumes": [
                     "./:/home/coder/project"
@@ -1831,3 +1839,93 @@ if __name__ == "__main__":
 
         with open(os.path.join(self.project_dir, "README.md"), "w", encoding="utf-8") as f:
             f.write("\n".join(readme_lines))
+
+    def _get_vscode_extensions(self) -> List[str]:
+        """Calculates official and recommended VS Code extensions based on selected tools and user custom list."""
+        extensions: List[str] = ["redhat.vscode-yaml", "eamodio.gitlens", "ms-azuretools.vscode-docker"]
+        
+        mapping = {
+            "python": ["ms-python.python", "ms-python.vscode-pylance", "ms-toolsai.jupyter"],
+            "spark": ["ms-python.python", "ms-toolsai.jupyter"],
+            "pyspark": ["ms-python.python", "ms-toolsai.jupyter"],
+            "airflow": ["ms-python.python", "redhat.vscode-yaml"],
+            "fastapi": ["ms-python.python"],
+            "dbt": ["innoverio.vscode-dbt-power-user", "ms-python.python"],
+            "postgres": ["ckolkman.vscode-postgres", "mtxr.sqltools"],
+            "mysql": ["cweijan.vscode-database-client2", "mtxr.sqltools"],
+            "clickhouse": ["cweijan.vscode-database-client2"],
+            "redis": ["cweijan.vscode-database-client2"],
+            "kafka": ["formulahendry.vscode-kafka"],
+            "terraform": ["hashicorp.terraform"],
+            "ansible": ["redhat.ansible", "redhat.vscode-yaml"],
+            "nginx": ["ahmadalli.vscode-nginx-conf"],
+            "k8s": ["ms-kubernetes-tools.vscode-kubernetes-tools", "redhat.vscode-yaml"],
+            "opentelemetry": ["redhat.vscode-yaml"],
+            "openmetadata": ["redhat.vscode-yaml"]
+        }
+
+        for tool in self.tools:
+            if tool in mapping:
+                for ext in mapping[tool]:
+                    if ext not in extensions:
+                        extensions.append(ext)
+
+        # Add user-customized extensions
+        custom_exts = getattr(self.request, "custom_vscode_extensions", None)
+        if custom_exts and isinstance(custom_exts, list):
+            for ext in custom_exts:
+                if ext and ext.strip() and ext.strip() not in extensions:
+                    extensions.append(ext.strip())
+
+        return extensions
+
+    def _generate_vscode_files(self):
+        """Generates .vscode/extensions.json, .vscode/settings.json, and vscode/entrypoint.sh."""
+        vscode_dir = os.path.join(self.project_dir, ".vscode")
+        os.makedirs(vscode_dir, exist_ok=True)
+
+        exts = self._get_vscode_extensions()
+        
+        # 1. .vscode/extensions.json (Official VS Code Workspace Recommendations)
+        extensions_json = {
+            "recommendations": exts
+        }
+        with open(os.path.join(vscode_dir, "extensions.json"), "w", encoding="utf-8") as f:
+            json.dump(extensions_json, f, indent=2)
+
+        # 2. .vscode/settings.json
+        settings_json = {
+            "files.autoSave": "afterDelay",
+            "editor.formatOnSave": True,
+            "editor.tabSize": 2,
+            "terminal.integrated.defaultProfile.linux": "bash",
+            "docker.showStartPage": False
+        }
+        with open(os.path.join(vscode_dir, "settings.json"), "w", encoding="utf-8") as f:
+            json.dump(settings_json, f, indent=2)
+
+        # 3. vscode/entrypoint.sh (Auto-install script executed by code-server container)
+        vscode_scripts_dir = os.path.join(self.project_dir, "vscode")
+        os.makedirs(vscode_scripts_dir, exist_ok=True)
+
+        auto_install = "true" if getattr(self.request, "auto_install_extensions", True) else "false"
+        entrypoint_content = f"""#!/bin/sh
+set -e
+
+echo "=== [StackStudio VS Code Web IDE] Inicializando Workspace ==="
+
+if [ "$AUTO_INSTALL_EXTENSIONS" = "true" ] && [ -f /home/coder/project/.vscode/extensions.json ]; then
+  echo "Instalando extensoes oficiais recomendadas do projeto..."
+  for ext in {' '.join(exts)}; do
+    echo " -> Instalando extensao: $ext"
+    code-server --install-extension "$ext" --force || echo "  [AVISO] Nao foi possivel instalar $ext, continuando..."
+  done
+  echo "Extensoes oficiais configuradas com sucesso!"
+fi
+
+echo "Iniciando code-server..."
+exec code-server --auth none --bind-addr 0.0.0.0:8080 /home/coder/project
+"""
+        entrypoint_path = os.path.join(vscode_scripts_dir, "entrypoint.sh")
+        with open(entrypoint_path, "w", encoding="utf-8", newline="\n") as f:
+            f.write(entrypoint_content)

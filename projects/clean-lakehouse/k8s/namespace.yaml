@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: stack-clean-lakehouse
+  labels:
+    app.kubernetes.io/name: clean-lakehouse
+    app.kubernetes.io/managed-by: StackStudio

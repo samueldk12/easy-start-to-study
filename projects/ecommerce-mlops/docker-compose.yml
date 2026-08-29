@@ -5,7 +5,7 @@ services:
     container_name: ecommerce-mlops-postgres
     command: postgres -c wal_level=logical -c max_wal_senders=10 -c max_replication_slots=10
     ports:
-    - 5436:5432
+    - 5434:5432
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
@@ -16,7 +16,7 @@ services:
     healthcheck:
       test:
       - CMD-SHELL
-      - pg_isready -U postgres -d oltp_db
+      - pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB || pg_isready
       interval: 5s
       timeout: 5s
       retries: 5
@@ -28,7 +28,7 @@ services:
     command: server /data --console-address ":9001"
     ports:
     - 9000:9000
-    - 9002:9001
+    - 9001:9001
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-password123}
@@ -93,7 +93,7 @@ services:
     image: redis:7-alpine
     container_name: ecommerce-mlops-redis
     ports:
-    - 6381:6379
+    - 6380:6379
     volumes:
     - redis_data:/data
     networks:

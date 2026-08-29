@@ -1,7 +1,11 @@
-.PHONY: start stop restart status logs clean
+.PHONY: start stop restart status logs test clean
 
 start:
 	docker compose up -d
+	python tests/test_services.py
+
+test:
+	python tests/test_services.py
 
 stop:
 	docker compose down

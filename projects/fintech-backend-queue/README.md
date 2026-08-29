@@ -8,9 +8,9 @@
 | :--- | :--- | :--- | :--- |
 | **Hasura GraphQL Engine** | `backend` | `8095` | http://localhost:8095 |
 | **Keycloak IAM** | `backend` | `8090` | http://localhost:8090 |
-| **PostgreSQL (OLTP + CDC)** | `data_engineering` | `5437` | - |
-| **RabbitMQ + Management** | `backend` | `15673` | http://localhost:15672 |
-| **Redis & Redis Commander** | `backend` | `6382` | http://localhost:8089 |
+| **PostgreSQL (OLTP + CDC)** | `data_engineering` | `5434` | - |
+| **RabbitMQ + Management** | `backend` | `15672` | http://localhost:15672 |
+| **Redis & Redis Commander** | `backend` | `6380` | http://localhost:8089 |
 
 ## ⚡ Como Iniciar o Projeto e Rodar os Testes
 

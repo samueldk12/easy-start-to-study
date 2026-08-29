@@ -14,7 +14,7 @@ import urllib.request
 import urllib.error
 import json
 
-ENABLED_TOOLS = set(['prometheus', 'postgres', 'openmetadata', 'grafana', 'opentelemetry'])
+ENABLED_TOOLS = set(['prometheus', 'postgres', 'grafana', 'opentelemetry', 'openmetadata'])
 CUSTOM_PORTS = {}
 
 class Colors:

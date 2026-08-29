@@ -648,6 +648,37 @@
         </div>
       </div>
 
+      <!-- VS Code Official Extensions Configuration in Edit Modal -->
+      <div class="p-4 bg-dark-950 border border-slate-800 rounded-xl space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-blue-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+            <div>
+              <span class="font-bold text-xs text-white">Extensões Oficiais do VS Code Web</span>
+              <span class="text-[10px] text-slate-400 block">Instalação automática das extensões oficiais conforme as ferramentas do projeto</span>
+            </div>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" x-model="editForm.auto_install_extensions" class="sr-only peer">
+            <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+          </label>
+        </div>
+
+        <div x-show="editForm.auto_install_extensions" class="space-y-2 pt-2 border-t border-slate-800/80">
+          <div class="text-[11px] text-slate-400">Extensões recomendadas para esta configuração:</div>
+          <div class="flex flex-wrap gap-1.5">
+            <template x-for="ext in getRecommendedExtensions(editForm.tools, editForm.custom_vscode_extensions_input)" :key="ext">
+              <span class="px-2 py-0.5 bg-blue-500/10 text-blue-300 border border-blue-500/30 rounded text-[10px] font-mono flex items-center gap-1" x-text="ext"></span>
+            </template>
+          </div>
+
+          <div class="pt-2">
+            <label class="block text-[10px] text-slate-400 mb-1">Extensões Adicionais / Customizadas (separadas por vírgula):</label>
+            <input type="text" x-model="editForm.custom_vscode_extensions_input" placeholder="ex: esbenp.prettier-vscode, username.ext-name" class="w-full bg-dark-900 border border-slate-800 rounded px-2.5 py-1 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-blue-500">
+          </div>
+        </div>
+      </div>
+
       <!-- Modal Footer -->
       <div class="flex items-center justify-end space-x-3 border-t border-slate-800 pt-4">
         <button type="button" @click="showEditModal = false" class="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition">
@@ -944,6 +975,37 @@
                 </div>
               </div>
             </template>
+          </div>
+
+          <!-- VS Code Official Extensions Configuration in Create Modal -->
+          <div class="p-4 bg-dark-900 border border-slate-800 rounded-xl space-y-3 mt-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-blue-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                <div>
+                  <span class="font-bold text-xs text-white">Extensões Oficiais do VS Code Web</span>
+                  <span class="text-[10px] text-slate-400 block">Instalação automática das extensões oficiais conforme as ferramentas selecionadas</span>
+                </div>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" x-model="form.auto_install_extensions" class="sr-only peer">
+                <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+
+            <div x-show="form.auto_install_extensions" class="space-y-2 pt-2 border-t border-slate-800/80">
+              <div class="text-[11px] text-slate-400">Extensões que serão instaladas automaticamente:</div>
+              <div class="flex flex-wrap gap-1.5">
+                <template x-for="ext in getRecommendedExtensions(form.tools, form.custom_vscode_extensions_input)" :key="ext">
+                  <span class="px-2 py-0.5 bg-blue-500/10 text-blue-300 border border-blue-500/30 rounded text-[10px] font-mono flex items-center gap-1" x-text="ext"></span>
+                </template>
+              </div>
+
+              <div class="pt-2">
+                <label class="block text-[10px] text-slate-400 mb-1">Extensões Adicionais / Customizadas (separadas por vírgula):</label>
+                <input type="text" x-model="form.custom_vscode_extensions_input" placeholder="ex: esbenp.prettier-vscode, username.ext-name" class="w-full bg-dark-950 border border-slate-800 rounded px-2.5 py-1 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-blue-500">
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1289,7 +1351,9 @@
           tools: [],
           custom_ports: {},
           custom_envs: {},
-          custom_folders: {}
+          custom_folders: {},
+          auto_install_extensions: true,
+          custom_vscode_extensions_input: ''
         },
 
         editForm: {
@@ -1301,7 +1365,50 @@
           tools: [],
           custom_ports: {},
           custom_envs: {},
-          custom_folders: {}
+          custom_folders: {},
+          auto_install_extensions: true,
+          custom_vscode_extensions_input: ''
+        },
+
+        getRecommendedExtensions(toolsList = [], customInput = '') {
+          const mapping = {
+            python: ['ms-python.python', 'ms-python.vscode-pylance', 'ms-toolsai.jupyter'],
+            spark: ['ms-python.python', 'ms-toolsai.jupyter'],
+            pyspark: ['ms-python.python', 'ms-toolsai.jupyter'],
+            airflow: ['ms-python.python', 'redhat.vscode-yaml'],
+            fastapi: ['ms-python.python'],
+            dbt: ['innoverio.vscode-dbt-power-user', 'ms-python.python'],
+            postgres: ['ckolkman.vscode-postgres', 'mtxr.sqltools'],
+            mysql: ['cweijan.vscode-database-client2', 'mtxr.sqltools'],
+            clickhouse: ['cweijan.vscode-database-client2'],
+            redis: ['cweijan.vscode-database-client2'],
+            kafka: ['formulahendry.vscode-kafka'],
+            terraform: ['hashicorp.terraform'],
+            ansible: ['redhat.ansible', 'redhat.vscode-yaml'],
+            nginx: ['ahmadalli.vscode-nginx-conf'],
+            k8s: ['ms-kubernetes-tools.vscode-kubernetes-tools', 'redhat.vscode-yaml'],
+            opentelemetry: ['redhat.vscode-yaml'],
+            openmetadata: ['redhat.vscode-yaml']
+          };
+
+          const list = ['redhat.vscode-yaml', 'eamodio.gitlens', 'ms-azuretools.vscode-docker'];
+          if (Array.isArray(toolsList)) {
+            toolsList.forEach(t => {
+              if (mapping[t]) {
+                mapping[t].forEach(ext => {
+                  if (!list.includes(ext)) list.push(ext);
+                });
+              }
+            });
+          }
+
+          if (customInput && typeof customInput === 'string') {
+            customInput.split(',').forEach(c => {
+              const clean = c.trim();
+              if (clean && !list.includes(clean)) list.push(clean);
+            });
+          }
+          return list;
         },
 
         async init() {
@@ -1399,7 +1506,9 @@
             tools: [],
             custom_ports: {},
             custom_envs: {},
-            custom_folders: {}
+            custom_folders: {},
+            auto_install_extensions: true,
+            custom_vscode_extensions_input: ''
           };
           this.showAdvancedConfig = false;
           if (this.presets.length > 0) {
@@ -1419,7 +1528,9 @@
             tools: [...project.tools],
             custom_ports: {},
             custom_envs: {},
-            custom_folders: {}
+            custom_folders: {},
+            auto_install_extensions: project.auto_install_extensions !== false,
+            custom_vscode_extensions_input: (project.custom_vscode_extensions || []).join(', ')
           };
           this.showEditModal = true;
         },
@@ -1437,6 +1548,11 @@
           if (!this.editForm.id || this.editForm.tools.length === 0) return;
           this.isEditing = true;
 
+          const customExts = (this.editForm.custom_vscode_extensions_input || '')
+            .split(',')
+            .map(s => s.trim())
+            .filter(Boolean);
+
           try {
             const res = await fetch(`/api/projects/${this.editForm.id}`, {
               method: 'PUT',
@@ -1446,7 +1562,9 @@
                 description: this.editForm.description,
                 default_user: this.editForm.default_user,
                 default_password: this.editForm.default_password,
-                custom_ports: this.editForm.custom_ports
+                custom_ports: this.editForm.custom_ports,
+                auto_install_extensions: this.editForm.auto_install_extensions,
+                custom_vscode_extensions: customExts
               })
             });
 
@@ -1631,9 +1749,15 @@
             }
           }
 
+          const customExts = (this.form.custom_vscode_extensions_input || '')
+            .split(',')
+            .map(s => s.trim())
+            .filter(Boolean);
+
           const payload = {
             ...this.form,
-            custom_ports: cleanedPorts
+            custom_ports: cleanedPorts,
+            custom_vscode_extensions: customExts
           };
 
           try {

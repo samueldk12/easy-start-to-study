@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: stack-graph-nosql-study
+  labels:
+    app.kubernetes.io/name: graph-nosql-study
+    app.kubernetes.io/managed-by: StackStudio

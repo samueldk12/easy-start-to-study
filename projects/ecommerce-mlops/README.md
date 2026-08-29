@@ -7,11 +7,11 @@
 | Ferramenta | Categoria | Porta Host | Endpoint / UI |
 | :--- | :--- | :--- | :--- |
 | **JupyterLab Workspace** | `mlops` | `8888` | http://localhost:8888 |
-| **MinIO Object Storage** | `data_engineering` | `9002` | http://localhost:9001 |
+| **MinIO Object Storage** | `data_engineering` | `9001` | http://localhost:9001 |
 | **MLflow Tracking & Registry** | `mlops` | `5001` | http://localhost:5001 |
-| **PostgreSQL (OLTP + CDC)** | `data_engineering` | `5436` | - |
+| **PostgreSQL (OLTP + CDC)** | `data_engineering` | `5434` | - |
 | **Qdrant Vector DB** | `mlops` | `6333` | http://localhost:6333/dashboard |
-| **Redis & Redis Commander** | `backend` | `6381` | http://localhost:8089 |
+| **Redis & Redis Commander** | `backend` | `6380` | http://localhost:8089 |
 
 ## ⚡ Como Iniciar o Projeto e Rodar os Testes
 

@@ -8,7 +8,7 @@
 | :--- | :--- | :--- | :--- |
 | **Ansible Automation** | `devops` | `-` | - |
 | **Kong API Gateway** | `backend` | `8000` | http://localhost:8002 |
-| **NGINX Proxy & Web Server** | `backend` | `8080` | http://localhost:8080 |
+| **NGINX Proxy & Web Server** | `backend` | `8088` | http://localhost:8088 |
 | **PostgreSQL (OLTP + CDC)** | `data_engineering` | `5434` | - |
 | **Redis & Redis Commander** | `backend` | `6380` | http://localhost:8089 |
 | **Terraform (IaC)** | `devops` | `-` | - |

@@ -14,8 +14,8 @@ import urllib.request
 import urllib.error
 import json
 
-ENABLED_TOOLS = set(['mlflow', 'jupyterlab', 'postgres', 'redis', 'minio', 'qdrant'])
-CUSTOM_PORTS = {'postgres': 5436, 'redis': 6381, 'minio': 9002, 'mlflow': 5001, 'qdrant': 6333, 'jupyterlab': 8888}
+ENABLED_TOOLS = set(['mlflow', 'redis', 'qdrant', 'jupyterlab', 'minio', 'postgres'])
+CUSTOM_PORTS = {}
 
 class Colors:
     GREEN = "\033[92m"

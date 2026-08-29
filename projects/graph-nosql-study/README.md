@@ -6,8 +6,8 @@
 
 | Ferramenta | Categoria | Porta Host | Endpoint / UI |
 | :--- | :--- | :--- | :--- |
-| **MongoDB & Mongo Express** | `backend` | `27018` | http://localhost:8091 |
-| **Neo4j Graph Database & Browser** | `data_engineering` | `7475` | http://localhost:7474 |
+| **MongoDB & Mongo Express** | `backend` | `27017` | http://localhost:8091 |
+| **Neo4j Graph Database & Browser** | `data_engineering` | `7474` | http://localhost:7474 |
 
 ## ⚡ Como Iniciar o Projeto e Rodar os Testes
 

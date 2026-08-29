@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: graph-nosql-study-config
+  namespace: stack-graph-nosql-study
+data:
+  ENVIRONMENT: development
+  PROJECT_NAME: graph-nosql-study

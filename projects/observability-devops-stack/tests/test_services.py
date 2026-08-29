@@ -14,8 +14,8 @@ import urllib.request
 import urllib.error
 import json
 
-ENABLED_TOOLS = set(['clickhouse', 'pgadmin', 'prometheus', 'postgres', 'portainer', 'grafana'])
-CUSTOM_PORTS = {'postgres': 5438, 'clickhouse': 8124, 'prometheus': 9095, 'grafana': 3005, 'portainer': 9444, 'pgadmin': 5055}
+ENABLED_TOOLS = set(['pgadmin', 'prometheus', 'portainer', 'clickhouse', 'grafana', 'postgres'])
+CUSTOM_PORTS = {}
 
 class Colors:
     GREEN = "\033[92m"

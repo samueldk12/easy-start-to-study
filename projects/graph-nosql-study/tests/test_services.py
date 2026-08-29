@@ -14,8 +14,8 @@ import urllib.request
 import urllib.error
 import json
 
-ENABLED_TOOLS = set(['mongodb', 'neo4j'])
-CUSTOM_PORTS = {'mongodb': 27018, 'neo4j': 7475}
+ENABLED_TOOLS = set(['neo4j', 'mongodb'])
+CUSTOM_PORTS = {}
 
 class Colors:
     GREEN = "\033[92m"

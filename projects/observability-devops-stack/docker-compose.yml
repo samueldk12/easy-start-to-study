@@ -5,7 +5,7 @@ services:
     container_name: observability-devops-stack-postgres
     command: postgres -c wal_level=logical -c max_wal_senders=10 -c max_replication_slots=10
     ports:
-    - 5438:5432
+    - 5434:5432
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
@@ -16,7 +16,7 @@ services:
     healthcheck:
       test:
       - CMD-SHELL
-      - pg_isready -U postgres -d oltp_db
+      - pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB || pg_isready
       interval: 5s
       timeout: 5s
       retries: 5
@@ -26,7 +26,7 @@ services:
     image: clickhouse/clickhouse-server:24.3
     container_name: observability-devops-stack-clickhouse
     ports:
-    - 8124:8123
+    - 8123:8123
     - 9000:9000
     ulimits:
       nofile:
@@ -62,7 +62,7 @@ services:
     container_name: observability-devops-stack-portainer
     ports:
     - 9005:9000
-    - 9444:9443
+    - 9443:9443
     volumes:
     - /var/run/docker.sock:/var/run/docker.sock
     - portainer_data:/data

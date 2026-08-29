@@ -14,7 +14,7 @@ import urllib.request
 import urllib.error
 import json
 
-ENABLED_TOOLS = set(['postgres', 'redis', 'rabbitmq'])
+ENABLED_TOOLS = set(['redis', 'rabbitmq', 'postgres'])
 CUSTOM_PORTS = {}
 
 class Colors:
