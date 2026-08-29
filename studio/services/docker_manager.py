@@ -54,22 +54,80 @@ class DockerManager:
     async def restart_project(project_dir: str) -> Dict[str, Any]:
         return await DockerManager.run_command(project_dir, ["restart"])
 
+    _RETRY_TRACKER: Dict[str, int] = {}
+    _MAX_RETRIES: int = 5
+
+    @staticmethod
+    def _parse_container_item(item: Dict[str, Any]) -> ContainerInfo:
+        name = item.get("Name") or item.get("ID") or "unknown"
+        service = item.get("Service") or item.get("Name") or ""
+        state_raw = (item.get("State") or "").lower()
+        status_raw = item.get("Status") or ""
+        health_raw = (item.get("Health") or "").lower()
+        exit_code = item.get("ExitCode") if item.get("ExitCode") is not None else 0
+
+        # Parse Ports (handles list of dicts from Publishers or string from Ports)
+        ports_str = ""
+        publishers = item.get("Publishers")
+        if isinstance(publishers, list) and publishers:
+            ports_list = []
+            for p in publishers:
+                if isinstance(p, dict):
+                    pub = p.get("PublishedPort")
+                    tgt = p.get("TargetPort")
+                    proto = p.get("Protocol", "tcp")
+                    if pub and tgt:
+                        ports_list.append(f"{pub}->{tgt}/{proto}")
+                    elif tgt:
+                        ports_list.append(f"{tgt}/{proto}")
+            ports_str = ", ".join(ports_list)
+        elif isinstance(item.get("Ports"), str):
+            ports_str = item.get("Ports")
+        elif publishers is not None:
+            ports_str = str(publishers)
+
+        # Evaluate Visual Status:
+        # - "red": crashed, unhealthy, dead, error, non-zero exit
+        # - "yellow": starting, restarting, created, health starting
+        # - "green": running & healthy
+        # - "orange": stopped, paused, graceful exit
+        if health_raw == "unhealthy" or state_raw in ("dead", "crashed", "error") or (state_raw in ("exited", "stopped") and exit_code != 0):
+            visual_status = "red"
+        elif state_raw in ("starting", "restarting", "created") or health_raw == "starting" or "health: starting" in status_raw.lower():
+            visual_status = "yellow"
+        elif state_raw == "running":
+            visual_status = "green"
+        elif state_raw in ("paused", "stopped", "exited"):
+            visual_status = "orange"
+        else:
+            visual_status = "orange"
+
+        retry_count = DockerManager._RETRY_TRACKER.get(name, 0)
+
+        return ContainerInfo(
+            name=name,
+            service=service,
+            state=state_raw,
+            status=status_raw,
+            health=health_raw or None,
+            exit_code=exit_code,
+            ports=ports_str,
+            retry_count=retry_count,
+            visual_status=visual_status
+        )
+
     @staticmethod
     async def get_project_status(project_dir: str) -> Dict[str, Any]:
-        """Inspects containers status using docker compose ps --format json."""
-        res = await DockerManager.run_command(project_dir, ["ps", "--format", "json"])
+        """Inspects containers status using docker compose ps -a --format json."""
+        res = await DockerManager.run_command(project_dir, ["ps", "-a", "--format", "json"])
         if not res["success"]:
-            return {"status": "stopped", "containers": []}
+            return {"status": "stopped", "visual_status": "orange", "containers": []}
 
         output = res["stdout"].strip()
         if not output:
-            return {"status": "stopped", "containers": []}
+            return {"status": "stopped", "visual_status": "orange", "containers": []}
 
         containers: List[ContainerInfo] = []
-        running_count = 0
-        total_count = 0
-
-        # Docker compose ps outputs each container as a JSON object per line or as a JSON array
         lines = output.splitlines()
         for line in lines:
             line = line.strip()
@@ -79,40 +137,61 @@ class DockerManager:
                 data = json.loads(line)
                 if isinstance(data, list):
                     for item in data:
-                        c_info = DockerManager._parse_container_item(item)
-                        containers.append(c_info)
-                        total_count += 1
-                        if c_info.state.lower() in ("running", "healthy"):
-                            running_count += 1
+                        containers.append(DockerManager._parse_container_item(item))
                 else:
-                    c_info = DockerManager._parse_container_item(data)
-                    containers.append(c_info)
-                    total_count += 1
-                    if c_info.state.lower() in ("running", "healthy"):
-                        running_count += 1
+                    containers.append(DockerManager._parse_container_item(data))
             except Exception:
                 continue
 
-        if total_count == 0:
+        has_red = False
+        has_yellow = False
+        has_green = False
+        has_orange = False
+
+        for c in containers:
+            if c.visual_status == "red":
+                has_red = True
+            elif c.visual_status == "yellow":
+                has_yellow = True
+            elif c.visual_status == "green":
+                has_green = True
+            elif c.visual_status == "orange":
+                has_orange = True
+
+        if not containers:
             status = "stopped"
-        elif running_count == total_count:
+            visual_status = "orange"
+        elif has_red:
+            status = "error"
+            visual_status = "red"
+        elif has_yellow:
+            status = "starting"
+            visual_status = "yellow"
+        elif has_green and not has_orange:
             status = "running"
-        elif running_count > 0:
+            visual_status = "green"
+        elif has_green and has_orange:
             status = "partial"
+            visual_status = "yellow"
         else:
             status = "stopped"
+            visual_status = "orange"
 
-        return {"status": status, "containers": containers}
+        return {"status": status, "visual_status": visual_status, "containers": containers}
 
     @staticmethod
-    def _parse_container_item(item: Dict[str, Any]) -> ContainerInfo:
-        return ContainerInfo(
-            name=item.get("Name") or item.get("ID") or "unknown",
-            service=item.get("Service") or item.get("Name") or "",
-            state=item.get("State") or "",
-            status=item.get("Status") or "",
-            ports=item.get("Publishers") or item.get("Ports") or ""
-        )
+    async def auto_retry_crashed_containers(project_dir: str) -> List[str]:
+        """Automatically detects and retries/restarts crashed or unhealthy containers."""
+        status_data = await DockerManager.get_project_status(project_dir)
+        restarted = []
+        for c in status_data["containers"]:
+            if c.visual_status == "red":
+                current_retries = DockerManager._RETRY_TRACKER.get(c.name, 0)
+                if current_retries < DockerManager._MAX_RETRIES:
+                    DockerManager._RETRY_TRACKER[c.name] = current_retries + 1
+                    await DockerManager.run_command(project_dir, ["restart", c.service])
+                    restarted.append(c.service)
+        return restarted
 
     @staticmethod
     async def stream_logs(project_dir: str, service: Optional[str] = None, tail: int = 100) -> AsyncGenerator[str, None]:

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: stack-velocelog
+  labels:
+    app.kubernetes.io/name: velocelog
+    app.kubernetes.io/managed-by: StackStudio

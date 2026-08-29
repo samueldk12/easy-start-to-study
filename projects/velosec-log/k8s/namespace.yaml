@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: stack-velosec-log
+  labels:
+    app.kubernetes.io/name: velosec-log
+    app.kubernetes.io/managed-by: StackStudio

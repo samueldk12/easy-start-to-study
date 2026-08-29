@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: velosec-log-config
+  namespace: stack-velosec-log
+data:
+  ENVIRONMENT: development
+  PROJECT_NAME: velosec-log

@@ -85,7 +85,11 @@ class ContainerInfo(BaseModel):
     service: str
     state: str
     status: str
-    ports: str
+    health: Optional[str] = None
+    exit_code: Optional[int] = 0
+    ports: str = ""
+    retry_count: int = 0
+    visual_status: str = "green"  # "green" (running/healthy), "yellow" (starting), "orange" (stopped/paused), "red" (crashed/unhealthy/error)
 
 
 class ProjectInfo(BaseModel):
@@ -96,6 +100,8 @@ class ProjectInfo(BaseModel):
     tools: List[str]
     include_templates: bool = True
     created_at: str
-    status: str = "stopped"  # "running", "stopped", "partial", "starting", "error"
+    status: str = "stopped"  # "running", "starting", "stopped", "paused", "error", "partial"
+    visual_status: str = "orange"  # "green", "yellow", "orange", "red"
+    retry_count: int = 0
     containers: List[ContainerInfo] = Field(default_factory=list)
     ui_links: List[Dict[str, str]] = Field(default_factory=list)

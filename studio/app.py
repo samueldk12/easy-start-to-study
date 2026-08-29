@@ -72,9 +72,17 @@ async def list_projects():
         try:
             status_data = await DockerManager.get_project_status(proj.path)
             proj.status = status_data["status"]
+            proj.visual_status = status_data.get("visual_status", "orange")
             proj.containers = status_data["containers"]
+
+            # Auto-retry crashed/unhealthy containers
+            if proj.visual_status == "red":
+                restarted = await DockerManager.auto_retry_crashed_containers(proj.path)
+                if restarted:
+                    proj.retry_count += 1
         except Exception:
             proj.status = "stopped"
+            proj.visual_status = "orange"
         return proj
 
     enriched = await asyncio.gather(*[enrich_status(p) for p in projects])
