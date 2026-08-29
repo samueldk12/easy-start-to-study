@@ -2020,7 +2020,19 @@
             zeppelin: ['ms-python.python', 'ms-toolsai.jupyter']
           };
 
-          const list = ['redhat.vscode-yaml', 'eamodio.gitlens', 'ms-azuretools.vscode-docker'];
+          // Core Default Extensions: Docker, Python, SQL/Database Connectors, Git, YAML
+          const list = [
+            'ms-azuretools.vscode-docker',
+            'ms-python.python',
+            'ms-python.vscode-pylance',
+            'ms-toolsai.jupyter',
+            'cweijan.vscode-database-client2',
+            'mtxr.sqltools',
+            'mtxr.sqltools-driver-pg',
+            'ckolkman.vscode-postgres',
+            'redhat.vscode-yaml',
+            'eamodio.gitlens'
+          ];
           if (Array.isArray(toolsList)) {
             toolsList.forEach(t => {
               if (mapping[t]) {

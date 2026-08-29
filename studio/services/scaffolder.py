@@ -2263,14 +2263,26 @@ class TestConfigValidation:
             f.write("\n".join(readme_lines))
 
     def _get_vscode_extensions(self) -> List[str]:
-        extensions: List[str] = ["redhat.vscode-yaml", "eamodio.gitlens", "ms-azuretools.vscode-docker"]
+        # Core Default Extensions: Docker, Python, SQL & Database Connectors, Git, YAML
+        extensions: List[str] = [
+            "ms-azuretools.vscode-docker",
+            "ms-python.python",
+            "ms-python.vscode-pylance",
+            "ms-toolsai.jupyter",
+            "cweijan.vscode-database-client2",
+            "mtxr.sqltools",
+            "mtxr.sqltools-driver-pg",
+            "ckolkman.vscode-postgres",
+            "redhat.vscode-yaml",
+            "eamodio.gitlens"
+        ]
         mapping = {
             "python": ["ms-python.python", "ms-python.vscode-pylance", "ms-toolsai.jupyter"],
             "spark": ["ms-python.python", "ms-toolsai.jupyter"],
             "flink": ["ms-python.python", "vscjava.vscode-java-pack"],
             "airflow": ["ms-python.python", "redhat.vscode-yaml"],
             "dbt": ["innoverio.vscode-dbt-power-user", "ms-python.python"],
-            "postgres": ["ckolkman.vscode-postgres", "mtxr.sqltools"],
+            "postgres": ["ckolkman.vscode-postgres", "mtxr.sqltools", "mtxr.sqltools-driver-pg", "cweijan.vscode-database-client2"],
             "mysql": ["cweijan.vscode-database-client2", "mtxr.sqltools"],
             "clickhouse": ["cweijan.vscode-database-client2"],
             "redis": ["cweijan.vscode-database-client2"],
@@ -2300,6 +2312,171 @@ class TestConfigValidation:
 
         return extensions
 
+    def _get_database_connections(self) -> Dict[str, Any]:
+        """Generates pre-configured connection profiles for SQLTools and Database Client
+        for all active/detected databases in the project."""
+        sqltools_conns = []
+        db_client_conns = []
+
+        # Try reading compose file to extract exact environment variables and credentials
+        compose_env: Dict[str, Dict[str, str]] = {}
+        compose_file = os.path.join(self.project_dir, "docker-compose.yml")
+        if not os.path.exists(compose_file):
+            compose_file = os.path.join(self.project_dir, "compose.yaml")
+
+        if os.path.exists(compose_file):
+            try:
+                with open(compose_file, "r", encoding="utf-8", errors="replace") as f:
+                    cdata = yaml.safe_load(f) or {}
+                    for sname, sval in cdata.get("services", {}).items():
+                        if isinstance(sval, dict):
+                            env = sval.get("environment", {})
+                            if isinstance(env, dict):
+                                compose_env[sname] = {str(k): str(v) for k, v in env.items()}
+                            elif isinstance(env, list):
+                                d_env = {}
+                                for item in env:
+                                    if isinstance(item, str) and "=" in item:
+                                        k, v = item.split("=", 1)
+                                        d_env[k.strip()] = v.strip()
+                                compose_env[sname] = d_env
+            except Exception:
+                pass
+
+        default_user = getattr(self.request, "default_user", None) or "postgres"
+        default_pass = getattr(self.request, "default_password", None) or "postgres"
+        project_label = self.project_name.capitalize()
+
+        def _clean_val(val: Any, fallback: str = "") -> str:
+            if val is None:
+                return fallback
+            s = str(val).strip()
+            if s.startswith("${") and s.endswith("}"):
+                if fallback and fallback not in ("postgres", "admin"):
+                    return fallback
+                inner = s[2:-1]
+                if ":-" in inner:
+                    return inner.split(":-", 1)[1]
+                return fallback
+            return s
+
+        # 1. PostgreSQL
+        if "postgres" in self.tools or "postgresql" in self.tools or "postgres" in compose_env:
+            pg_env = compose_env.get("postgres", {})
+            pg_user = _clean_val(pg_env.get("POSTGRES_USER"), default_user)
+            pg_pass = _clean_val(pg_env.get("POSTGRES_PASSWORD"), default_pass)
+            pg_db = _clean_val(pg_env.get("POSTGRES_DB"), self.project_name.lower().replace("-", "_"))
+
+            sqltools_conns.append({
+                "name": f"PostgreSQL ({project_label})",
+                "driver": "PostgreSQL",
+                "server": "postgres",
+                "port": 5432,
+                "database": pg_db,
+                "username": pg_user,
+                "password": pg_pass,
+                "group": "StackStudio Databases",
+                "dialect": "PostgreSQL"
+            })
+
+            db_client_conns.append({
+                "name": f"PostgreSQL ({project_label})",
+                "dbType": "PostgreSQL",
+                "host": "postgres",
+                "port": 5432,
+                "user": pg_user,
+                "password": pg_pass,
+                "database": pg_db,
+                "group": "StackStudio Databases"
+            })
+
+        # 2. MySQL / MariaDB
+        if "mysql" in self.tools or "mysql" in compose_env:
+            my_env = compose_env.get("mysql", {})
+            my_user = _clean_val(my_env.get("MYSQL_USER"), default_user)
+            my_pass = _clean_val(my_env.get("MYSQL_PASSWORD"), default_pass)
+            my_db = _clean_val(my_env.get("MYSQL_DATABASE"), "app_db")
+            sqltools_conns.append({
+                "name": f"MySQL ({project_label})",
+                "driver": "MySQL",
+                "server": "mysql",
+                "port": 3306,
+                "database": my_db,
+                "username": my_user,
+                "password": my_pass,
+                "group": "StackStudio Databases"
+            })
+            db_client_conns.append({
+                "name": f"MySQL ({project_label})",
+                "dbType": "MySQL",
+                "host": "mysql",
+                "port": 3306,
+                "user": my_user,
+                "password": my_pass,
+                "database": my_db,
+                "group": "StackStudio Databases"
+            })
+
+        # 3. ClickHouse
+        if "clickhouse" in self.tools or "clickhouse" in compose_env:
+            db_client_conns.append({
+                "name": f"ClickHouse ({project_label})",
+                "dbType": "ClickHouse",
+                "host": "clickhouse",
+                "port": 8123,
+                "user": "default",
+                "password": "",
+                "database": "default",
+                "group": "StackStudio Databases"
+            })
+
+        # 4. Redis
+        if "redis" in self.tools or "redis" in compose_env:
+            db_client_conns.append({
+                "name": f"Redis ({project_label})",
+                "dbType": "Redis",
+                "host": "redis",
+                "port": 6379,
+                "group": "StackStudio Databases"
+            })
+
+        # 5. Trino Lakehouse
+        if "trino" in self.tools or "trino" in compose_env:
+            sqltools_conns.append({
+                "name": f"Trino Lakehouse ({project_label})",
+                "driver": "Trino",
+                "server": "trino",
+                "port": 8080,
+                "database": "iceberg",
+                "username": "admin",
+                "group": "StackStudio Databases"
+            })
+
+        # 6. MongoDB
+        if "mongodb" in self.tools or "mongo" in self.tools or "mongodb" in compose_env or "mongo" in compose_env:
+            db_client_conns.append({
+                "name": f"MongoDB ({project_label})",
+                "dbType": "MongoDB",
+                "host": "mongodb",
+                "port": 27017,
+                "group": "StackStudio Databases"
+            })
+
+        # 7. Elasticsearch
+        if "elasticsearch" in self.tools or "elasticsearch" in compose_env:
+            db_client_conns.append({
+                "name": f"Elasticsearch ({project_label})",
+                "dbType": "Elasticsearch",
+                "host": "elasticsearch",
+                "port": 9200,
+                "group": "StackStudio Databases"
+            })
+
+        return {
+            "sqltools": sqltools_conns,
+            "database_client": db_client_conns
+        }
+
     def _generate_vscode_files(self):
         vscode_dir = os.path.join(self.project_dir, ".vscode")
         os.makedirs(vscode_dir, exist_ok=True)
@@ -2309,13 +2486,22 @@ class TestConfigValidation:
         with open(os.path.join(vscode_dir, "extensions.json"), "w", encoding="utf-8") as f:
             json.dump(extensions_json, f, indent=2)
 
+        db_configs = self._get_database_connections()
+
         settings_json = {
             "files.autoSave": "afterDelay",
             "editor.formatOnSave": True,
             "editor.tabSize": 2,
             "terminal.integrated.defaultProfile.linux": "bash",
-            "docker.showStartPage": False
+            "docker.showStartPage": False,
+            "sqltools.useNodeRuntime": True,
+            "sqltools.connections": db_configs["sqltools"],
+            "database.connections": db_configs["database_client"],
+            "database-client.connections": db_configs["database_client"]
         }
+        if db_configs["sqltools"]:
+            settings_json["sqltools.autoConnectTo"] = db_configs["sqltools"][0]["name"]
+
         with open(os.path.join(vscode_dir, "settings.json"), "w", encoding="utf-8") as f:
             json.dump(settings_json, f, indent=2)
 
@@ -2329,7 +2515,7 @@ set -e
 echo "=== [StackStudio VS Code Web IDE] Inicializando Workspace ==="
 
 if [ "$AUTO_INSTALL_EXTENSIONS" = "true" ] && [ -f /home/coder/project/.vscode/extensions.json ]; then
-  echo "Instalando extensoes oficiais recomendadas do projeto..."
+  echo "Instalando extensoes oficiais recomendadas do projeto (Docker, Python, SQL/Database, etc)..."
   for ext in {' '.join(exts)}; do
     echo " -> Instalando extensao: $ext"
     code-server --install-extension "$ext" --force || echo "  [AVISO] Nao foi possivel instalar $ext, continuando..."
