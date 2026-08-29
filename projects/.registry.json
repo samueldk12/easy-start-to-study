@@ -1,0 +1,87 @@
+{
+  "velocelog-lakehouse": {
+    "id": "velocelog-lakehouse",
+    "name": "velocelog-lakehouse",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\velocelog-lakehouse",
+    "description": "Lakehouse de Logistica e Entregas em Tempo Real (CDC + Iceberg + Spark + Trino + Airflow)",
+    "tools": [
+      "kafka_ui",
+      "airflow",
+      "spark",
+      "kafka_connect",
+      "postgres",
+      "iceberg_rest",
+      "minio",
+      "rabbitmq",
+      "trino",
+      "kafka",
+      "redis",
+      "schema_registry"
+    ],
+    "include_templates": true,
+    "created_at": "2026-08-29 12:14:08"
+  },
+  "ecommerce-mlops": {
+    "id": "ecommerce-mlops",
+    "name": "ecommerce-mlops",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\ecommerce-mlops",
+    "description": "Stack Completa de MLOps: Rastreamento com MLflow, Vector DB Qdrant, JupyterLab e Feature Store Redis",
+    "tools": [
+      "qdrant",
+      "postgres",
+      "minio",
+      "jupyterlab",
+      "redis",
+      "mlflow"
+    ],
+    "include_templates": true,
+    "created_at": "2026-08-29 12:14:08"
+  },
+  "clean-lakehouse": {
+    "id": "clean-lakehouse",
+    "name": "clean-lakehouse",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\clean-lakehouse",
+    "description": "Lakehouse limpo sem templates iniciais",
+    "tools": [
+      "kafka",
+      "spark",
+      "airflow",
+      "minio",
+      "iceberg_rest",
+      "postgres",
+      "trino"
+    ],
+    "created_at": "2026-08-29 12:03:58"
+  },
+  "fintech-backend-queue": {
+    "id": "fintech-backend-queue",
+    "name": "fintech-backend-queue",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\fintech-backend-queue",
+    "description": "Microservicos Financeiros: Postgres + Redis Cache + RabbitMQ Filas + Hasura GraphQL + Keycloak IAM",
+    "tools": [
+      "postgres",
+      "rabbitmq",
+      "keycloak",
+      "redis",
+      "hasura"
+    ],
+    "include_templates": true,
+    "created_at": "2026-08-29 12:14:08"
+  },
+  "observability-devops-stack": {
+    "id": "observability-devops-stack",
+    "name": "observability-devops-stack",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\observability-devops-stack",
+    "description": "Monitoramento e Metricas: ClickHouse OLAP + Prometheus + Grafana Dashboards + Portainer + pgAdmin",
+    "tools": [
+      "grafana",
+      "prometheus",
+      "pgadmin",
+      "portainer",
+      "clickhouse",
+      "postgres"
+    ],
+    "include_templates": true,
+    "created_at": "2026-08-29 12:14:08"
+  }
+}

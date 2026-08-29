@@ -1,0 +1,40 @@
+# Data and storage volumes
+minio_data/
+trino_data/
+pg_data/
+mysql_data/
+airflow_db_data/
+redis_data/
+rabbitmq_data/
+portainer_data/
+prometheus_data/
+grafana_data/
+clickhouse_data/
+qdrant_data/
+keycloak_data/
+checkpoints/
+.checkpoint/
+
+# Python & Spark
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+*/.pytest_cache/
+*/*/.pytest_cache/
+*.jar
+
+# Logs
+logs/
+*.log
+
+# IDE & OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

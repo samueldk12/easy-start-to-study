@@ -1,0 +1,119 @@
+name: ecommerce-mlops
+services:
+  postgres:
+    image: debezium/postgres:16-alpine
+    container_name: ecommerce-mlops-postgres
+    command: postgres -c wal_level=logical -c max_wal_senders=10 -c max_replication_slots=10
+    ports:
+    - 5436:5432
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-oltp_db}
+    volumes:
+    - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - pg_isready -U postgres -d oltp_db
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+    - ecommerce-mlops-net
+  minio:
+    image: minio/minio:RELEASE.2024-05-10T01-41-38Z
+    container_name: ecommerce-mlops-minio
+    command: server /data --console-address ":9001"
+    ports:
+    - 9000:9000
+    - 9002:9001
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-password123}
+    volumes:
+    - minio_data:/data
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - mc ready local || exit 0
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+    - ecommerce-mlops-net
+  minio-init:
+    image: minio/mc:RELEASE.2024-05-09T17-04-24Z
+    container_name: ecommerce-mlops-minio-init
+    depends_on:
+    - minio
+    entrypoint: /bin/sh -c "until (/usr/bin/mc alias set myminio http://minio:9000
+      admin password123); do echo 'Waiting for MinIO...'; sleep 2; done; /usr/bin/mc
+      mb --ignore-existing myminio/lakehouse; /usr/bin/mc mb --ignore-existing myminio/warehouse;
+      echo 'Buckets created successfully!'; exit 0;"
+    networks:
+    - ecommerce-mlops-net
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.13.0
+    container_name: ecommerce-mlops-mlflow
+    command: mlflow server --backend-store-uri postgresql://postgres:postgres@postgres:5432/oltp_db
+      --default-artifact-root s3://lakehouse/mlflow/ --host 0.0.0.0 --port 5000
+    ports:
+    - 5001:5000
+    environment:
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: password123
+    networks:
+    - ecommerce-mlops-net
+  jupyterlab:
+    image: quay.io/jupyter/pyspark-notebook:latest
+    container_name: ecommerce-mlops-jupyterlab
+    ports:
+    - 8888:8888
+    environment:
+      JUPYTER_ENABLE_LAB: 'yes'
+      NOTEBOOK_ARGS: --NotebookApp.token=''
+    volumes:
+    - ./notebooks:/home/jovyan/work
+    networks:
+    - ecommerce-mlops-net
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: ecommerce-mlops-qdrant
+    ports:
+    - 6333:6333
+    - 6334:6334
+    volumes:
+    - qdrant_data:/qdrant/storage
+    networks:
+    - ecommerce-mlops-net
+  redis:
+    image: redis:7-alpine
+    container_name: ecommerce-mlops-redis
+    ports:
+    - 6381:6379
+    volumes:
+    - redis_data:/data
+    networks:
+    - ecommerce-mlops-net
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: ecommerce-mlops-redis-commander
+    ports:
+    - 8089:8081
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    depends_on:
+    - redis
+    networks:
+    - ecommerce-mlops-net
+networks:
+  ecommerce-mlops-net:
+    driver: bridge
+volumes:
+  pg_data: {}
+  minio_data: {}
+  qdrant_data: {}
+  redis_data: {}

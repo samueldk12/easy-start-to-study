@@ -1,0 +1,4 @@
+Write-Host "Starting clean-lakehouse..." -ForegroundColor Cyan
+docker compose up -d
+Write-Host "Services started!" -ForegroundColor Green
+docker compose ps

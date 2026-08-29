@@ -1,0 +1,92 @@
+name: fintech-backend-queue
+services:
+  postgres:
+    image: debezium/postgres:16-alpine
+    container_name: fintech-backend-queue-postgres
+    command: postgres -c wal_level=logical -c max_wal_senders=10 -c max_replication_slots=10
+    ports:
+    - 5437:5432
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-oltp_db}
+    volumes:
+    - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - pg_isready -U postgres -d oltp_db
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+    - fintech-backend-queue-net
+  redis:
+    image: redis:7-alpine
+    container_name: fintech-backend-queue-redis
+    ports:
+    - 6382:6379
+    volumes:
+    - redis_data:/data
+    networks:
+    - fintech-backend-queue-net
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: fintech-backend-queue-redis-commander
+    ports:
+    - 8089:8081
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    depends_on:
+    - redis
+    networks:
+    - fintech-backend-queue-net
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: fintech-backend-queue-rabbitmq
+    ports:
+    - 5673:5672
+    - 15673:15672
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-guest}
+    volumes:
+    - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+    - fintech-backend-queue-net
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.4
+    container_name: fintech-backend-queue-keycloak
+    command: start-dev
+    ports:
+    - 8090:8080
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+    volumes:
+    - keycloak_data:/opt/keycloak/data
+    networks:
+    - fintech-backend-queue-net
+  hasura:
+    image: hasura/graphql-engine:v2.38.0
+    container_name: fintech-backend-queue-hasura
+    ports:
+    - 8095:8080
+    environment:
+      HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:postgres@postgres:5432/oltp_db
+      HASURA_GRAPHQL_ENABLE_CONSOLE: 'true'
+      HASURA_GRAPHQL_DEV_MODE: 'true'
+      HASURA_GRAPHQL_ADMIN_SECRET: myadminsecretkey
+    networks:
+    - fintech-backend-queue-net
+    depends_on:
+    - postgres
+networks:
+  fintech-backend-queue-net:
+    driver: bridge
+volumes:
+  pg_data: {}
+  redis_data: {}
+  rabbitmq_data: {}
+  keycloak_data: {}

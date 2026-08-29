@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StackStudio - Gerador & Orquestrador de Projetos</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            },
+            dark: {
+              800: '#1e293b',
+              850: '#172033',
+              900: '#0f172a',
+              950: '#090d16'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Alpine.js -->
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <style>
+    [x-cloak] { display: none !important; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+  </style>
+</head>
+<body class="bg-dark-950 text-slate-100 min-h-screen font-sans antialiased flex flex-col" x-data="stackStudioApp()" x-init="init()">
+
+  <!-- NAVBAR -->
+  <header class="border-b border-slate-800 bg-dark-900/80 backdrop-blur sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-brand-500/20">
+          <i data-lucide="layers" class="w-6 h-6 text-white"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold bg-gradient-to-r from-white via-slate-200 to-brand-400 bg-clip-text text-transparent">StackStudio</h1>
+          <p class="text-xs text-slate-400">Data Engineering, MLOps, Backend & DevOps Project Scaffolder</p>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-4">
+        <button @click="refreshProjects()" class="px-3 py-1.5 text-xs font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 flex items-center gap-1.5 transition">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5" :class="{'animate-spin': isRefreshing}"></i>
+          Atualizar
+        </button>
+
+        <button @click="openCreateModal()" class="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 rounded-xl shadow-lg shadow-brand-600/30 flex items-center gap-2 transition active:scale-95">
+          <i data-lucide="plus-circle" class="w-4 h-4"></i>
+          Novo Projeto
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <!-- STATS BANNER -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div class="bg-dark-900 border border-slate-800/80 rounded-2xl p-4 flex items-center space-x-4">
+        <div class="p-3 bg-brand-500/10 text-brand-400 rounded-xl">
+          <i data-lucide="folder-kanban" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <div class="text-2xl font-bold text-white" x-text="projects.length">0</div>
+          <div class="text-xs text-slate-400">Projetos Gerenciados</div>
+        </div>
+      </div>
+
+      <div class="bg-dark-900 border border-slate-800/80 rounded-2xl p-4 flex items-center space-x-4">
+        <div class="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl">
+          <i data-lucide="play-circle" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <div class="text-2xl font-bold text-emerald-400" x-text="projects.filter(p => p.status === 'running').length">0</div>
+          <div class="text-xs text-slate-400">Em Execução</div>
+        </div>
+      </div>
+
+      <div class="bg-dark-900 border border-slate-800/80 rounded-2xl p-4 flex items-center space-x-4">
+        <div class="p-3 bg-cyan-500/10 text-cyan-400 rounded-xl">
+          <i data-lucide="box" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <div class="text-2xl font-bold text-white" x-text="totalToolsAvailable">24</div>
+          <div class="text-xs text-slate-400">Ferramentas no Catálogo</div>
+        </div>
+      </div>
+
+      <div class="bg-dark-900 border border-slate-800/80 rounded-2xl p-4 flex items-center space-x-4">
+        <div class="p-3 bg-amber-500/10 text-amber-400 rounded-xl">
+          <i data-lucide="sparkles" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <div class="text-2xl font-bold text-white" x-text="presets.length">4</div>
+          <div class="text-xs text-slate-400">Presets Prontos</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROJECTS LIST SECTION -->
+    <div class="space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+          <i data-lucide="layout-grid" class="w-5 h-5 text-brand-400"></i>
+          Seus Projetos
+        </h2>
+        <span class="text-xs text-slate-400" x-text="`${projects.length} projeto(s) encontrado(s)`"></span>
+      </div>
+
+      <!-- EMPTY STATE -->
+      <template x-if="projects.length === 0">
+        <div class="bg-dark-900 border border-slate-800 rounded-2xl p-12 text-center flex flex-col items-center">
+          <div class="w-16 h-16 rounded-2xl bg-brand-500/10 text-brand-400 flex items-center justify-center mb-4">
+            <i data-lucide="package-open" class="w-8 h-8"></i>
+          </div>
+          <h3 class="text-lg font-semibold text-white mb-1">Nenhum projeto criado ainda</h3>
+          <p class="text-sm text-slate-400 max-w-md mb-6">Crie seu primeiro projeto com PostgreSQL CDC, Kafka, MinIO, Spark, Iceberg, Trino, Airflow, Redis ou RabbitMQ em segundos.</p>
+          <button @click="openCreateModal()" class="px-5 py-2.5 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-500 rounded-xl shadow-lg shadow-brand-600/30 flex items-center gap-2 transition">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+            Criar Primeiro Projeto
+          </button>
+        </div>
+      </template>
+
+      <!-- PROJECTS GRID -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <template x-for="project in projects" :key="project.id">
+          <div class="bg-dark-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between hover:border-slate-700 transition shadow-xl">
+            <div>
+              <!-- Header Card -->
+              <div class="flex items-start justify-between gap-4 mb-3">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h3 class="text-lg font-bold text-white" x-text="project.name"></h3>
+                    
+                    <!-- Template Badge -->
+                    <span class="px-2 py-0.5 rounded text-[10px] font-semibold"
+                      :class="project.include_templates ? 'bg-indigo-500/10 text-indigo-300 border border-indigo-500/20' : 'bg-slate-800 text-slate-400 border border-slate-700'"
+                      x-text="project.include_templates ? 'Com Templates' : 'Estrutura Limpa'">
+                    </span>
+
+                    <!-- Status Badge -->
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold"
+                      :class="{
+                        'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20': project.status === 'running',
+                        'bg-amber-500/10 text-amber-400 border border-amber-500/20': project.status === 'partial' || project.status === 'starting',
+                        'bg-slate-800 text-slate-400 border border-slate-700': project.status === 'stopped'
+                      }">
+                      <span class="w-2 h-2 rounded-full"
+                        :class="{
+                          'bg-emerald-400 animate-pulse': project.status === 'running',
+                          'bg-amber-400': project.status === 'partial' || project.status === 'starting',
+                          'bg-slate-500': project.status === 'stopped'
+                        }"></span>
+                      <span x-text="project.status === 'running' ? 'Running' : (project.status === 'partial' ? 'Partial' : (project.status === 'starting' ? 'Starting...' : 'Stopped'))"></span>
+                    </span>
+                  </div>
+                  <p class="text-xs text-slate-400 mt-1 truncate max-w-sm" x-text="project.path"></p>
+                </div>
+
+                <div class="flex items-center space-x-1">
+                  <button @click="openLogs(project)" title="Ver Logs em Tempo Real" class="p-2 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg transition">
+                    <i data-lucide="terminal" class="w-4 h-4"></i>
+                  </button>
+                  <button @click="deleteProject(project)" title="Excluir Registro" class="p-2 text-slate-400 hover:text-red-400 bg-slate-800 hover:bg-red-500/10 rounded-lg transition">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Tools Tags -->
+              <div class="flex flex-wrap gap-1.5 my-3">
+                <template x-for="toolId in project.tools" :key="toolId">
+                  <span class="px-2 py-0.5 bg-slate-800/80 text-slate-300 border border-slate-700/60 rounded-md text-xs font-medium" x-text="toolId"></span>
+                </template>
+              </div>
+
+              <!-- Quick Web UI Links -->
+              <template x-if="project.ui_links && project.ui_links.length > 0">
+                <div class="mt-4 pt-3 border-t border-slate-800">
+                  <div class="text-xs font-semibold text-slate-400 mb-2 flex items-center gap-1.5">
+                    <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                    Acessos Rápidos (Web UIs):
+                  </div>
+                  <div class="flex flex-wrap gap-2">
+                    <template x-for="link in project.ui_links" :key="link.name">
+                      <a :href="link.url" target="_blank" class="px-2.5 py-1 bg-brand-500/10 hover:bg-brand-500/20 text-brand-400 border border-brand-500/30 rounded-lg text-xs font-medium flex items-center gap-1.5 transition">
+                        <span x-text="link.name"></span>
+                        <i data-lucide="arrow-up-right" class="w-3 h-3"></i>
+                      </a>
+                    </template>
+                  </div>
+                </div>
+              </template>
+            </div>
+
+            <!-- Action Controls -->
+            <div class="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between gap-3">
+              <div class="text-xs text-slate-400">
+                <span x-text="project.containers ? project.containers.length : 0"></span> container(s)
+              </div>
+
+              <div class="flex items-center space-x-2">
+                <!-- Start Button -->
+                <button @click="startProject(project)" :disabled="actionLoading[project.id]" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-emerald-600/20 transition active:scale-95">
+                  <i data-lucide="play" class="w-3.5 h-3.5 fill-current"></i>
+                  Start
+                </button>
+
+                <!-- Test Button -->
+                <button @click="testProject(project)" :disabled="actionLoading[project.id]" class="px-3 py-1.5 bg-cyan-600/80 hover:bg-cyan-600 disabled:opacity-50 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md transition active:scale-95" title="Testar Saúde e Conexão dos Serviços">
+                  <i data-lucide="activity" class="w-3.5 h-3.5"></i>
+                  Testar
+                </button>
+
+                <!-- Pause Button -->
+                <button @click="pauseProject(project)" :disabled="actionLoading[project.id]" class="px-3 py-1.5 bg-amber-600/80 hover:bg-amber-600 disabled:opacity-50 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md transition active:scale-95">
+                  <i data-lucide="pause" class="w-3.5 h-3.5 fill-current"></i>
+                  Pausar
+                </button>
+
+                <!-- Stop Button -->
+                <button @click="stopProject(project)" :disabled="actionLoading[project.id]" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition active:scale-95">
+                  <i data-lucide="square" class="w-3.5 h-3.5 fill-current"></i>
+                  Parar
+                </button>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL: CRIAR NOVO PROJETO -->
+  <div x-show="showCreateModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div @click.away="showCreateModal = false" class="bg-dark-900 border border-slate-700 rounded-2xl max-w-4xl w-full p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-brand-600/20 text-brand-400 flex items-center justify-center">
+            <i data-lucide="plus-circle" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-white">Criar Novo Projeto</h2>
+            <p class="text-xs text-slate-400">Escolha suas ferramentas, opções de template e configurações personalizadas</p>
+          </div>
+        </div>
+        <button @click="showCreateModal = false" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Step 1: Project Metadata & Template Choice -->
+      <div class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Nome do Projeto *</label>
+            <input type="text" x-model="form.name" @input="updateDefaultPath()" placeholder="ex: velocelog-lakehouse" class="w-full bg-dark-950 border border-slate-800 focus:border-brand-500 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none transition">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Pasta de Destino</label>
+            <input type="text" x-model="form.path" placeholder="./projects/velocelog-lakehouse" class="w-full bg-dark-950 border border-slate-800 focus:border-brand-500 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none transition">
+          </div>
+        </div>
+
+        <!-- Template Toggle (Choice: Templates vs Clean Slate) -->
+        <div class="p-4 bg-dark-950 border border-slate-800 rounded-xl flex items-center justify-between gap-4">
+          <div>
+            <div class="text-sm font-bold text-white flex items-center gap-2">
+              <i data-lucide="file-code" class="w-4 h-4 text-brand-400"></i>
+              Geração de Código & Templates Iniciais:
+            </div>
+            <p class="text-xs text-slate-400 mt-0.5">
+              <span x-show="form.include_templates" class="text-indigo-400">Gera scripts de exemplo (Bronze/Silver streaming Spark, DAGs Airflow, DDLs Postgres de exemplo).</span>
+              <span x-show="!form.include_templates" class="text-emerald-400">Cria apenas a estrutura limpa e os containers Docker prontos (você codifica tudo do zero).</span>
+            </p>
+          </div>
+
+          <div class="flex items-center bg-dark-900 border border-slate-700 p-1 rounded-xl">
+            <button type="button" @click="form.include_templates = true" class="px-3 py-1.5 text-xs font-semibold rounded-lg transition"
+              :class="form.include_templates ? 'bg-brand-600 text-white shadow' : 'text-slate-400 hover:text-white'">
+              ✨ Com Templates
+            </button>
+            <button type="button" @click="form.include_templates = false" class="px-3 py-1.5 text-xs font-semibold rounded-lg transition"
+              :class="!form.include_templates ? 'bg-slate-700 text-white shadow' : 'text-slate-400 hover:text-white'">
+              🧹 Estrutura Limpa
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Presets Rápidos -->
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Presets de Arquitetura (1-Clique)</label>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <template x-for="preset in presets" :key="preset.id">
+            <button type="button" @click="applyPreset(preset)" class="p-3 bg-dark-950 border rounded-xl text-left transition hover:border-brand-500 flex flex-col justify-between"
+              :class="isPresetSelected(preset) ? 'border-brand-500 ring-1 ring-brand-500/50 bg-brand-500/5' : 'border-slate-800'">
+              <div>
+                <div class="font-bold text-xs text-white mb-1" x-text="preset.name"></div>
+                <div class="text-[11px] text-slate-400 line-clamp-2" x-text="preset.description"></div>
+              </div>
+              <div class="mt-2 text-[10px] font-semibold text-brand-400" x-text="`${preset.tools.length} ferramentas`"></div>
+            </button>
+          </template>
+        </div>
+      </div>
+
+      <!-- Step 3: Seleção de Ferramentas por Categoria -->
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Ferramentas Selecionadas (<span x-text="form.tools.length"></span>)</label>
+          
+          <!-- Category Filter Tabs -->
+          <div class="flex flex-wrap gap-1">
+            <button type="button" @click="selectedCategory = 'all'" :class="selectedCategory === 'all' ? 'bg-brand-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'" class="px-2.5 py-1 rounded-lg text-xs font-medium transition">Todas</button>
+            <template x-for="cat in categories" :key="cat.id">
+              <button type="button" @click="selectedCategory = cat.id" :class="selectedCategory === cat.id ? 'bg-brand-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'" class="px-2.5 py-1 rounded-lg text-xs font-medium transition" x-text="cat.name.split(' ')[0]"></button>
+            </template>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <template x-for="cat in filteredCategories" :key="cat.id">
+            <div class="bg-dark-950/60 border border-slate-800/80 rounded-xl p-4">
+              <h4 class="text-sm font-bold text-slate-200 mb-1 flex items-center gap-2" x-text="cat.name"></h4>
+              <p class="text-xs text-slate-400 mb-3" x-text="cat.description"></p>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                <template x-for="tool in cat.tools" :key="tool.id">
+                  <div @click="toggleTool(tool.id)" class="p-3 border rounded-xl cursor-pointer transition select-none flex flex-col justify-between"
+                    :class="form.tools.includes(tool.id) ? 'bg-brand-500/10 border-brand-500/80 ring-1 ring-brand-500/50' : 'bg-dark-900 border-slate-800 hover:border-slate-700'">
+                    <div>
+                      <div class="flex items-center justify-between mb-1.5">
+                        <span class="font-bold text-xs text-white" x-text="tool.name"></span>
+                        <span class="px-1.5 py-0.5 bg-slate-800 text-slate-300 border border-slate-700 rounded text-[10px]" x-text="tool.badge"></span>
+                      </div>
+                      <p class="text-[11px] text-slate-400 line-clamp-2" x-text="tool.description"></p>
+                    </div>
+
+                    <div class="mt-2.5 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px] text-slate-400">
+                      <span>Porta: <span class="text-slate-200" x-text="form.custom_ports[tool.id] || tool.default_port || '-'"></span></span>
+                      <input type="checkbox" :checked="form.tools.includes(tool.id)" class="rounded text-brand-600 focus:ring-0">
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- Step 4: Personalização de Configurações, Portas e Pastas -->
+      <div x-show="form.tools.length > 0" class="border border-slate-800 bg-dark-950 rounded-xl p-4">
+        <button type="button" @click="showAdvancedConfig = !showAdvancedConfig" class="w-full flex items-center justify-between text-xs font-bold text-slate-300 uppercase tracking-wider">
+          <span class="flex items-center gap-2">
+            <i data-lucide="settings-2" class="w-4 h-4 text-brand-400"></i>
+            Personalizar Portas e Pastas (<span x-text="form.tools.length"></span> ferramentas)
+          </span>
+          <i data-lucide="chevron-down" class="w-4 h-4 transition transform" :class="{'rotate-180': showAdvancedConfig}"></i>
+        </button>
+
+        <div x-show="showAdvancedConfig" x-cloak class="mt-4 space-y-4 pt-3 border-t border-slate-800">
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            <template x-for="toolId in form.tools" :key="toolId">
+              <div class="p-3 bg-dark-900 border border-slate-800 rounded-xl space-y-2">
+                <div class="font-bold text-xs text-white" x-text="getToolName(toolId)"></div>
+                
+                <div>
+                  <label class="block text-[10px] text-slate-400 mb-0.5">Porta Host:</label>
+                  <input type="number" x-model.number="form.custom_ports[toolId]" :placeholder="getToolDefaultPort(toolId)" class="w-full bg-dark-950 border border-slate-800 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-brand-500">
+                </div>
+
+                <!-- Custom folder if tool supports it -->
+                <template x-if="toolId === 'spark'">
+                  <div>
+                    <label class="block text-[10px] text-slate-400 mb-0.5">Pasta dos Apps Spark:</label>
+                    <input type="text" x-model="form.custom_folders['spark_apps']" placeholder="spark/apps" class="w-full bg-dark-950 border border-slate-800 rounded px-2 py-1 text-xs text-white">
+                  </div>
+                </template>
+
+                <template x-if="toolId === 'airflow'">
+                  <div>
+                    <label class="block text-[10px] text-slate-400 mb-0.5">Pasta das DAGs:</label>
+                    <input type="text" x-model="form.custom_folders['airflow_dags']" placeholder="airflow/dags" class="w-full bg-dark-950 border border-slate-800 rounded px-2 py-1 text-xs text-white">
+                  </div>
+                </template>
+
+                <template x-if="toolId === 'postgres'">
+                  <div>
+                    <label class="block text-[10px] text-slate-400 mb-0.5">Pasta DDLs Postgres:</label>
+                    <input type="text" x-model="form.custom_folders['postgres']" placeholder="postgres" class="w-full bg-dark-950 border border-slate-800 rounded px-2 py-1 text-xs text-white">
+                  </div>
+                </template>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="flex items-center justify-end space-x-3 border-t border-slate-800 pt-4">
+        <button type="button" @click="showCreateModal = false" class="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition">
+          Cancelar
+        </button>
+        <button type="button" @click="createProject()" :disabled="!form.name || form.tools.length === 0 || isCreating" class="px-5 py-2 text-sm font-bold text-white bg-brand-600 hover:bg-brand-500 disabled:opacity-50 rounded-xl shadow-lg shadow-brand-600/30 flex items-center gap-2 transition active:scale-95">
+          <i data-lucide="check" class="w-4 h-4" x-show="!isCreating"></i>
+          <i data-lucide="loader" class="w-4 h-4 animate-spin" x-show="isCreating"></i>
+          <span x-text="isCreating ? 'Criando Estrutura...' : 'Gerar & Criar Projeto'"></span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- LOGS TERMINAL DRAWER -->
+  <div x-show="showLogsModal" x-cloak class="fixed inset-0 z-50 overflow-hidden bg-black/70 backdrop-blur-sm flex justify-end">
+    <div @click.away="closeLogs()" class="bg-dark-950 border-l border-slate-800 w-full max-w-3xl h-full flex flex-col shadow-2xl">
+      <!-- Drawer Header -->
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-dark-900">
+        <div class="flex items-center space-x-3">
+          <i data-lucide="terminal" class="w-5 h-5 text-emerald-400"></i>
+          <div>
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              Logs em Tempo Real: <span class="text-brand-400" x-text="selectedProject?.name"></span>
+            </h3>
+            <p class="text-xs text-slate-400">Streaming direto do Docker Compose</p>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-2">
+          <button @click="clearLogs()" class="p-1.5 text-xs text-slate-400 hover:text-white bg-slate-800 rounded-lg">Limpar</button>
+          <button @click="closeLogs()" class="p-1.5 text-slate-400 hover:text-white bg-slate-800 rounded-lg">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Terminal Body -->
+      <div class="flex-1 p-4 bg-black font-mono text-xs text-emerald-400 overflow-y-auto whitespace-pre-wrap select-text" id="terminal-body" x-text="logsContent">
+      </div>
+    </div>
+  </div>
+
+  <!-- ALPINE APP SCRIPT -->
+  <script>
+    function stackStudioApp() {
+      return {
+        projects: [],
+        categories: [],
+        presets: [],
+        totalToolsAvailable: 24,
+        selectedCategory: 'all',
+        isRefreshing: false,
+        isCreating: false,
+        showCreateModal: false,
+        showLogsModal: false,
+        showAdvancedConfig: false,
+        selectedProject: null,
+        logsContent: 'Conectando aos logs do Docker...\n',
+        logEventSource: null,
+        actionLoading: {},
+
+        form: {
+          name: '',
+          path: '',
+          description: 'Projeto gerado via StackStudio',
+          include_templates: true,
+          tools: [],
+          custom_ports: {},
+          custom_envs: {},
+          custom_folders: {}
+        },
+
+        async init() {
+          await this.loadCatalog();
+          await this.loadPresets();
+          await this.refreshProjects();
+          
+          setInterval(() => {
+            if (!this.showCreateModal && !this.showLogsModal) {
+              this.refreshProjects(true);
+            }
+          }, 10000);
+
+          this.$nextTick(() => lucide.createIcons());
+        },
+
+        async loadCatalog() {
+          try {
+            const res = await fetch('/api/catalog');
+            this.categories = await res.json();
+            let count = 0;
+            this.categories.forEach(c => count += c.tools.length);
+            this.totalToolsAvailable = count;
+          } catch (e) {
+            console.error('Error loading catalog:', e);
+          }
+        },
+
+        async loadPresets() {
+          try {
+            const res = await fetch('/api/presets');
+            this.presets = await res.json();
+          } catch (e) {
+            console.error('Error loading presets:', e);
+          }
+        },
+
+        async refreshProjects(silent = false) {
+          if (!silent) this.isRefreshing = true;
+          try {
+            const res = await fetch('/api/projects');
+            this.projects = await res.json();
+          } catch (e) {
+            console.error('Error refreshing projects:', e);
+          } finally {
+            if (!silent) this.isRefreshing = false;
+            this.$nextTick(() => lucide.createIcons());
+          }
+        },
+
+        get filteredCategories() {
+          if (this.selectedCategory === 'all') return this.categories;
+          return this.categories.filter(c => c.id === this.selectedCategory);
+        },
+
+        getTool(toolId) {
+          for (let cat of this.categories) {
+            for (let t of cat.tools) {
+              if (t.id === toolId) return t;
+            }
+          }
+          return null;
+        },
+
+        getToolName(toolId) {
+          const t = this.getTool(toolId);
+          return t ? t.name : toolId;
+        },
+
+        getToolDefaultPort(toolId) {
+          const t = this.getTool(toolId);
+          return t ? (t.default_port || '-') : '-';
+        },
+
+        openCreateModal() {
+          this.form = {
+            name: '',
+            path: '',
+            description: 'Projeto gerado via StackStudio',
+            include_templates: true,
+            tools: [],
+            custom_ports: {},
+            custom_envs: {},
+            custom_folders: {}
+          };
+          this.showAdvancedConfig = false;
+          if (this.presets.length > 0) {
+            this.applyPreset(this.presets[0]);
+          }
+          this.showCreateModal = true;
+          this.$nextTick(() => lucide.createIcons());
+        },
+
+        updateDefaultPath() {
+          const cleanName = this.form.name.trim().toLowerCase().replace(/\s+/g, '-');
+          this.form.path = cleanName ? `./projects/${cleanName}` : '';
+        },
+
+        applyPreset(preset) {
+          this.form.tools = [...preset.tools];
+        },
+
+        isPresetSelected(preset) {
+          if (preset.tools.length !== this.form.tools.length) return false;
+          return preset.tools.every(t => this.form.tools.includes(t));
+        },
+
+        toggleTool(toolId) {
+          const idx = this.form.tools.indexOf(toolId);
+          if (idx >= 0) {
+            this.form.tools.splice(idx, 1);
+          } else {
+            this.form.tools.push(toolId);
+          }
+        },
+
+        async createProject() {
+          if (!this.form.name || this.form.tools.length === 0) return;
+          this.isCreating = true;
+
+          // Clean empty custom ports
+          const cleanedPorts = {};
+          for (let k in this.form.custom_ports) {
+            if (this.form.custom_ports[k]) {
+              cleanedPorts[k] = parseInt(this.form.custom_ports[k]);
+            }
+          }
+
+          const payload = {
+            ...this.form,
+            custom_ports: cleanedPorts
+          };
+
+          try {
+            const res = await fetch('/api/projects', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+              this.showCreateModal = false;
+              await this.refreshProjects();
+            } else {
+              const err = await res.json();
+              alert(`Erro ao criar projeto: ${err.detail || 'Falha na criação'}`);
+            }
+          } catch (e) {
+            alert(`Erro ao comunicar com o servidor: ${e.message}`);
+          } finally {
+            this.isCreating = false;
+          }
+        },
+
+        async startProject(project) {
+          this.actionLoading[project.id] = true;
+          project.status = 'starting';
+          try {
+            await fetch(`/api/projects/${project.id}/start`, { method: 'POST' });
+            await this.refreshProjects();
+          } catch (e) {
+            console.error(e);
+          } finally {
+            this.actionLoading[project.id] = false;
+          }
+        },
+
+        async testProject(project) {
+          this.selectedProject = project;
+          this.logsContent = `[TEST RUNNER] Executando suite de testes automatizados para ${project.name}...\n`;
+          this.showLogsModal = true;
+          this.actionLoading[project.id] = true;
+
+          try {
+            const res = await fetch(`/api/projects/${project.id}/test`, { method: 'POST' });
+            const data = await res.json();
+            this.logsContent += '\n' + (data.output || 'Testes concluídos.');
+          } catch (e) {
+            this.logsContent += `\nErro ao executar testes: ${e.message}\n`;
+          } finally {
+            this.actionLoading[project.id] = false;
+            this.$nextTick(() => {
+              const el = document.getElementById('terminal-body');
+              if (el) el.scrollTop = el.scrollHeight;
+            });
+          }
+        },
+
+        async pauseProject(project) {
+          this.actionLoading[project.id] = true;
+          try {
+            await fetch(`/api/projects/${project.id}/pause`, { method: 'POST' });
+            await this.refreshProjects();
+          } catch (e) {
+            console.error(e);
+          } finally {
+            this.actionLoading[project.id] = false;
+          }
+        },
+
+        async stopProject(project) {
+          this.actionLoading[project.id] = true;
+          try {
+            await fetch(`/api/projects/${project.id}/stop`, { method: 'POST' });
+            await this.refreshProjects();
+          } catch (e) {
+            console.error(e);
+          } finally {
+            this.actionLoading[project.id] = false;
+          }
+        },
+
+        async deleteProject(project) {
+          if (!confirm(`Deseja remover o projeto "${project.name}" do StackStudio?`)) return;
+          try {
+            await fetch(`/api/projects/${project.id}`, { method: 'DELETE' });
+            await this.refreshProjects();
+          } catch (e) {
+            console.error(e);
+          }
+        },
+
+        openLogs(project) {
+          this.selectedProject = project;
+          this.logsContent = `Conectando aos logs de ${project.name}...\n`;
+          this.showLogsModal = true;
+
+          if (this.logEventSource) {
+            this.logEventSource.close();
+          }
+
+          this.logEventSource = new EventSource(`/api/projects/${project.id}/logs`);
+          this.logEventSource.onmessage = (event) => {
+            this.logsContent += event.data + '\n';
+            this.$nextTick(() => {
+              const el = document.getElementById('terminal-body');
+              if (el) el.scrollTop = el.scrollHeight;
+            });
+          };
+          this.logEventSource.onerror = () => {
+            this.logsContent += '\n[Conexão de logs encerrada]\n';
+            if (this.logEventSource) this.logEventSource.close();
+          };
+
+          this.$nextTick(() => lucide.createIcons());
+        },
+
+        clearLogs() {
+          this.logsContent = '';
+        },
+
+        closeLogs() {
+          if (this.logEventSource) {
+            this.logEventSource.close();
+            this.logEventSource = null;
+          }
+          this.showLogsModal = false;
+        }
+      }
+    }
+  </script>
+</body>
+</html>
