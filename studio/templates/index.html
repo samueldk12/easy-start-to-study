@@ -1185,7 +1185,7 @@
           this.$nextTick(() => lucide.createIcons());
         },
 
-        openVsCode(project) {
+        async openVsCode(project) {
           let port = (project.custom_ports && project.custom_ports.vscode) || 8443;
           if (project.containers) {
             const vsContainer = project.containers.find(c => c.service === 'vscode' || c.name.includes('vscode'));
@@ -1194,7 +1194,35 @@
               if (match) port = match[1];
             }
           }
-          window.open(`http://localhost:${port}/?folder=/home/coder/project`, '_blank');
+          const ideUrl = `http://localhost:${port}/?folder=/home/coder/project`;
+
+          // 1. If vscode is NOT yet added to the project
+          if (!project.tools.includes('vscode')) {
+            if (confirm(`O VS Code Web ainda não está instalado no projeto "${project.name}". Deseja adicioná-lo e iniciar o ambiente agora?`)) {
+              const newTools = [...project.tools, 'vscode'];
+              await fetch(`/api/projects/${project.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tools: newTools })
+              });
+              await this.startProject(project);
+              setTimeout(() => window.open(ideUrl, '_blank'), 3500);
+            }
+            return;
+          }
+
+          // 2. If vscode is in tools, but project/container is stopped
+          const isVsCodeRunning = project.containers && project.containers.some(c => (c.service === 'vscode' || c.name.includes('vscode')) && c.state === 'running');
+          if (!isVsCodeRunning) {
+            if (confirm(`O container do VS Code Web está parado. Deseja iniciar o projeto "${project.name}" agora?`)) {
+              await this.startProject(project);
+              setTimeout(() => window.open(ideUrl, '_blank'), 3500);
+            }
+            return;
+          }
+
+          // 3. Already running -> open immediately
+          window.open(ideUrl, '_blank');
         },
 
         openPluginsModal() {

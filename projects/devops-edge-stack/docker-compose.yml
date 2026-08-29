@@ -76,14 +76,11 @@ services:
   vscode:
     image: codercom/code-server:latest
     container_name: devops-edge-stack-vscode
-    environment:
-      PASSWORD: ${VSCODE_PASSWORD:-admin123}
-      DEFAULT_WORKSPACE: /home/coder/project
+    command: --auth none --bind-addr 0.0.0.0:8080 /home/coder/project
     ports:
     - 8443:8080
     volumes:
     - ./:/home/coder/project
-    - vscode_config:/home/coder/.config
     networks:
     - devops-edge-stack-net
 networks:

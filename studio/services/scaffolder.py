@@ -680,18 +680,13 @@ class ProjectScaffolder:
             services["vscode"] = {
                 "image": "codercom/code-server:latest",
                 "container_name": f"{self.project_name}-vscode",
-                "environment": {
-                    "PASSWORD": "${VSCODE_PASSWORD:-admin123}",
-                    "DEFAULT_WORKSPACE": "/home/coder/project"
-                },
+                "command": "--auth none --bind-addr 0.0.0.0:8080 /home/coder/project",
                 "ports": [f"{port}:8080"],
                 "volumes": [
-                    "./:/home/coder/project",
-                    "vscode_config:/home/coder/.config"
+                    "./:/home/coder/project"
                 ],
                 "networks": [network_name]
             }
-            volumes["vscode_config"] = None
 
         # --- CUSTOM PLUGINS ---
         from studio.services.plugin_manager import PluginManager
