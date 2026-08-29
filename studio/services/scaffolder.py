@@ -528,6 +528,13 @@ class ProjectScaffolder:
                 "container_name": f"{self.project_name}-trino",
                 "ports": [f"{port}:8080"],
                 "volumes": ["./trino/etc:/etc/trino"],
+                "healthcheck": {
+                    "test": ["CMD-SHELL", "curl -f http://localhost:8080/v1/info || exit 1"],
+                    "interval": "10s",
+                    "timeout": "5s",
+                    "retries": 5,
+                    "start_period": "60s"
+                },
                 "networks": [network_name]
             }
             deps = []
@@ -1775,7 +1782,6 @@ with DAG(
             iceberg_prop = """connector.name=iceberg
 iceberg.catalog.type=rest
 iceberg.rest-catalog.uri=http://iceberg-rest:8181
-iceberg.rest-catalog.v1.sub-namespace-enabled=true
 fs.native-s3.enabled=true
 s3.endpoint=http://minio:9000
 s3.path-style-access=true
@@ -1789,8 +1795,8 @@ s3.region=us-east-1
         if "postgres" in self.tools:
             pg_prop = """connector.name=postgresql
 connection-url=jdbc:postgresql://postgres:5432/oltp_db
-connection-user=admin
-connection-password=admin123
+connection-user=postgres
+connection-password=postgres
 """
             with open(os.path.join(cat_dir, "postgresql.properties"), "w", encoding="utf-8") as f:
                 f.write(pg_prop)
