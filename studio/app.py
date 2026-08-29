@@ -456,13 +456,26 @@ async def delete_project(project_id: str):
 
 
 @app.get("/api/projects/{project_id}/logs")
-async def stream_project_logs(project_id: str):
+async def stream_project_logs(project_id: str, service: Optional[str] = None, tail: int = 150):
     proj = ProjectStore.get_project(project_id)
     if not proj:
         raise HTTPException(status_code=404, detail="Project not found.")
 
     async def log_generator():
-        async for line in DockerManager.stream_logs(proj.path):
-            yield f"data: {line.strip()}\n\n"
+        svc_label = service if (service and service != "all") else "todos os serviços"
+        yield f"data: [StackStudio SSE] Conectado ao fluxo de logs em tempo real ({svc_label})...\n\n"
 
-    return StreamingResponse(log_generator(), media_type="text/event-stream")
+        async for line in DockerManager.stream_logs(proj.path, service=service, tail=tail):
+            clean_line = line.rstrip("\r\n")
+            if clean_line:
+                yield f"data: {clean_line}\n\n"
+
+    return StreamingResponse(
+        log_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )

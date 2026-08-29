@@ -1207,6 +1207,7 @@
   </div>
 
   <!-- LOGS TERMINAL DRAWER (WITH SERVICE SELECTOR) -->
+  <!-- LOGS TERMINAL DRAWER (WITH SERVICE SELECTOR & REAL-TIME STREAMING) -->
   <div x-show="showLogsModal" x-cloak class="fixed inset-0 z-50 overflow-hidden bg-black/70 backdrop-blur-sm flex justify-end">
     <div @click.away="closeLogs()" class="bg-dark-950 border-l border-slate-800 w-full max-w-4xl h-full flex flex-col shadow-2xl">
       <!-- Drawer Header -->
@@ -1216,14 +1217,27 @@
             <svg class="w-5 h-5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h12M4 18h16"/></svg>
           </div>
           <div>
-            <h3 class="text-sm font-bold text-white flex items-center gap-2">
-              Logs em Tempo Real: <span class="text-sky-400" x-text="selectedProject?.name"></span>
-            </h3>
-            <p class="text-xs text-slate-400">Filtragem e streaming contínuo separados por serviço</p>
+            <div class="flex items-center gap-2">
+              <h3 class="text-sm font-bold text-white">
+                Logs em Tempo Real: <span class="text-sky-400" x-text="selectedProject?.name"></span>
+              </h3>
+              <!-- Live Pulse Badge -->
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5 shrink-0">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                <span>Ao Vivo</span>
+              </span>
+            </div>
+            <p class="text-xs text-slate-400">Acompanhe a inicialização e execução dos containers linha a linha</p>
           </div>
         </div>
 
         <div class="flex items-center space-x-3">
+          <!-- Auto-scroll toggle -->
+          <label class="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 cursor-pointer select-none">
+            <input type="checkbox" x-model="logsAutoScroll" class="rounded bg-dark-950 border-slate-700 text-sky-500 focus:ring-0">
+            <span>Auto-Scroll</span>
+          </label>
+
           <!-- Service Selector -->
           <div class="flex items-center gap-2">
             <label class="text-xs text-slate-400">Serviço:</label>
@@ -1235,15 +1249,21 @@
             </select>
           </div>
 
-          <button @click="clearLogs()" class="px-2.5 py-1 text-xs text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg transition">Limpar</button>
-          <button @click="closeLogs()" class="p-1.5 text-slate-400 hover:text-white bg-slate-800 rounded-lg">
+          <!-- Reconnect Button -->
+          <button type="button" @click="connectLogsStream()" title="Reconectar fluxo de logs" class="px-2.5 py-1 text-xs text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg transition flex items-center gap-1 cursor-pointer">
+            <svg class="w-3.5 h-3.5 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            <span class="hidden sm:inline">Reconectar</span>
+          </button>
+
+          <button @click="clearLogs()" class="px-2.5 py-1 text-xs text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg transition cursor-pointer">Limpar</button>
+          <button @click="closeLogs()" class="p-1.5 text-slate-400 hover:text-white bg-slate-800 rounded-lg cursor-pointer">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
       </div>
 
       <!-- Terminal Body -->
-      <div class="flex-1 p-4 bg-black font-mono text-xs text-emerald-400 overflow-y-auto whitespace-pre-wrap select-text" id="terminal-body" x-text="logsContent">
+      <div class="flex-1 p-4 bg-black font-mono text-xs text-emerald-400 overflow-y-auto whitespace-pre-wrap select-text leading-relaxed" id="terminal-body" x-text="logsContent">
       </div>
     </div>
   </div>
@@ -1413,6 +1433,7 @@
         selectedLogService: 'all',
         logsContent: 'Conectando aos logs do Docker...\n',
         logEventSource: null,
+        logsAutoScroll: true,
         actionLoading: {},
         expandedContainers: {},
         graphData: { nodes: [], edges: [] },
@@ -1455,17 +1476,26 @@
         },
 
         async startSingleService(project, serviceName) {
-          this.showToast('Iniciando Serviço', `Subindo serviço "${serviceName}" de ${project.name}...`, 'info');
+          this.selectedProject = project;
+          this.selectedLogService = serviceName;
+          this.showLogsModal = true;
+          this.logsContent = `[StackStudio] 🚀 Subindo/Reiniciando container "${serviceName}" no projeto "${project.name}"...\n[StackStudio] 📡 Conectando ao fluxo de logs ao vivo...\n\n`;
+          this.connectLogsStream();
+          this.showToast('Iniciando Serviço', `Iniciando container "${serviceName}". Acompanhe os logs ao vivo.`, 'info');
+
           try {
             const res = await fetch(`/api/projects/${project.id}/services/${serviceName}/start`, { method: 'POST' });
             if (res.ok) {
+              this.logsContent += `\n[StackStudio] ✅ Container "${serviceName}" iniciado com sucesso!\n`;
               this.showToast('Serviço Iniciado', `Container "${serviceName}" está ativo!`, 'success');
             } else {
               const err = await res.json();
+              this.logsContent += `\n[StackStudio] ❌ Erro ao iniciar "${serviceName}": ${err.detail || 'Erro ao subir container'}\n`;
               this.showToast('Falha no Serviço', err.detail || 'Erro ao subir container', 'error');
             }
             await this.refreshProjects();
           } catch (e) {
+            this.logsContent += `\n[StackStudio] ❌ Falha: ${e.message}\n`;
             this.showToast('Erro', e.message, 'error');
           }
         },
@@ -2135,23 +2165,40 @@
         async startProject(project) {
           this.actionLoading = { ...this.actionLoading, [project.id]: true };
           project.visual_status = 'yellow';
-          this.showToast('Iniciando Projeto', `Subindo containers de "${project.name}" (docker compose up -d)...`, 'info');
+          project.status = 'starting';
+
+          // Instantly open the live logs drawer to follow the startup progress
+          this.selectedProject = project;
+          this.selectedLogService = 'all';
+          this.showLogsModal = true;
+          this.logsContent = `[StackStudio] 🚀 Subindo containers de "${project.name}" (docker compose up -d --build)...\n[StackStudio] 📡 Conectando ao fluxo de logs ao vivo em tempo real...\n\n`;
+          this.connectLogsStream();
+          this.showToast('Iniciando Projeto', `Subindo "${project.name}". Acompanhe os logs ao vivo no painel.`, 'info');
 
           try {
             const res = await fetch(`/api/projects/${project.id}/start`, { method: 'POST' });
             if (res.ok) {
+              this.logsContent += `\n[StackStudio] ✅ Todos os containers de "${project.name}" foram iniciados com sucesso!\n`;
               this.showToast('Projeto Iniciado', `Serviços de "${project.name}" foram iniciados com sucesso!`, 'success');
             } else {
               const err = await res.json();
+              this.logsContent += `\n[StackStudio] ❌ Erro ao iniciar: ${err.detail || 'Falha no docker compose up'}\n`;
               this.showToast('Erro ao Iniciar', err.detail || 'Falha no docker compose up', 'error');
             }
             await this.refreshProjects();
             setTimeout(() => this.refreshProjects(true), 2000);
             setTimeout(() => this.refreshProjects(true), 5000);
           } catch (e) {
+            this.logsContent += `\n[StackStudio] ❌ Erro de conexão: ${e.message}\n`;
             this.showToast('Erro de Conexão', `Falha ao comunicar com o servidor: ${e.message}`, 'error');
           } finally {
             this.actionLoading = { ...this.actionLoading, [project.id]: false };
+            this.$nextTick(() => {
+              if (this.logsAutoScroll) {
+                const el = document.getElementById('terminal-body');
+                if (el) el.scrollTop = el.scrollHeight;
+              }
+            });
           }
         },
 
@@ -2278,19 +2325,20 @@
           }
 
           const svcParam = this.selectedLogService && this.selectedLogService !== 'all' ? `?service=${this.selectedLogService}` : '';
-          this.logsContent = `Conectando aos logs de ${this.selectedProject?.name} [${this.selectedLogService}]...\n`;
+          this.logsContent += `[StackStudio] 📡 Conectando aos logs de ${this.selectedProject?.name} [${this.selectedLogService}]...\n`;
 
           this.logEventSource = new EventSource(`/api/projects/${this.selectedProject?.id}/logs${svcParam}`);
           this.logEventSource.onmessage = (event) => {
             this.logsContent += event.data + '\n';
-            this.$nextTick(() => {
-              const el = document.getElementById('terminal-body');
-              if (el) el.scrollTop = el.scrollHeight;
-            });
+            if (this.logsAutoScroll) {
+              this.$nextTick(() => {
+                const el = document.getElementById('terminal-body');
+                if (el) el.scrollTop = el.scrollHeight;
+              });
+            }
           };
           this.logEventSource.onerror = () => {
-            this.logsContent += '\n[Conexão de logs encerrada]\n';
-            if (this.logEventSource) this.logEventSource.close();
+            // Keep connection alive or allow reconnection
           };
         },
 

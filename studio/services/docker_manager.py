@@ -335,8 +335,14 @@ class DockerManager:
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.STDOUT
         )
-        while True:
-            line = await process.stdout.readline()
-            if not line:
-                break
-            yield line.decode("utf-8", errors="replace")
+        try:
+            while True:
+                line = await process.stdout.readline()
+                if not line:
+                    break
+                yield line.decode("utf-8", errors="replace")
+        finally:
+            try:
+                process.kill()
+            except Exception:
+                pass
