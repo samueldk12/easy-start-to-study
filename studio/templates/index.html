@@ -48,12 +48,50 @@
 </head>
 <body class="bg-dark-950 text-slate-100 min-h-screen font-sans antialiased flex flex-col" x-data="stackStudioApp()" x-init="init()">
 
+  <!-- FLOATING TOAST NOTIFICATION -->
+  <div x-show="toast.show" x-cloak 
+       x-transition:enter="transition ease-out duration-300 transform"
+       x-transition:enter-start="opacity-0 translate-y-4 scale-95"
+       x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+       x-transition:leave="transition ease-in duration-200 transform"
+       x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+       x-transition:leave-end="opacity-0 translate-y-4 scale-95"
+       class="fixed bottom-6 right-6 z-50 max-w-md w-full shadow-2xl rounded-2xl p-4 flex items-start gap-3 border backdrop-blur-md"
+       :class="{
+         'bg-emerald-950/90 border-emerald-500/60 text-emerald-100': toast.type === 'success',
+         'bg-red-950/90 border-red-500/60 text-red-100': toast.type === 'error',
+         'bg-amber-950/90 border-amber-500/60 text-amber-100': toast.type === 'warning',
+         'bg-dark-900/90 border-brand-500/60 text-slate-100': toast.type === 'info'
+       }">
+    <div class="mt-0.5 shrink-0">
+      <template x-if="toast.type === 'success'">
+        <svg class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+      </template>
+      <template x-if="toast.type === 'error'">
+        <svg class="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </template>
+      <template x-if="toast.type === 'warning'">
+        <svg class="w-5 h-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+      </template>
+      <template x-if="toast.type === 'info'">
+        <svg class="w-5 h-5 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </template>
+    </div>
+    <div class="flex-1 text-xs">
+      <div class="font-bold text-sm" x-text="toast.title || 'Notificação'"></div>
+      <div class="mt-0.5 text-slate-300 leading-relaxed break-words" x-text="toast.message"></div>
+    </div>
+    <button @click="toast.show = false" class="text-slate-400 hover:text-white p-1">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>
+  </div>
+
   <!-- NAVBAR -->
   <header class="border-b border-slate-800 bg-dark-900/80 backdrop-blur sticky top-0 z-30">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <div class="flex items-center space-x-3">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-brand-500/20">
-          <i data-lucide="layers" class="w-6 h-6 text-white"></i>
+          <i data-lucide="layers" class="w-6 h-6 text-white pointer-events-none"></i>
         </div>
         <div>
           <h1 class="text-xl font-bold bg-gradient-to-r from-white via-slate-200 to-brand-400 bg-clip-text text-transparent">StackStudio</h1>
@@ -63,18 +101,18 @@
 
       <div class="flex items-center space-x-3">
         <button @click="openPluginsModal()" class="px-3.5 py-1.5 text-xs font-semibold text-cyan-300 hover:text-white bg-cyan-950/40 hover:bg-cyan-900/60 rounded-xl border border-cyan-800/60 flex items-center gap-1.5 transition">
-          <i data-lucide="puzzle" class="w-4 h-4 text-cyan-400"></i>
+          <i data-lucide="puzzle" class="w-4 h-4 text-cyan-400 pointer-events-none"></i>
           <span>Plugins</span>
           <span class="px-1.5 py-0.2 bg-cyan-500/20 text-cyan-300 rounded-full text-[10px]" x-text="plugins.length"></span>
         </button>
 
         <button @click="refreshProjects()" class="px-3 py-1.5 text-xs font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 flex items-center gap-1.5 transition">
-          <i data-lucide="refresh-cw" class="w-3.5 h-3.5" :class="{'animate-spin': isRefreshing}"></i>
+          <svg class="w-3.5 h-3.5" :class="{'animate-spin': isRefreshing}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
           Atualizar
         </button>
 
         <button @click="openCreateModal()" class="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 rounded-xl shadow-lg shadow-brand-600/30 flex items-center gap-2 transition active:scale-95">
-          <i data-lucide="plus-circle" class="w-4 h-4"></i>
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
           Novo Projeto
         </button>
       </div>
@@ -88,7 +126,7 @@
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
       <div class="bg-dark-900 border border-slate-800/80 rounded-2xl p-4 flex items-center space-x-4">
         <div class="p-3 bg-brand-500/10 text-brand-400 rounded-xl">
-          <i data-lucide="folder-kanban" class="w-6 h-6"></i>
+          <i data-lucide="folder-kanban" class="w-6 h-6 pointer-events-none"></i>
         </div>
         <div>
           <div class="text-2xl font-bold text-white" x-text="projects.length">0</div>
@@ -98,7 +136,7 @@
 
       <div class="bg-dark-900 border border-slate-800/80 rounded-2xl p-4 flex items-center space-x-4">
         <div class="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl">
-          <i data-lucide="play-circle" class="w-6 h-6"></i>
+          <i data-lucide="play-circle" class="w-6 h-6 pointer-events-none"></i>
         </div>
         <div>
           <div class="text-2xl font-bold text-emerald-400" x-text="projects.filter(p => p.visual_status === 'green').length">0</div>
@@ -108,7 +146,7 @@
 
       <div class="bg-dark-900 border border-slate-800/80 rounded-2xl p-4 flex items-center space-x-4">
         <div class="p-3 bg-amber-500/10 text-amber-400 rounded-xl">
-          <i data-lucide="activity" class="w-6 h-6"></i>
+          <i data-lucide="activity" class="w-6 h-6 pointer-events-none"></i>
         </div>
         <div>
           <div class="text-2xl font-bold text-amber-400" x-text="projects.filter(p => p.visual_status === 'yellow').length">0</div>
@@ -118,7 +156,7 @@
 
       <div class="bg-dark-900 border border-slate-800/80 rounded-2xl p-4 flex items-center space-x-4">
         <div class="p-3 bg-orange-500/10 text-orange-400 rounded-xl">
-          <i data-lucide="power" class="w-6 h-6"></i>
+          <i data-lucide="power" class="w-6 h-6 pointer-events-none"></i>
         </div>
         <div>
           <div class="text-2xl font-bold text-orange-400" x-text="projects.filter(p => p.visual_status === 'orange').length">0</div>
@@ -131,7 +169,7 @@
     <div class="space-y-4">
       <div class="flex items-center justify-between">
         <h2 class="text-lg font-semibold text-white flex items-center gap-2">
-          <i data-lucide="layout-grid" class="w-5 h-5 text-brand-400"></i>
+          <i data-lucide="layout-grid" class="w-5 h-5 text-brand-400 pointer-events-none"></i>
           Seus Projetos
         </h2>
         <div class="flex items-center gap-3 text-xs text-slate-400">
@@ -146,12 +184,12 @@
       <template x-if="projects.length === 0">
         <div class="bg-dark-900 border border-slate-800 rounded-2xl p-12 text-center flex flex-col items-center">
           <div class="w-16 h-16 rounded-2xl bg-brand-500/10 text-brand-400 flex items-center justify-center mb-4">
-            <i data-lucide="package-open" class="w-8 h-8"></i>
+            <i data-lucide="package-open" class="w-8 h-8 pointer-events-none"></i>
           </div>
           <h3 class="text-lg font-semibold text-white mb-1">Nenhum projeto criado ainda</h3>
-          <p class="text-sm text-slate-400 max-w-md mb-6">Crie seu primeiro projeto com PostgreSQL CDC, Kafka, MinIO, Spark, Iceberg, Trino, Airflow, Redis, RabbitMQ ou plugins customizados em segundos.</p>
+          <p class="text-sm text-slate-400 max-w-md mb-6">Crie seu primeiro projeto com PostgreSQL CDC, Kafka, MinIO, Spark, Iceberg, Trino, Airflow, Redis, RabbitMQ, VS Code Web ou plugins customizados em segundos.</p>
           <button @click="openCreateModal()" class="px-5 py-2.5 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-500 rounded-xl shadow-lg shadow-brand-600/30 flex items-center gap-2 transition">
-            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Criar Primeiro Projeto
           </button>
         </div>
@@ -197,24 +235,24 @@
 
                 <div class="flex items-center space-x-1">
                   <!-- VS Code Web Button -->
-                  <button @click="openVsCode(project)" title="Abrir Código no VS Code Web (Navegador)" class="p-2 text-blue-400 hover:text-white bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition">
-                    <i data-lucide="code-2" class="w-4 h-4"></i>
+                  <button @click.stop="openVsCode(project)" title="Abrir Código no VS Code Web (Navegador)" class="p-2 text-blue-400 hover:text-white bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition">
+                    <svg class="w-4 h-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
                   </button>
                   <!-- Topology Graph Button -->
-                  <button @click="openGraphModal(project)" title="Ver Topologia & Grafo da Arquitetura" class="p-2 text-brand-400 hover:text-white bg-brand-500/10 hover:bg-brand-500/20 rounded-lg transition">
-                    <i data-lucide="share-2" class="w-4 h-4"></i>
+                  <button @click.stop="openGraphModal(project)" title="Ver Topologia & Grafo da Arquitetura" class="p-2 text-brand-400 hover:text-white bg-brand-500/10 hover:bg-brand-500/20 rounded-lg transition">
+                    <svg class="w-4 h-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
                   </button>
                   <!-- Edit Project Button -->
-                  <button @click="openEditModal(project)" title="Editar Ferramentas & Configurações" class="p-2 text-cyan-400 hover:text-white bg-cyan-500/10 hover:bg-cyan-500/20 rounded-lg transition">
-                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                  <button @click.stop="openEditModal(project)" title="Editar Ferramentas & Configurações" class="p-2 text-cyan-400 hover:text-white bg-cyan-500/10 hover:bg-cyan-500/20 rounded-lg transition">
+                    <svg class="w-4 h-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                   </button>
                   <!-- Logs Button -->
-                  <button @click="openLogs(project)" title="Ver Logs em Tempo Real (Separados por Serviço)" class="p-2 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg transition">
-                    <i data-lucide="terminal" class="w-4 h-4"></i>
+                  <button @click.stop="openLogs(project)" title="Ver Logs em Tempo Real (Separados por Serviço)" class="p-2 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg transition">
+                    <svg class="w-4 h-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                   </button>
                   <!-- Delete Button -->
-                  <button @click="deleteProject(project)" title="Excluir Registro" class="p-2 text-slate-400 hover:text-red-400 bg-slate-800 hover:bg-red-500/10 rounded-lg transition">
-                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  <button @click.stop="deleteProject(project)" title="Excluir Registro" class="p-2 text-slate-400 hover:text-red-400 bg-slate-800 hover:bg-red-500/10 rounded-lg transition">
+                    <svg class="w-4 h-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                   </button>
                 </div>
               </div>
@@ -230,14 +268,14 @@
               <div class="mt-4 pt-3 border-t border-slate-800/80">
                 <div class="flex items-center justify-between text-xs font-semibold text-slate-300 mb-2">
                   <span class="flex items-center gap-1.5">
-                    <i data-lucide="server" class="w-3.5 h-3.5 text-brand-400"></i>
+                    <svg class="w-3.5 h-3.5 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
                     Containers Ativos (<span x-text="project.containers ? project.containers.length : 0"></span>):
                   </span>
                   
                   <!-- Auto-retry badge if active -->
                   <template x-if="project.retry_count > 0 || project.visual_status === 'red'">
                     <span class="text-[10px] px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 flex items-center gap-1">
-                      <i data-lucide="refresh-cw" class="w-3 h-3 animate-spin"></i>
+                      <svg class="w-3 h-3 animate-spin text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                       <span x-text="`Auto-Retry (${project.retry_count || 1}/5)`"></span>
                     </span>
                   </template>
@@ -288,14 +326,14 @@
               <template x-if="project.ui_links && project.ui_links.length > 0">
                 <div class="mt-4 pt-3 border-t border-slate-800">
                   <div class="text-xs font-semibold text-slate-400 mb-2 flex items-center gap-1.5">
-                    <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                     Acessos Rápidos (Web UIs):
                   </div>
                   <div class="flex flex-wrap gap-2">
                     <template x-for="link in project.ui_links" :key="link.name">
                       <a :href="link.url" target="_blank" class="px-2.5 py-1 bg-brand-500/10 hover:bg-brand-500/20 text-brand-400 border border-brand-500/30 rounded-lg text-xs font-medium flex items-center gap-1.5 transition">
                         <span x-text="link.name"></span>
-                        <i data-lucide="arrow-up-right" class="w-3 h-3"></i>
+                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                       </a>
                     </template>
                   </div>
@@ -311,34 +349,38 @@
 
               <div class="flex items-center space-x-2">
                 <!-- Start Button -->
-                <button type="button" @click="startProject(project)" :disabled="actionLoading[project.id]" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-emerald-600/20 transition active:scale-95">
-                  <i data-lucide="play" class="w-3.5 h-3.5 fill-current" x-show="!actionLoading[project.id]"></i>
-                  <i data-lucide="loader" class="w-3.5 h-3.5 animate-spin" x-show="actionLoading[project.id]"></i>
-                  <span x-text="actionLoading[project.id] ? 'Iniciando...' : 'Start'"></span>
+                <button type="button" @click.stop="startProject(project)" :disabled="actionLoading[project.id]" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-emerald-600/20 transition active:scale-95">
+                  <template x-if="!actionLoading[project.id]">
+                    <svg class="w-3.5 h-3.5 fill-current pointer-events-none" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  </template>
+                  <template x-if="actionLoading[project.id]">
+                    <svg class="w-3.5 h-3.5 animate-spin pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                  </template>
+                  <span x-text="actionLoading[project.id] ? 'Executando...' : 'Start'"></span>
                 </button>
 
                 <!-- Test Button -->
-                <button type="button" @click="testProject(project)" :disabled="actionLoading[project.id]" class="px-3 py-1.5 bg-cyan-600/80 hover:bg-cyan-600 disabled:opacity-50 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md transition active:scale-95" title="Testar Saúde e Conexão dos Serviços">
-                  <i data-lucide="activity" class="w-3.5 h-3.5"></i>
-                  Testar
+                <button type="button" @click.stop="testProject(project)" :disabled="actionLoading[project.id]" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md transition active:scale-95" title="Testar Saúde e Conexão dos Serviços">
+                  <svg class="w-3.5 h-3.5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                  <span>Testar</span>
                 </button>
 
                 <!-- K8s Deploy Button -->
-                <button type="button" @click="deployK8s(project)" :disabled="actionLoading[project.id]" class="px-3 py-1.5 bg-indigo-600/80 hover:bg-indigo-600 disabled:opacity-50 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md transition active:scale-95" title="Deploy no Cluster Kubernetes (kubectl apply -k k8s/)">
-                  <i data-lucide="anchor" class="w-3.5 h-3.5"></i>
-                  K8s
+                <button type="button" @click.stop="deployK8s(project)" :disabled="actionLoading[project.id]" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md transition active:scale-95" title="Deploy no Cluster Kubernetes (kubectl apply -k k8s/)">
+                  <svg class="w-3.5 h-3.5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                  <span>K8s</span>
                 </button>
 
                 <!-- Pause Button -->
-                <button type="button" @click="pauseProject(project)" :disabled="actionLoading[project.id]" class="px-3 py-1.5 bg-amber-600/80 hover:bg-amber-600 disabled:opacity-50 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md transition active:scale-95">
-                  <i data-lucide="pause" class="w-3.5 h-3.5 fill-current"></i>
-                  Pausar
+                <button type="button" @click.stop="pauseProject(project)" :disabled="actionLoading[project.id]" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md transition active:scale-95">
+                  <svg class="w-3.5 h-3.5 fill-current pointer-events-none" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                  <span>Pausar</span>
                 </button>
 
                 <!-- Stop Button -->
-                <button type="button" @click="stopProject(project)" :disabled="actionLoading[project.id]" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition active:scale-95">
-                  <i data-lucide="square" class="w-3.5 h-3.5 fill-current"></i>
-                  Parar
+                <button type="button" @click.stop="stopProject(project)" :disabled="actionLoading[project.id]" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition active:scale-95">
+                  <svg class="w-3.5 h-3.5 fill-current pointer-events-none" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16"/></svg>
+                  <span>Parar</span>
                 </button>
               </div>
             </div>
@@ -356,7 +398,7 @@
       <div class="flex items-center justify-between border-b border-slate-800 pb-4">
         <div class="flex items-center space-x-3">
           <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-500 text-white flex items-center justify-center shadow-lg shadow-brand-500/20">
-            <i data-lucide="share-2" class="w-6 h-6"></i>
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
           </div>
           <div>
             <h2 class="text-xl font-bold text-white flex items-center gap-2">
@@ -368,11 +410,11 @@
 
         <div class="flex items-center space-x-2">
           <button @click="openGraphModal(selectedProject)" class="px-3 py-1.5 text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg flex items-center gap-1.5 transition">
-            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
             Atualizar Saúde
           </button>
           <button @click="showGraphModal = false" class="text-slate-400 hover:text-white p-1 rounded-lg">
-            <i data-lucide="x" class="w-5 h-5"></i>
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
       </div>
@@ -465,9 +507,9 @@
                     'text-red-400': edge.status === 'broken',
                     'text-slate-400': edge.status === 'inactive'
                   }">
-                  <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                   <span class="italic" x-text="edge.label"></span>
-                  <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                 </span>
                 <span class="font-bold text-white px-2 py-0.5 bg-slate-800 rounded text-[11px]" x-text="edge.target"></span>
               </div>
@@ -505,7 +547,7 @@
       <div class="flex items-center justify-between border-b border-slate-800 pb-4">
         <div class="flex items-center space-x-3">
           <div class="w-10 h-10 rounded-xl bg-cyan-600/20 text-cyan-400 flex items-center justify-center">
-            <i data-lucide="edit-3" class="w-6 h-6"></i>
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
           </div>
           <div>
             <h2 class="text-xl font-bold text-white flex items-center gap-2">
@@ -515,7 +557,7 @@
           </div>
         </div>
         <button @click="showEditModal = false" class="text-slate-400 hover:text-white p-1 rounded-lg">
-          <i data-lucide="x" class="w-5 h-5"></i>
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
 
@@ -528,7 +570,7 @@
 
         <div class="p-4 bg-dark-950 border border-slate-800 rounded-xl space-y-3">
           <div class="text-xs font-bold text-white flex items-center gap-2">
-            <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+            <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
             Credenciais Padrão dos Serviços:
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -595,8 +637,8 @@
           Cancelar
         </button>
         <button type="button" @click="saveProjectEdit()" :disabled="editForm.tools.length === 0 || isEditing" class="px-5 py-2 text-sm font-bold text-white bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 rounded-xl shadow-lg shadow-cyan-600/30 flex items-center gap-2 transition active:scale-95">
-          <i data-lucide="check" class="w-4 h-4" x-show="!isEditing"></i>
-          <i data-lucide="loader" class="w-4 h-4 animate-spin" x-show="isEditing"></i>
+          <svg class="w-4 h-4" x-show="!isEditing" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          <svg class="w-4 h-4 animate-spin" x-show="isEditing" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
           <span x-text="isEditing ? 'Atualizando Projeto...' : 'Salvar Alterações'"></span>
         </button>
       </div>
@@ -612,7 +654,7 @@
       <div class="flex items-center justify-between border-b border-slate-800 pb-4">
         <div class="flex items-center space-x-3">
           <div class="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
-            <i data-lucide="puzzle" class="w-6 h-6"></i>
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"/></svg>
           </div>
           <div>
             <h2 class="text-xl font-bold text-white">Gerenciador de Plugins</h2>
@@ -620,7 +662,7 @@
           </div>
         </div>
         <button @click="showPluginsModal = false" class="text-slate-400 hover:text-white p-1 rounded-lg">
-          <i data-lucide="x" class="w-5 h-5"></i>
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
 
@@ -628,11 +670,10 @@
       <div class="space-y-4">
         <div class="flex items-center justify-between">
           <h3 class="text-sm font-bold text-white flex items-center gap-2">
-            <i data-lucide="box" class="w-4 h-4 text-cyan-400"></i>
             Plugins Instalados (<span x-text="plugins.length"></span>)
           </h3>
           <button @click="showNewPluginForm = !showNewPluginForm" class="px-3 py-1.5 text-xs font-semibold bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg flex items-center gap-1.5 transition">
-            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             <span x-text="showNewPluginForm ? 'Ocultar Formulário' : 'Criar Novo Plugin'"></span>
           </button>
         </div>
@@ -705,7 +746,7 @@
               <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400">
                 <span>Porta: <span class="text-slate-200" x-text="p.default_port || '-'"></span></span>
                 <button @click="deletePlugin(p.id)" class="text-red-400 hover:text-red-300 p-1 rounded">
-                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                 </button>
               </div>
             </div>
@@ -731,7 +772,7 @@
       <div class="flex items-center justify-between border-b border-slate-800 pb-4">
         <div class="flex items-center space-x-3">
           <div class="w-10 h-10 rounded-xl bg-brand-600/20 text-brand-400 flex items-center justify-center">
-            <i data-lucide="plus-circle" class="w-6 h-6"></i>
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
           </div>
           <div>
             <h2 class="text-xl font-bold text-white">Criar Novo Projeto</h2>
@@ -739,7 +780,7 @@
           </div>
         </div>
         <button @click="showCreateModal = false" class="text-slate-400 hover:text-white p-1 rounded-lg">
-          <i data-lucide="x" class="w-5 h-5"></i>
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
 
@@ -759,7 +800,7 @@
         <!-- Credentials Configuration -->
         <div class="p-4 bg-dark-950 border border-slate-800 rounded-xl space-y-3">
           <div class="text-xs font-bold text-white flex items-center gap-2">
-            <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+            <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
             Credenciais Padrão dos Serviços (Login & Senha):
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -780,7 +821,7 @@
         <div class="p-4 bg-dark-950 border border-slate-800 rounded-xl flex items-center justify-between gap-4">
           <div>
             <div class="text-sm font-bold text-white flex items-center gap-2">
-              <i data-lucide="file-code" class="w-4 h-4 text-brand-400"></i>
+              <svg class="w-4 h-4 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
               Geração de Código & Templates Iniciais:
             </div>
             <p class="text-xs text-slate-400 mt-0.5">
@@ -868,10 +909,10 @@
       <div x-show="form.tools.length > 0" class="border border-slate-800 bg-dark-950 rounded-xl p-4">
         <button type="button" @click="showAdvancedConfig = !showAdvancedConfig" class="w-full flex items-center justify-between text-xs font-bold text-slate-300 uppercase tracking-wider">
           <span class="flex items-center gap-2">
-            <i data-lucide="settings-2" class="w-4 h-4 text-brand-400"></i>
+            <svg class="w-4 h-4 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
             Personalizar Portas e Pastas (<span x-text="form.tools.length"></span> ferramentas)
           </span>
-          <i data-lucide="chevron-down" class="w-4 h-4 transition transform" :class="{'rotate-180': showAdvancedConfig}"></i>
+          <svg class="w-4 h-4 transition transform" :class="{'rotate-180': showAdvancedConfig}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
         </button>
 
         <div x-show="showAdvancedConfig" x-cloak class="mt-4 space-y-4 pt-3 border-t border-slate-800">
@@ -896,8 +937,8 @@
           Cancelar
         </button>
         <button type="button" @click="createProject()" :disabled="!form.name || form.tools.length === 0 || isCreating" class="px-5 py-2 text-sm font-bold text-white bg-brand-600 hover:bg-brand-500 disabled:opacity-50 rounded-xl shadow-lg shadow-brand-600/30 flex items-center gap-2 transition active:scale-95">
-          <i data-lucide="check" class="w-4 h-4" x-show="!isCreating"></i>
-          <i data-lucide="loader" class="w-4 h-4 animate-spin" x-show="isCreating"></i>
+          <svg class="w-4 h-4" x-show="!isCreating" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          <svg class="w-4 h-4 animate-spin" x-show="isCreating" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
           <span x-text="isCreating ? 'Criando Estrutura...' : 'Gerar & Criar Projeto'"></span>
         </button>
       </div>
@@ -911,7 +952,7 @@
       <!-- Drawer Header -->
       <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-dark-900 gap-4">
         <div class="flex items-center space-x-3">
-          <i data-lucide="terminal" class="w-5 h-5 text-emerald-400"></i>
+          <svg class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
           <div>
             <h3 class="text-sm font-bold text-white flex items-center gap-2">
               Logs: <span class="text-brand-400" x-text="selectedProject?.name"></span>
@@ -934,7 +975,7 @@
 
           <button @click="clearLogs()" class="px-2.5 py-1 text-xs text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg transition">Limpar</button>
           <button @click="closeLogs()" class="p-1.5 text-slate-400 hover:text-white bg-slate-800 rounded-lg">
-            <i data-lucide="x" class="w-4 h-4"></i>
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
       </div>
@@ -971,6 +1012,14 @@
         logEventSource: null,
         actionLoading: {},
         graphData: { nodes: [], edges: [] },
+
+        toast: {
+          show: false,
+          title: '',
+          message: '',
+          type: 'info',
+          timer: null
+        },
 
         pluginForm: {
           id: '',
@@ -1010,20 +1059,35 @@
           custom_folders: {}
         },
 
+        showToast(title, message, type = 'info') {
+          if (this.toast.timer) clearTimeout(this.toast.timer);
+          this.toast = {
+            show: true,
+            title: title,
+            message: message,
+            type: type,
+            timer: setTimeout(() => {
+              this.toast.show = false;
+            }, 6000)
+          };
+        },
+
         async init() {
           await this.loadPlugins();
           await this.loadCatalog();
           await this.loadPresets();
           await this.refreshProjects();
           
-          // Poll project & container real status every 3 seconds
+          // Poll project & container real status every 3.5 seconds
           setInterval(() => {
             if (!this.showCreateModal && !this.showEditModal && !this.showGraphModal && !this.showLogsModal && !this.showPluginsModal) {
               this.refreshProjects(true);
             }
-          }, 3000);
+          }, 3500);
 
-          this.$nextTick(() => lucide.createIcons());
+          this.$nextTick(() => {
+            if (window.lucide) lucide.createIcons();
+          });
         },
 
         async loadPlugins() {
@@ -1065,7 +1129,6 @@
             console.error('Error refreshing projects:', e);
           } finally {
             if (!silent) this.isRefreshing = false;
-            this.$nextTick(() => lucide.createIcons());
           }
         },
 
@@ -1111,7 +1174,6 @@
             this.applyPreset(this.presets[0]);
           }
           this.showCreateModal = true;
-          this.$nextTick(() => lucide.createIcons());
         },
 
         openEditModal(project) {
@@ -1128,7 +1190,6 @@
             custom_folders: {}
           };
           this.showEditModal = true;
-          this.$nextTick(() => lucide.createIcons());
         },
 
         toggleEditTool(toolId) {
@@ -1158,14 +1219,15 @@
             });
 
             if (res.ok) {
+              this.showToast('Projeto Atualizado', `Projeto "${this.editForm.name}" atualizado com sucesso!`, 'success');
               this.showEditModal = false;
               await this.refreshProjects();
             } else {
               const err = await res.json();
-              alert(`Erro ao atualizar: ${err.detail || 'Falha'}`);
+              this.showToast('Erro ao Atualizar', err.detail || 'Falha na atualização', 'error');
             }
           } catch (e) {
-            alert(`Erro: ${e.message}`);
+            this.showToast('Erro de Conexão', e.message, 'error');
           } finally {
             this.isEditing = false;
           }
@@ -1182,7 +1244,6 @@
           } catch (e) {
             console.error('Error fetching graph:', e);
           }
-          this.$nextTick(() => lucide.createIcons());
         },
 
         async openVsCode(project) {
@@ -1199,6 +1260,7 @@
           // 1. If vscode is NOT yet added to the project
           if (!project.tools.includes('vscode')) {
             if (confirm(`O VS Code Web ainda não está instalado no projeto "${project.name}". Deseja adicioná-lo e iniciar o ambiente agora?`)) {
+              this.showToast('Instalando VS Code Web', `Adicionando serviço vscode ao projeto ${project.name}...`, 'info');
               const newTools = [...project.tools, 'vscode'];
               await fetch(`/api/projects/${project.id}`, {
                 method: 'PUT',
@@ -1214,10 +1276,9 @@
           // 2. If vscode is in tools, but project/container is stopped
           const isVsCodeRunning = project.containers && project.containers.some(c => (c.service === 'vscode' || c.name.includes('vscode')) && c.state === 'running');
           if (!isVsCodeRunning) {
-            if (confirm(`O container do VS Code Web está parado. Deseja iniciar o projeto "${project.name}" agora?`)) {
-              await this.startProject(project);
-              setTimeout(() => window.open(ideUrl, '_blank'), 3500);
-            }
+            this.showToast('Iniciando VS Code Web', 'Iniciando containers do projeto para abrir o editor...', 'info');
+            await this.startProject(project);
+            setTimeout(() => window.open(ideUrl, '_blank'), 3500);
             return;
           }
 
@@ -1240,7 +1301,6 @@
             test_type: 'http',
             test_path: '/'
           };
-          this.$nextTick(() => lucide.createIcons());
         },
 
         async saveNewPlugin() {
@@ -1278,15 +1338,16 @@
             });
 
             if (res.ok) {
+              this.showToast('Plugin Salvo', `Plugin "${this.pluginForm.name}" instalado e ativado!`, 'success');
               await this.loadPlugins();
               await this.loadCatalog();
               this.showNewPluginForm = false;
             } else {
               const err = await res.json();
-              alert(`Erro ao salvar plugin: ${err.detail || 'Falha'}`);
+              this.showToast('Erro no Plugin', err.detail || 'Falha ao salvar', 'error');
             }
           } catch (e) {
-            alert(`Erro de conexão: ${e.message}`);
+            this.showToast('Erro de Conexão', e.message, 'error');
           }
         },
 
@@ -1295,6 +1356,7 @@
           try {
             const res = await fetch(`/api/plugins/${pluginId}`, { method: 'DELETE' });
             if (res.ok) {
+              this.showToast('Plugin Removido', `Plugin ${pluginId} foi desinstalado.`, 'info');
               await this.loadPlugins();
               await this.loadCatalog();
             }
@@ -1350,37 +1412,40 @@
             });
 
             if (res.ok) {
+              this.showToast('Projeto Criado', `Estrutura de "${this.form.name}" gerada com sucesso!`, 'success');
               this.showCreateModal = false;
               await this.refreshProjects();
             } else {
               const err = await res.json();
-              alert(`Erro ao criar projeto: ${err.detail || 'Falha na criação'}`);
+              this.showToast('Erro ao Criar', err.detail || 'Falha na criação do projeto', 'error');
             }
           } catch (e) {
-            alert(`Erro ao comunicar com o servidor: ${e.message}`);
+            this.showToast('Erro no Servidor', e.message, 'error');
           } finally {
             this.isCreating = false;
           }
         },
 
         async startProject(project) {
-          this.actionLoading[project.id] = true;
+          this.actionLoading = { ...this.actionLoading, [project.id]: true };
           project.visual_status = 'yellow';
-          project.status = 'starting';
+          this.showToast('Iniciando Projeto', `Subindo containers de "${project.name}" (docker compose up -d)...`, 'info');
+
           try {
             const res = await fetch(`/api/projects/${project.id}/start`, { method: 'POST' });
-            if (!res.ok) {
+            if (res.ok) {
+              this.showToast('Projeto Iniciado', `Serviços de "${project.name}" foram iniciados com sucesso!`, 'success');
+            } else {
               const err = await res.json();
-              alert(`Erro ao iniciar projeto: ${err.detail || 'Falha no docker compose'}`);
+              this.showToast('Erro ao Iniciar', err.detail || 'Falha no docker compose up', 'error');
             }
             await this.refreshProjects();
             setTimeout(() => this.refreshProjects(true), 2000);
             setTimeout(() => this.refreshProjects(true), 5000);
           } catch (e) {
-            console.error('Error starting project:', e);
-            alert(`Erro ao iniciar: ${e.message}`);
+            this.showToast('Erro de Conexão', `Falha ao comunicar com o servidor: ${e.message}`, 'error');
           } finally {
-            this.actionLoading[project.id] = false;
+            this.actionLoading = { ...this.actionLoading, [project.id]: false };
           }
         },
 
@@ -1388,16 +1453,23 @@
           this.selectedProject = project;
           this.logsContent = `[TEST RUNNER] Executando suite de testes automatizados para ${project.name}...\n`;
           this.showLogsModal = true;
-          this.actionLoading[project.id] = true;
+          this.actionLoading = { ...this.actionLoading, [project.id]: true };
+          this.showToast('Testes em Execução', `Rodando testes de unidade e integração para ${project.name}...`, 'info');
 
           try {
             const res = await fetch(`/api/projects/${project.id}/test`, { method: 'POST' });
             const data = await res.json();
             this.logsContent += '\n' + (data.output || 'Testes concluídos.');
+            if (data.status === 'passed') {
+              this.showToast('Testes Concluídos', 'Todos os testes passaram com sucesso! (100% OK)', 'success');
+            } else {
+              this.showToast('Resultado dos Testes', 'Execução de testes finalizada. Veja o log detalhado no terminal.', 'info');
+            }
           } catch (e) {
             this.logsContent += `\nErro ao executar testes: ${e.message}\n`;
+            this.showToast('Erro nos Testes', e.message, 'error');
           } finally {
-            this.actionLoading[project.id] = false;
+            this.actionLoading = { ...this.actionLoading, [project.id]: false };
             this.$nextTick(() => {
               const el = document.getElementById('terminal-body');
               if (el) el.scrollTop = el.scrollHeight;
@@ -1409,7 +1481,8 @@
           this.selectedProject = project;
           this.logsContent = `[KUBERNETES DEPLOY] Aplicando manifests K8s para ${project.name} (kubectl apply -k k8s/)...\n`;
           this.showLogsModal = true;
-          this.actionLoading[project.id] = true;
+          this.actionLoading = { ...this.actionLoading, [project.id]: true };
+          this.showToast('Deploy Kubernetes', `Aplicando manifests no cluster K8s para ${project.name}...`, 'info');
 
           try {
             const res = await fetch(`/api/projects/${project.id}/k8s/deploy`, { method: 'POST' });
@@ -1429,10 +1502,12 @@
             } else {
               this.logsContent += '  Pods sendo criados...\n';
             }
+            this.showToast('Deploy K8s Concluído', 'Manifestos aplicados no Kubernetes!', 'success');
           } catch (e) {
             this.logsContent += `\nErro no deploy K8s: ${e.message}\n`;
+            this.showToast('Erro K8s', e.message, 'error');
           } finally {
-            this.actionLoading[project.id] = false;
+            this.actionLoading = { ...this.actionLoading, [project.id]: false };
             this.$nextTick(() => {
               const el = document.getElementById('terminal-body');
               if (el) el.scrollTop = el.scrollHeight;
@@ -1441,27 +1516,31 @@
         },
 
         async pauseProject(project) {
-          this.actionLoading[project.id] = true;
+          this.actionLoading = { ...this.actionLoading, [project.id]: true };
+          this.showToast('Pausando Containers', `Pausando serviços de "${project.name}"...`, 'info');
           try {
             await fetch(`/api/projects/${project.id}/pause`, { method: 'POST' });
+            this.showToast('Projeto Pausado', `Containers de "${project.name}" pausados.`, 'warning');
             await this.refreshProjects();
           } catch (e) {
-            console.error(e);
+            this.showToast('Erro ao Pausar', e.message, 'error');
           } finally {
-            this.actionLoading[project.id] = false;
+            this.actionLoading = { ...this.actionLoading, [project.id]: false };
           }
         },
 
         async stopProject(project) {
-          this.actionLoading[project.id] = true;
+          this.actionLoading = { ...this.actionLoading, [project.id]: true };
           project.visual_status = 'orange';
+          this.showToast('Parando Containers', `Desligando containers de "${project.name}" (docker compose down)...`, 'info');
           try {
             await fetch(`/api/projects/${project.id}/stop`, { method: 'POST' });
+            this.showToast('Projeto Parado', `Containers de "${project.name}" foram desligados com sucesso.`, 'info');
             await this.refreshProjects();
           } catch (e) {
-            console.error(e);
+            this.showToast('Erro ao Parar', e.message, 'error');
           } finally {
-            this.actionLoading[project.id] = false;
+            this.actionLoading = { ...this.actionLoading, [project.id]: false };
           }
         },
 
@@ -1469,6 +1548,7 @@
           if (!confirm(`Deseja remover o projeto "${project.name}" do StackStudio?`)) return;
           try {
             await fetch(`/api/projects/${project.id}`, { method: 'DELETE' });
+            this.showToast('Projeto Removido', `Projeto "${project.name}" foi removido do registro.`, 'info');
             await this.refreshProjects();
           } catch (e) {
             console.error(e);
@@ -1480,7 +1560,6 @@
           this.selectedLogService = 'all';
           this.showLogsModal = true;
           this.connectLogsStream();
-          this.$nextTick(() => lucide.createIcons());
         },
 
         changeLogService() {

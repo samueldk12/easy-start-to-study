@@ -634,7 +634,7 @@ class ProjectScaffolder:
 
         # --- NGINX REVERSE PROXY ---
         if "nginx" in self.tools:
-            port = self.request.custom_ports.get("nginx", 8080)
+            port = self.request.custom_ports.get("nginx", 8088)
             services["nginx"] = {
                 "image": "nginx:alpine",
                 "container_name": f"{self.project_name}-nginx",

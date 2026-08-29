@@ -329,8 +329,8 @@ CATEGORIES: List[ToolCategory] = [
                 description="Servidor web de alta performance, proxy reverso, balanceador de carga HTTP e terminação SSL/TLS.",
                 icon="globe",
                 badge="Reverse Proxy / Web",
-                default_port=8080,
-                ui_url="http://localhost:8080",
+                default_port=8088,
+                ui_url="http://localhost:8088",
                 default_folders={"config": "nginx/nginx.conf", "html": "nginx/html"}
             ),
             ToolOption(

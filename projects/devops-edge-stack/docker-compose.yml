@@ -46,7 +46,7 @@ services:
     image: nginx:alpine
     container_name: devops-edge-stack-nginx
     ports:
-    - 8080:80
+    - 8088:80
     volumes:
     - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     - ./nginx/html:/usr/share/nginx/html:ro
