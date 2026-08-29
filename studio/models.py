@@ -90,6 +90,7 @@ class ContainerInfo(BaseModel):
     ports: str = ""
     retry_count: int = 0
     visual_status: str = "green"  # "green" (running/healthy), "yellow" (starting), "orange" (stopped/paused), "red" (crashed/unhealthy/error)
+    last_changed: float = 0.0
 
 
 class ProjectInfo(BaseModel):

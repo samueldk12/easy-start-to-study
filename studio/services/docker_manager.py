@@ -5,11 +5,17 @@ Docker Compose Lifecycle Manager
 import asyncio
 import os
 import json
-from typing import List, Dict, Any, AsyncGenerator, Optional
+import time
+from typing import List, Dict, Any, AsyncGenerator, Optional, Tuple
 from studio.models import ContainerInfo
 
 
 class DockerManager:
+    _RETRY_TRACKER: Dict[str, int] = {}
+    _MAX_RETRIES: int = 5
+    _LAST_KNOWN_STATE: Dict[str, Tuple[str, str, str]] = {}
+    _STATUS_CHANGE_TIMES: Dict[str, float] = {}
+
     @staticmethod
     async def run_command(project_dir: str, cmd: List[str]) -> Dict[str, Any]:
         """Runs a docker compose command in the project directory."""
@@ -106,6 +112,14 @@ class DockerManager:
         else:
             visual_status = "orange"
 
+        # Track state transition timestamp for real-time sorting
+        current_signature = (state_raw, status_raw, visual_status)
+        last_signature = DockerManager._LAST_KNOWN_STATE.get(name)
+        if last_signature is None or last_signature != current_signature:
+            DockerManager._LAST_KNOWN_STATE[name] = current_signature
+            DockerManager._STATUS_CHANGE_TIMES[name] = time.time()
+
+        last_changed = DockerManager._STATUS_CHANGE_TIMES.get(name, 0.0)
         retry_count = DockerManager._RETRY_TRACKER.get(name, 0)
 
         return ContainerInfo(
@@ -117,7 +131,8 @@ class DockerManager:
             exit_code=exit_code,
             ports=ports_str,
             retry_count=retry_count,
-            visual_status=visual_status
+            visual_status=visual_status,
+            last_changed=last_changed
         )
 
     @staticmethod
@@ -186,6 +201,10 @@ class DockerManager:
         else:
             status = "stopped"
             visual_status = "orange"
+
+        # Sort containers by recent status change first, then status severity (red > yellow > green > orange), then name
+        severity_map = {"red": 0, "yellow": 1, "green": 2, "orange": 3}
+        containers.sort(key=lambda c: (-c.last_changed, severity_map.get(c.visual_status, 4), c.service))
 
         return {"status": status, "visual_status": visual_status, "containers": containers}
 

@@ -281,8 +281,8 @@
                 </template>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
-                  <template x-for="c in (project.containers || [])" :key="c.name">
-                    <div class="p-2 bg-dark-950 border border-slate-800 rounded-lg flex items-center justify-between text-xs">
+                  <template x-for="c in getVisibleContainers(project)" :key="c.name">
+                    <div class="p-2 bg-dark-950 border border-slate-800 rounded-lg flex items-center justify-between text-xs transition hover:border-slate-700">
                       <div class="flex items-center gap-2 min-w-0">
                         <!-- Status Dot: Green / Yellow / Orange / Red -->
                         <span class="w-2.5 h-2.5 rounded-full shrink-0"
@@ -311,6 +311,13 @@
                       </span>
                     </div>
                   </template>
+                </div>
+
+                <!-- Expand / Collapse Toggle if more than 4 containers -->
+                <div x-show="project.containers && project.containers.length > 4" class="mt-2.5 flex justify-center">
+                  <button type="button" @click.stop="toggleContainers(project.id)" class="px-3 py-1 text-[11px] font-semibold text-slate-300 hover:text-brand-300 bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 hover:border-brand-500/40 rounded-lg transition inline-flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95">
+                    <span x-text="expandedContainers[project.id] ? '▲ Recolher containers' : `▼ Ver todos (${project.containers.length} containers — ${project.containers.length - 4} ocultos)`"></span>
+                  </button>
                 </div>
               </div>
 
@@ -998,6 +1005,7 @@
         logsContent: 'Conectando aos logs do Docker...\n',
         logEventSource: null,
         actionLoading: {},
+        expandedContainers: {},
         graphData: { nodes: [], edges: [] },
 
         toast: {
@@ -1006,6 +1014,34 @@
           message: '',
           type: 'info',
           timer: null
+        },
+
+        toggleContainers(projectId) {
+          this.expandedContainers = {
+            ...this.expandedContainers,
+            [projectId]: !this.expandedContainers[projectId]
+          };
+        },
+
+        getVisibleContainers(project) {
+          if (!project || !project.containers) return [];
+          if (this.expandedContainers[project.id] || project.containers.length <= 4) {
+            return project.containers;
+          }
+          return project.containers.slice(0, 4);
+        },
+
+        showToast(title, message, type = 'info') {
+          if (this.toast.timer) clearTimeout(this.toast.timer);
+          this.toast = {
+            show: true,
+            title: title,
+            message: message,
+            type: type,
+            timer: setTimeout(() => {
+              this.toast.show = false;
+            }, 6000)
+          };
         },
 
         pluginForm: {
@@ -1044,19 +1080,6 @@
           custom_ports: {},
           custom_envs: {},
           custom_folders: {}
-        },
-
-        showToast(title, message, type = 'info') {
-          if (this.toast.timer) clearTimeout(this.toast.timer);
-          this.toast = {
-            show: true,
-            title: title,
-            message: message,
-            type: type,
-            timer: setTimeout(() => {
-              this.toast.show = false;
-            }, 6000)
-          };
         },
 
         async init() {
