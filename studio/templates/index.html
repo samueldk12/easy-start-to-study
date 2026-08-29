@@ -1610,12 +1610,31 @@
         },
 
         async init() {
-          await this.loadPlugins();
-          await this.loadCatalog();
-          await this.loadPresets();
-          await this.refreshProjects();
+          // 1. Immediately hydrate from LocalStorage JSON cache (0ms instant render on open)
+          try {
+            const localCached = localStorage.getItem('stackstudio_projects_cache');
+            if (localCached) {
+              const parsed = JSON.parse(localCached);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                this.projects = parsed;
+              }
+            }
+          } catch (e) {
+            console.warn('Could not read local projects cache:', e);
+          }
+
+          // 2. Concurrently load plugins, catalog, presets
+          this.loadPlugins();
+          this.loadCatalog();
+          this.loadPresets();
           
-          // Poll project & container real status every 3.5 seconds
+          // 3. Fast-fetch cached projects from server JSON (immediate response)
+          await this.loadCachedProjects();
+
+          // 4. Background refresh ("por baixo dos panos") to sync real-time Docker container states
+          this.refreshProjects(true);
+          
+          // 5. Poll project & container real status every 3.5 seconds in background
           setInterval(() => {
             if (!this.showCreateModal && !this.showEditModal && !this.showGraphModal && !this.showLogsModal && !this.showPluginsModal) {
               this.refreshProjects(true);
@@ -1657,13 +1676,36 @@
           }
         },
 
+        async loadCachedProjects() {
+          try {
+            const res = await fetch('/api/projects?cached_only=true');
+            if (res.ok) {
+              const data = await res.json();
+              if (Array.isArray(data) && data.length > 0) {
+                this.projects = data;
+                try {
+                  localStorage.setItem('stackstudio_projects_cache', JSON.stringify(data));
+                } catch (err) {}
+              }
+            }
+          } catch (e) {
+            console.error('Error loading cached projects:', e);
+          }
+        },
+
         async refreshProjects(silent = false) {
           if (!silent) this.isRefreshing = true;
           try {
-            const res = await fetch('/api/projects');
-            this.projects = await res.json();
+            const res = await fetch('/api/projects?refresh=true');
+            if (res.ok) {
+              const freshData = await res.json();
+              this.projects = freshData;
+              try {
+                localStorage.setItem('stackstudio_projects_cache', JSON.stringify(freshData));
+              } catch (err) {}
+            }
           } catch (e) {
-            console.error('Error refreshing projects:', e);
+            console.error('Error refreshing projects in background:', e);
           } finally {
             if (!silent) this.isRefreshing = false;
           }

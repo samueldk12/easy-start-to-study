@@ -229,7 +229,7 @@ class DockerManager:
     @staticmethod
     async def get_project_status(project_dir: str) -> Dict[str, Any]:
         """Inspects containers status using docker compose ps -a --format json."""
-        res = await DockerManager.run_command(project_dir, ["ps", "-a", "--format", "json"])
+        res = await DockerManager.run_command(project_dir, ["ps", "-a", "--format", "json"], timeout=6.0)
         if not res["success"]:
             return {"status": "stopped", "visual_status": "orange", "containers": []}
 

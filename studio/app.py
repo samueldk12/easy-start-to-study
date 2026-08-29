@@ -62,8 +62,7 @@ async def get_presets():
     return PRESETS
 
 
-@app.get("/api/projects", response_model=List[ProjectInfo])
-async def list_projects():
+async def enrich_and_cache_projects() -> List[ProjectInfo]:
     projects = ProjectStore.list_projects()
     
     # Asynchronously enrich with live Docker status
@@ -85,7 +84,35 @@ async def list_projects():
         return proj
 
     enriched = await asyncio.gather(*[enrich_status(p) for p in projects])
+    # Persist the full project list with live status to projects_cache.json
+    ProjectStore.save_cache(enriched)
     return enriched
+
+
+@app.get("/api/projects", response_model=List[ProjectInfo])
+async def list_projects(cached_only: bool = False, refresh: bool = False):
+    cached = ProjectStore.load_cache()
+
+    if cached_only:
+        return cached if cached else ProjectStore.list_projects()
+
+    if refresh or not cached:
+        return await enrich_and_cache_projects()
+
+    # Fast Path: Return cached JSON immediately and update in background ("por baixo dos panos")
+    asyncio.create_task(enrich_and_cache_projects())
+    return cached
+
+
+@app.post("/api/projects/sync", response_model=List[ProjectInfo])
+async def sync_projects_now():
+    return await enrich_and_cache_projects()
+
+
+@app.on_event("startup")
+async def startup_cache_and_sync():
+    # Warm up cache and perform initial background sync
+    asyncio.create_task(enrich_and_cache_projects())
 
 
 @app.post("/api/projects", response_model=ProjectInfo)
