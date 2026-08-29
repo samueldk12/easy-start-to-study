@@ -92,6 +92,12 @@
       </div>
 
       <div class="flex items-center space-x-3">
+        <!-- Import Existing Folder Button -->
+        <button @click="openImportModal()" class="px-3.5 py-1.5 text-xs font-semibold text-emerald-300 hover:text-white bg-emerald-950/40 hover:bg-emerald-900/60 rounded-xl border border-emerald-800/60 flex items-center gap-1.5 transition cursor-pointer">
+          <svg class="w-4 h-4 text-emerald-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+          <span>Importar Pasta</span>
+        </button>
+
         <button @click="openPluginsModal()" class="px-3.5 py-1.5 text-xs font-semibold text-cyan-300 hover:text-white bg-cyan-950/40 hover:bg-cyan-900/60 rounded-xl border border-cyan-800/60 flex items-center gap-1.5 transition">
           <i data-lucide="puzzle" class="w-4 h-4 text-cyan-400 pointer-events-none"></i>
           <span>Plugins</span>
@@ -296,11 +302,17 @@
             <i data-lucide="package-open" class="w-8 h-8 pointer-events-none"></i>
           </div>
           <h3 class="text-lg font-semibold text-white mb-1">Nenhum projeto criado ainda</h3>
-          <p class="text-sm text-slate-400 max-w-md mb-6">Crie seu primeiro projeto com PostgreSQL CDC, Kafka, MinIO, Spark, Iceberg, Trino, Airflow, Redis, RabbitMQ, VS Code Web ou plugins customizados em segundos.</p>
-          <button @click="openCreateModal()" class="px-5 py-2.5 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-500 rounded-xl shadow-lg shadow-brand-600/30 flex items-center gap-2 transition">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            Criar Primeiro Projeto
-          </button>
+          <p class="text-sm text-slate-400 max-w-md mb-6">Crie seu primeiro projeto com PostgreSQL CDC, Kafka, MinIO, Spark, Iceberg, Trino, Airflow, Redis, RabbitMQ, VS Code Web ou importe uma pasta existente com detecção automática de stack em segundos.</p>
+          <div class="flex flex-wrap items-center justify-center gap-3">
+            <button @click="openCreateModal()" class="px-5 py-2.5 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-500 rounded-xl shadow-lg shadow-brand-600/30 flex items-center gap-2 transition cursor-pointer">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              Criar Novo Projeto
+            </button>
+            <button @click="openImportModal()" class="px-5 py-2.5 text-sm font-semibold text-emerald-300 hover:text-white bg-emerald-950/60 hover:bg-emerald-900/80 rounded-xl border border-emerald-700/60 flex items-center gap-2 transition cursor-pointer">
+              <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+              Importar Pasta Existente
+            </button>
+          </div>
         </div>
       </template>
 
@@ -1212,6 +1224,170 @@
     </div>
   </div>
 
+  <!-- IMPORT EXISTING FOLDER MODAL -->
+  <div x-show="showImportModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div @click.away="showImportModal = false" class="bg-dark-900 border border-slate-700 rounded-2xl max-w-3xl w-full p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              Importar Pasta de Projeto Existente
+            </h2>
+            <p class="text-xs text-slate-400">Escaneia o diretório, detecta automaticamente as tecnologias e configura o modo de execução</p>
+          </div>
+        </div>
+        <button @click="showImportModal = false" class="text-slate-400 hover:text-white p-1 rounded-lg cursor-pointer">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Step 1: Folder Path Input & Scan Action -->
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+            Caminho Absoluto ou Relativo da Pasta
+          </label>
+          <div class="flex items-center gap-2">
+            <div class="relative flex-1">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+              </div>
+              <input 
+                type="text" 
+                x-model="importForm.path" 
+                @keydown.enter.prevent="analyzeImportFolder()"
+                placeholder="ex: C:\Projetos\meu-projeto ou projects/velocelog" 
+                class="w-full bg-dark-950 border border-slate-800 focus:border-emerald-500 rounded-xl pl-9 pr-3.5 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none transition font-mono">
+            </div>
+            <button 
+              type="button" 
+              @click="analyzeImportFolder()" 
+              :disabled="!importForm.path || isAnalyzingFolder"
+              class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold flex items-center gap-2 transition shrink-0 cursor-pointer shadow-lg shadow-emerald-600/20">
+              <svg class="w-4 h-4 animate-spin" x-show="isAnalyzingFolder" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              <svg class="w-4 h-4" x-show="!isAnalyzingFolder" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+              <span x-text="isAnalyzingFolder ? 'Analisando...' : 'Escanear Pasta'"></span>
+            </button>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-1.5">
+            Dica: O StackStudio caminhará recursivamente pela pasta para detectar Docker Compose, Dockerfiles, manifests K8s, Python, Node, Java, bancos de dados, etc.
+          </p>
+        </div>
+
+        <!-- Scan Error Alert -->
+        <template x-if="importError">
+          <div class="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-xs text-red-300 flex items-start gap-2">
+            <svg class="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <span x-text="importError"></span>
+          </div>
+        </template>
+
+        <!-- Scan Results Card -->
+        <template x-if="importAnalysis">
+          <div class="space-y-4 pt-2 border-t border-slate-800">
+            <!-- Summary Banner -->
+            <div class="p-4 bg-dark-950 border border-emerald-500/30 rounded-2xl space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  Análise Concluída com Sucesso
+                </span>
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700 font-mono" x-text="importAnalysis.launch_strategy.toUpperCase()"></span>
+              </div>
+
+              <!-- Project Name & Description inputs -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-[11px] font-semibold text-slate-300 mb-1">Nome do Projeto:</label>
+                  <input type="text" x-model="importForm.name" class="w-full bg-dark-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-semibold text-slate-300 mb-1">Descrição:</label>
+                  <input type="text" x-model="importForm.description" class="w-full bg-dark-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500">
+                </div>
+              </div>
+
+              <!-- Detected Tech Badges -->
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-300 mb-1.5">Tecnologias & Frameworks Detectados:</label>
+                <div class="flex flex-wrap gap-1.5">
+                  <template x-for="tech in importAnalysis.detected_techs" :key="tech.name">
+                    <span class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20" x-text="tech.badge"></span>
+                  </template>
+                </div>
+              </div>
+
+              <!-- Launch Strategy & Start Command Preview -->
+              <div class="p-3 bg-black/60 rounded-xl border border-slate-800 space-y-1.5">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="text-slate-400">Comando de Inicialização Automática:</span>
+                  <span class="text-emerald-400 font-semibold font-mono text-[11px]" x-text="importAnalysis.start_command"></span>
+                </div>
+                <div class="text-[11px] text-slate-500">
+                  Ao clicar em <strong>Start</strong> no painel, o StackStudio executará esse comando para orquestrar os serviços.
+                </div>
+              </div>
+
+              <!-- Detected Services & Ports (if any) -->
+              <template x-if="importAnalysis.detected_services && importAnalysis.detected_services.length > 0">
+                <div>
+                  <label class="block text-[11px] font-semibold text-slate-300 mb-1.5">Serviços & Portas Detectados:</label>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-36 overflow-y-auto">
+                    <template x-for="svc in importAnalysis.detected_services" :key="svc.service">
+                      <div class="p-2 bg-dark-900 border border-slate-800 rounded-lg flex items-center justify-between text-xs">
+                        <div class="flex items-center gap-1.5 truncate">
+                          <span class="font-bold text-slate-200" x-text="svc.service"></span>
+                          <span class="text-[10px] text-slate-500 truncate" x-text="svc.image"></span>
+                        </div>
+                        <div class="shrink-0 font-mono text-[10px] text-emerald-400" x-text="svc.ports.join(', ') || 'porta interna'"></div>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </template>
+
+              <!-- Optional Checkboxes -->
+              <div class="pt-2 border-t border-slate-800 space-y-2 text-xs">
+                <template x-if="!importAnalysis.has_compose">
+                  <label class="flex items-center gap-2 text-slate-300 cursor-pointer">
+                    <input type="checkbox" x-model="importForm.auto_create_compose" class="rounded bg-dark-900 border-slate-700 text-emerald-500 focus:ring-0">
+                    <span>Gerar <strong>docker-compose.yml</strong> automaticamente para orquestrar o container</span>
+                  </label>
+                </template>
+                <label class="flex items-center gap-2 text-slate-300 cursor-pointer">
+                  <input type="checkbox" x-model="importForm.auto_install_extensions" class="rounded bg-dark-900 border-slate-700 text-emerald-500 focus:ring-0">
+                  <span>Configurar extensões recomendadas no VS Code Web</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="flex items-center justify-end space-x-3 border-t border-slate-800 pt-4">
+        <button type="button" @click="showImportModal = false" class="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition cursor-pointer">
+          Cancelar
+        </button>
+        <button 
+          type="button" 
+          @click="submitImportProject()" 
+          :disabled="!importAnalysis || isImporting"
+          class="px-5 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 rounded-xl shadow-lg shadow-emerald-600/30 flex items-center gap-2 transition active:scale-95 cursor-pointer">
+          <svg class="w-4 h-4" x-show="!isImporting" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          <svg class="w-4 h-4 animate-spin" x-show="isImporting" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          <span x-text="isImporting ? 'Importando...' : 'Concluir Importação'"></span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
   <!-- MANIFESTS & GENERATED CODE MODAL -->
   <div x-show="showManifestsModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
     <div @click.away="showManifestsModal = false" class="bg-dark-900 border border-slate-800 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
@@ -1535,6 +1711,18 @@
         isCreating: false,
         isEditing: false,
         showCreateModal: false,
+        showImportModal: false,
+        isAnalyzingFolder: false,
+        isImporting: false,
+        importError: '',
+        importAnalysis: null,
+        importForm: {
+          path: '',
+          name: '',
+          description: '',
+          auto_create_compose: true,
+          auto_install_extensions: true
+        },
         showEditModal: false,
         showGraphModal: false,
         showLogsModal: false,
@@ -2326,6 +2514,98 @@
             this.form.tools.splice(idx, 1);
           } else {
             this.form.tools.push(toolId);
+          }
+        },
+
+        openImportModal() {
+          this.showImportModal = true;
+          this.isAnalyzingFolder = false;
+          this.isImporting = false;
+          this.importError = '';
+          this.importAnalysis = null;
+          this.importForm = {
+            path: '',
+            name: '',
+            description: '',
+            auto_create_compose: true,
+            auto_install_extensions: true
+          };
+        },
+
+        async analyzeImportFolder() {
+          const path = (this.importForm.path || '').trim();
+          if (!path) {
+            this.importError = 'Por favor, informe o caminho do diretório a ser analisado.';
+            return;
+          }
+
+          this.isAnalyzingFolder = true;
+          this.importError = '';
+          this.importAnalysis = null;
+
+          try {
+            const res = await fetch('/api/projects/analyze-folder', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ path })
+            });
+
+            if (res.ok) {
+              const data = await res.json();
+              this.importAnalysis = data;
+              this.importForm.name = data.name || 'imported-project';
+              this.importForm.description = data.description || '';
+              this.importForm.auto_create_compose = !data.has_compose;
+              this.showToast('Pasta Analisada', `Tecnologias detectadas para "${data.name}"!`, 'success');
+            } else {
+              const err = await res.json();
+              this.importError = err.detail || 'Não foi possível analisar a pasta.';
+            }
+          } catch (e) {
+            this.importError = `Falha na conexão: ${e.message}`;
+          } finally {
+            this.isAnalyzingFolder = false;
+          }
+        },
+
+        async submitImportProject() {
+          if (!this.importAnalysis || !this.importForm.name) return;
+
+          this.isImporting = true;
+          this.importError = '';
+
+          try {
+            const payload = {
+              name: this.importForm.name.trim(),
+              path: this.importAnalysis.path,
+              description: this.importForm.description ? this.importForm.description.trim() : `Projeto importado de ${this.importAnalysis.name}`,
+              tools: this.importAnalysis.tools || [],
+              include_templates: false,
+              auto_create_compose: this.importForm.auto_create_compose,
+              compose_content: this.importAnalysis.suggested_compose,
+              auto_install_extensions: this.importForm.auto_install_extensions,
+              custom_vscode_extensions: []
+            };
+
+            const res = await fetch('/api/projects/import', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+              const imported = await res.json();
+              this.showToast('Projeto Importado', `Projeto "${imported.name}" importado com sucesso!`, 'success');
+              this.showImportModal = false;
+              await this.refreshProjects();
+            } else {
+              const err = await res.json();
+              this.importError = err.detail || 'Falha ao importar o projeto.';
+            }
+          } catch (e) {
+            this.importError = `Erro ao importar: ${e.message}`;
+          } finally {
+            this.isImporting = false;
           }
         },
 

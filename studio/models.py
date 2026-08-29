@@ -114,6 +114,22 @@ class ContainerInfo(BaseModel):
     last_changed: float = 0.0
 
 
+class FolderAnalyzeRequest(BaseModel):
+    path: str
+
+
+class ProjectImportRequest(BaseModel):
+    name: str
+    path: str
+    description: Optional[str] = None
+    tools: List[str] = Field(default_factory=list)
+    include_templates: bool = False
+    auto_create_compose: bool = False
+    compose_content: Optional[str] = None
+    auto_install_extensions: bool = True
+    custom_vscode_extensions: List[str] = Field(default_factory=list)
+
+
 class ProjectInfo(BaseModel):
     id: str
     name: str
@@ -129,3 +145,5 @@ class ProjectInfo(BaseModel):
     custom_vscode_extensions: List[str] = Field(default_factory=list)
     containers: List[ContainerInfo] = Field(default_factory=list)
     ui_links: List[Dict[str, str]] = Field(default_factory=list)
+    launch_strategy: Optional[str] = "docker-compose"
+    start_command: Optional[str] = "docker compose up -d"

@@ -9,11 +9,16 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.requests import Request
-from studio.models import ProjectCreateRequest, ProjectInfo, ToolCategory, ProjectPreset, ToolPlugin, ContainerExecRequest
+from studio.models import (
+    ProjectCreateRequest, ProjectInfo, ToolCategory, ProjectPreset, ToolPlugin,
+    ContainerExecRequest, FolderAnalyzeRequest, ProjectImportRequest, ProjectUpdateRequest
+)
 from studio.services.catalog import CATEGORIES, PRESETS
 from studio.services.scaffolder import ProjectScaffolder
 from studio.services.project_store import ProjectStore
 from studio.services.docker_manager import DockerManager
+from studio.services.folder_analyzer import FolderAnalyzer
+from studio.services.topology_graph import TopologyGraphEngine
 
 app = FastAPI(title="StackStudio API", description="Data & AI Stack Scaffolder and Orchestrator", version="1.0.0")
 
@@ -139,8 +144,69 @@ async def create_project(request: ProjectCreateRequest):
     return proj
 
 
-from studio.models import ProjectUpdateRequest
-from studio.services.topology_graph import TopologyGraphEngine
+@app.post("/api/projects/analyze-folder")
+async def analyze_folder(req: FolderAnalyzeRequest):
+    """Scans a local directory, detects technologies, manifests and startup mechanism."""
+    result = FolderAnalyzer.analyze(req.path)
+    if not result.get("success"):
+        raise HTTPException(status_code=400, detail=result.get("error"))
+    return result
+
+
+@app.post("/api/projects/import", response_model=ProjectInfo)
+async def import_existing_project(req: ProjectImportRequest):
+    """Imports an existing folder as a StackStudio project with detected technologies and configs."""
+    import re
+    from pathlib import Path
+    from datetime import datetime
+
+    target_path = Path(req.path).resolve()
+    if not target_path.exists() or not target_path.is_dir():
+        raise HTTPException(status_code=400, detail=f"Diretório '{req.path}' não encontrado ou inválido.")
+
+    project_id = re.sub(r'[^a-zA-Z0-9_-]', '-', req.name.lower().strip())
+    existing = ProjectStore.get_project(project_id)
+    if existing:
+        project_id = f"{project_id}-{int(datetime.now().timestamp())}"
+
+    # Optionally write suggested docker-compose.yml if requested and missing
+    compose_file = target_path / "docker-compose.yml"
+    compose_file_alt = target_path / "compose.yaml"
+    if req.auto_create_compose and req.compose_content and not compose_file.exists() and not compose_file_alt.exists():
+        with open(compose_file, "w", encoding="utf-8") as f:
+            f.write(req.compose_content)
+
+    # Check if VS Code Web config should be set up
+    if req.auto_install_extensions:
+        try:
+            tmp_req = ProjectCreateRequest(
+                name=req.name,
+                path=str(target_path),
+                tools=req.tools or ["vscode_web"],
+                custom_vscode_extensions=req.custom_vscode_extensions,
+                auto_install_extensions=req.auto_install_extensions
+            )
+            scaff = ProjectScaffolder(tmp_req)
+            scaff._generate_vscode_files()
+        except Exception:
+            pass
+
+    # Register into ProjectStore
+    imported_project = ProjectStore.register_project(
+        project_id=project_id,
+        name=req.name,
+        path=str(target_path),
+        description=req.description or f"Projeto importado de {target_path.name}",
+        tools=req.tools,
+        include_templates=req.include_templates,
+        auto_install_extensions=req.auto_install_extensions,
+        custom_vscode_extensions=req.custom_vscode_extensions
+    )
+
+    # Asynchronously enrich container status and update cache
+    asyncio.create_task(enrich_and_cache_projects())
+
+    return imported_project
 
 
 @app.put("/api/projects/{project_id}", response_model=ProjectInfo)
