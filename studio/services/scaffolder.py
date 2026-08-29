@@ -264,7 +264,7 @@ class ProjectScaffolder:
                 "ports": [f"{api_port}:9000", f"{console_port}:9001"],
                 "environment": {
                     "MINIO_ROOT_USER": "${MINIO_ROOT_USER:-admin}",
-                    "MINIO_ROOT_PASSWORD": "${MINIO_ROOT_PASSWORD:-password123}"
+                    "MINIO_ROOT_PASSWORD": "${MINIO_ROOT_PASSWORD:-admin123}"
                 },
                 "volumes": ["minio_data:/data"],
                 "healthcheck": {
@@ -283,7 +283,7 @@ class ProjectScaffolder:
                 "depends_on": ["minio"],
                 "environment": {
                     "MINIO_ROOT_USER": "${MINIO_ROOT_USER:-admin}",
-                    "MINIO_ROOT_PASSWORD": "${MINIO_ROOT_PASSWORD:-password123}"
+                    "MINIO_ROOT_PASSWORD": "${MINIO_ROOT_PASSWORD:-admin123}"
                 },
                 "entrypoint": '/bin/sh -c "until (/usr/bin/mc alias set myminio http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD); do echo \'Waiting for MinIO...\'; sleep 2; done; /usr/bin/mc mb --ignore-existing myminio/lakehouse; /usr/bin/mc mb --ignore-existing myminio/warehouse; echo \'Buckets created successfully!\'; exit 0;"',
                 "networks": [network_name]
@@ -303,7 +303,7 @@ class ProjectScaffolder:
                     "CATALOG_S3_ENDPOINT": "http://minio:9000",
                     "CATALOG_S3_PATH__STYLE__ACCESS": "true",
                     "AWS_ACCESS_KEY_ID": "${MINIO_ROOT_USER:-admin}",
-                    "AWS_SECRET_ACCESS_KEY": "${MINIO_ROOT_PASSWORD:-password123}",
+                    "AWS_SECRET_ACCESS_KEY": "${MINIO_ROOT_PASSWORD:-admin123}",
                     "AWS_REGION": "us-east-1"
                 },
                 "networks": [network_name]
