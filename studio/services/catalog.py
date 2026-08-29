@@ -263,6 +263,83 @@ CATEGORIES: List[ToolCategory] = [
                 badge="Feature Store",
                 dependencies=["redis", "postgres"],
                 default_folders={"feature_repo": "feature_repo"}
+            ),
+            ToolOption(
+                id="ollama",
+                name="Ollama Local LLM Engine",
+                category="mlops",
+                description="Servidor de inferência local ultra-rápido para execução de LLMs open-source (Llama 3.1/3.2, Mistral, Qwen 2.5, DeepSeek, Phi-3, Gemma) com suporte a CPU e GPU.",
+                icon="cpu",
+                badge="Local LLM Engine",
+                default_port=11434,
+                ui_url="http://localhost:11434",
+                default_folders={"models": "ollama/models"}
+            ),
+            ToolOption(
+                id="open_webui",
+                name="Open WebUI (ChatGPT Clone)",
+                category="mlops",
+                description="Interface web moderna estilo ChatGPT/Claude para chat interativo com LLMs locais, upload de documentos RAG e gerenciamento de prompts.",
+                icon="message-square",
+                badge="Web AI Interface",
+                default_port=3000,
+                ui_url="http://localhost:3000",
+                dependencies=["ollama"],
+                env_vars={"OLLAMA_BASE_URL": "http://ollama:11434"}
+            ),
+            ToolOption(
+                id="localai",
+                name="LocalAI OpenAI-Compatible",
+                category="mlops",
+                description="Drop-in replacement da API OpenAI para geração de texto, embeddings, áudio e visão computacional localmente sem dependências em nuvem.",
+                icon="zap",
+                badge="OpenAI Drop-In",
+                default_port=8091,
+                ui_url="http://localhost:8091"
+            )
+        ]
+    ),
+    ToolCategory(
+        id="os_sandboxes",
+        name="💻 Sistemas Operacionais & Sandboxes",
+        icon="terminal",
+        description="Ambientes Linux puros e isolados para compilação, testes de rede, scripts shell e experimentação interativa com terminal web.",
+        tools=[
+            ToolOption(
+                id="ubuntu_sandbox",
+                name="Ubuntu 24.04 LTS Sandbox",
+                category="os_sandboxes",
+                description="Ambiente Ubuntu limpo e completo com bash, terminal interativo e volume montado para desenvolvimento e testes de scripts.",
+                icon="terminal",
+                badge="Linux OS",
+                default_folders={"workspace": "workspace"}
+            ),
+            ToolOption(
+                id="debian_sandbox",
+                name="Debian 12 Bookworm Sandbox",
+                category="os_sandboxes",
+                description="Sistema Debian estável e confiável para criação de pacotes, testes de compatibilidade e scripts de infraestrutura.",
+                icon="terminal",
+                badge="Linux OS",
+                default_folders={"workspace": "workspace"}
+            ),
+            ToolOption(
+                id="alpine_sandbox",
+                name="Alpine Linux Sandbox (5MB)",
+                category="os_sandboxes",
+                description="Sistema Alpine ultra-leve baseado em musl libc e BusyBox para testes rápidos de conectividade, rede e prototipação.",
+                icon="terminal",
+                badge="Lightweight OS",
+                default_folders={"workspace": "workspace"}
+            ),
+            ToolOption(
+                id="arch_sandbox",
+                name="Arch Linux Rolling Sandbox",
+                category="os_sandboxes",
+                description="Distribuição rolling-release com o gerenciador de pacotes pacman para testes com as versões mais recentes de compiladores e bibliotecas.",
+                icon="terminal",
+                badge="Rolling Linux",
+                default_folders={"workspace": "workspace"}
             )
         ]
     ),
@@ -519,6 +596,20 @@ PRESETS: List[ProjectPreset] = [
         description="Stack clássica e robusta de Big Data com HDFS NameNode/DataNode, YARN ResourceManager, Hive Metastore, Spark 3.5, Zeppelin Notebook e PostgreSQL.",
         icon="server",
         tools=["hdfs", "yarn", "hive", "spark", "zeppelin", "postgres", "minio"]
+    ),
+    ProjectPreset(
+        id="local_llm_ai_stack",
+        name="🧠 Local LLMs & GenAI Studio",
+        description="Ambiente completo de Inteligência Artificial Generativa Local com Ollama (Llama/Mistral/Qwen), Open WebUI, Qdrant Vector DB, JupyterLab e PostgreSQL.",
+        icon="cpu",
+        tools=["ollama", "open_webui", "qdrant", "jupyterlab", "postgres", "minio"]
+    ),
+    ProjectPreset(
+        id="linux_os_sandbox",
+        name="🐧 Multi-Distro Linux Sandboxes & DevOps Lab",
+        description="Ambiente de desenvolvimento e experimentação com contêineres de Ubuntu 24.04, Debian 12, Alpine Linux e Arch Linux com VS Code Web e Portainer.",
+        icon="terminal",
+        tools=["ubuntu_sandbox", "debian_sandbox", "alpine_sandbox", "arch_sandbox", "vscode", "portainer"]
     )
 ]
 

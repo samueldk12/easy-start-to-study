@@ -67,6 +67,48 @@ class PluginManager:
         plugin_folder = os.path.join(plugins_dir, plugin.id)
         os.makedirs(plugin_folder, exist_ok=True)
 
+        # Synthesize compose_services if not manually specified
+        if not plugin.compose_services:
+            svc_name = plugin.id.replace("_", "-")
+            svc_def: Dict[str, Any] = {
+                "container_name": f"${{PROJECT_NAME}}-{svc_name}"
+            }
+
+            if plugin.source_type == "dockerfile" and plugin.dockerfile_content:
+                # Save Dockerfile in plugin folder
+                dockerfile_path = os.path.join(plugin_folder, "Dockerfile")
+                with open(dockerfile_path, "w", encoding="utf-8") as df:
+                    df.write(plugin.dockerfile_content)
+                svc_def["build"] = {"context": f"./plugins/{plugin.id}"}
+            elif plugin.source_type == "github" and plugin.git_url:
+                git_url = plugin.git_url.strip()
+                branch = plugin.git_branch or "main"
+                subfolder = f":{plugin.git_subfolder.strip('/')}" if getattr(plugin, "git_subfolder", "") else ""
+                svc_def["build"] = {"context": f"{git_url}#{branch}{subfolder}"}
+            elif plugin.image:
+                svc_def["image"] = plugin.image.strip()
+            else:
+                svc_def["image"] = f"{plugin.id}:latest"
+
+            # Ports
+            if plugin.default_port:
+                c_port = plugin.container_port or plugin.default_port
+                svc_def["ports"] = [f"${{{plugin.id.upper()}_PORT:-{plugin.default_port}}}:{c_port}"]
+
+            # Environment variables
+            if plugin.env_vars:
+                svc_def["environment"] = {k: f"${{{k}:-{v}}}" for k, v in plugin.env_vars.items()}
+
+            # Command
+            if plugin.command:
+                svc_def["command"] = plugin.command
+
+            # Volumes
+            if plugin.volumes:
+                svc_def["volumes"] = plugin.volumes
+
+            plugin.compose_services = {svc_name: svc_def}
+
         yaml_path = os.path.join(plugin_folder, "plugin.yaml")
         plugin_dict = plugin.dict()
         with open(yaml_path, "w", encoding="utf-8") as f:

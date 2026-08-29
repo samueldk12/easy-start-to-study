@@ -83,6 +83,16 @@ RELATIONSHIPS = [
     {"source": "zeppelin", "target": "spark", "label": "Interactive Spark Session", "type": "interactive"},
     {"source": "zeppelin", "target": "hive", "label": "JDBC SQL Queries (HiveServer2)", "type": "query"},
     {"source": "zeppelin", "target": "hdfs", "label": "Direct File Exploration", "type": "interactive"},
+
+    # LLMs & Generative AI
+    {"source": "open_webui", "target": "ollama", "label": "Streams Local LLM Inferences", "type": "ai"},
+    {"source": "open_webui", "target": "qdrant", "label": "Semantic RAG Search", "type": "vector"},
+    {"source": "jupyterlab", "target": "ollama", "label": "LangChain / LlamaIndex Calls", "type": "interactive"},
+    {"source": "jupyterlab", "target": "localai", "label": "OpenAI API Client Calls", "type": "interactive"},
+    {"source": "vscode", "target": "ubuntu_sandbox", "label": "Workspace Shell Access", "type": "ide"},
+    {"source": "vscode", "target": "debian_sandbox", "label": "Workspace Shell Access", "type": "ide"},
+    {"source": "vscode", "target": "alpine_sandbox", "label": "Workspace Shell Access", "type": "ide"},
+    {"source": "vscode", "target": "arch_sandbox", "label": "Workspace Shell Access", "type": "ide"},
 ]
 
 # Category colors for UI styling
@@ -92,7 +102,8 @@ CATEGORY_COLORS = {
     "backend": {"bg": "#059669", "border": "#34d399", "text": "#ecfdf5", "label": "Backend & Mensageria"},
     "devops": {"bg": "#d97706", "border": "#fbbf24", "text": "#fffbeb", "label": "DevOps & IaC"},
     "orchestration": {"bg": "#4f46e5", "border": "#818cf8", "text": "#eef2ff", "label": "Orquestração"},
-    "plugins": {"bg": "#0891b2", "border": "#22d3ee", "text": "#cffafe", "label": "Plugin"}
+    "os_sandboxes": {"bg": "#334155", "border": "#64748b", "text": "#f1f5f9", "label": "Sistemas Operacionais"},
+    "plugins": {"bg": "#0891b2", "border": "#22d3ee", "text": "#cffafe", "label": "Custom & Plugins"}
 }
 
 

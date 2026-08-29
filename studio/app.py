@@ -9,7 +9,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.requests import Request
-from studio.models import ProjectCreateRequest, ProjectInfo, ToolCategory, ProjectPreset
+from studio.models import ProjectCreateRequest, ProjectInfo, ToolCategory, ProjectPreset, ToolPlugin, ContainerExecRequest
 from studio.services.catalog import CATEGORIES, PRESETS
 from studio.services.scaffolder import ProjectScaffolder
 from studio.services.project_store import ProjectStore
@@ -30,7 +30,6 @@ async def serve_ui(request: Request):
 
 from studio.services.catalog import get_catalog as fetch_catalog, PRESETS
 from studio.services.plugin_manager import PluginManager
-from studio.models import ToolPlugin
 
 
 @app.get("/api/catalog", response_model=List[ToolCategory])
@@ -269,6 +268,38 @@ async def restart_single_service(project_id: str, service_name: str):
     if not res["success"]:
         raise HTTPException(status_code=500, detail=res.get("stderr") or res.get("error") or "Failed to restart service")
     return {"message": f"Service {service_name} restarted successfully", "details": res}
+
+
+@app.post("/api/projects/{project_id}/services/{service_name}/exec")
+async def exec_in_single_service(project_id: str, service_name: str, req: ContainerExecRequest):
+    proj = ProjectStore.get_project(project_id)
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found.")
+    
+    if not req.command or not req.command.strip():
+        raise HTTPException(status_code=400, detail="Command cannot be empty.")
+
+    res = await DockerManager.exec_in_container(
+        proj.path,
+        service_name,
+        req.command.strip(),
+        user=req.user,
+        workdir=req.workdir
+    )
+    return res
+
+
+@app.post("/api/custom-services/create", response_model=ToolPlugin)
+async def create_custom_service(plugin: ToolPlugin):
+    if not plugin.id or not plugin.name:
+        raise HTTPException(status_code=400, detail="Service ID and Name are required.")
+    
+    # Normalize ID
+    plugin.id = plugin.id.strip().lower().replace(" ", "_").replace("-", "_")
+    
+    # Save as ToolPlugin (which will auto-synthesize compose_services from source_type: image, dockerfile, github)
+    saved = PluginManager.save_plugin(plugin)
+    return saved
 
 
 @app.get("/api/projects/{project_id}/manifests")

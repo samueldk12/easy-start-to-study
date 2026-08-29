@@ -108,6 +108,34 @@ class K8sScaffolder:
             self._generate_zeppelin_manifest()
             resources.append("zeppelin.yaml")
 
+        if "ollama" in self.tools:
+            self._generate_ollama_manifest()
+            resources.append("ollama.yaml")
+
+        if "open_webui" in self.tools:
+            self._generate_open_webui_manifest()
+            resources.append("open-webui.yaml")
+
+        if "localai" in self.tools:
+            self._generate_localai_manifest()
+            resources.append("localai.yaml")
+
+        if "ubuntu_sandbox" in self.tools:
+            self._generate_sandbox_manifest("ubuntu", "ubuntu:24.04")
+            resources.append("ubuntu-sandbox.yaml")
+
+        if "debian_sandbox" in self.tools:
+            self._generate_sandbox_manifest("debian", "debian:bookworm-slim")
+            resources.append("debian-sandbox.yaml")
+
+        if "alpine_sandbox" in self.tools:
+            self._generate_sandbox_manifest("alpine", "alpine:latest")
+            resources.append("alpine-sandbox.yaml")
+
+        if "arch_sandbox" in self.tools:
+            self._generate_sandbox_manifest("arch", "archlinux:latest")
+            resources.append("arch-sandbox.yaml")
+
         # 4. Kustomization
         self._generate_kustomization(resources)
 
@@ -1297,6 +1325,167 @@ spec:
     app: zeppelin
 """
         with open(os.path.join(self.k8s_dir, "zeppelin.yaml"), "w", encoding="utf-8") as f:
+            f.write(manifest)
+
+    def _generate_ollama_manifest(self):
+        manifest = f"""apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama
+  namespace: {self.namespace}
+  labels:
+    app: ollama
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ollama
+  template:
+    metadata:
+      labels:
+        app: ollama
+    spec:
+      containers:
+      - name: ollama
+        image: ollama/ollama:latest
+        ports:
+        - containerPort: 11434
+          name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama
+  namespace: {self.namespace}
+  labels:
+    app: ollama
+spec:
+  type: ClusterIP
+  ports:
+  - port: 11434
+    targetPort: 11434
+    name: http
+  selector:
+    app: ollama
+"""
+        with open(os.path.join(self.k8s_dir, "ollama.yaml"), "w", encoding="utf-8") as f:
+            f.write(manifest)
+
+    def _generate_open_webui_manifest(self):
+        manifest = f"""apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: open-webui
+  namespace: {self.namespace}
+  labels:
+    app: open-webui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: open-webui
+  template:
+    metadata:
+      labels:
+        app: open-webui
+    spec:
+      containers:
+      - name: open-webui
+        image: ghcr.io/open-webui/open-webui:main
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: OLLAMA_BASE_URL
+          value: "http://ollama:11434"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: open-webui
+  namespace: {self.namespace}
+  labels:
+    app: open-webui
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: http
+  selector:
+    app: open-webui
+"""
+        with open(os.path.join(self.k8s_dir, "open-webui.yaml"), "w", encoding="utf-8") as f:
+            f.write(manifest)
+
+    def _generate_localai_manifest(self):
+        manifest = f"""apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: localai
+  namespace: {self.namespace}
+  labels:
+    app: localai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: localai
+  template:
+    metadata:
+      labels:
+        app: localai
+    spec:
+      containers:
+      - name: localai
+        image: localai/localai:latest-cpu
+        ports:
+        - containerPort: 8080
+          name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: localai
+  namespace: {self.namespace}
+  labels:
+    app: localai
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: http
+  selector:
+    app: localai
+"""
+        with open(os.path.join(self.k8s_dir, "localai.yaml"), "w", encoding="utf-8") as f:
+            f.write(manifest)
+
+    def _generate_sandbox_manifest(self, name: str, image: str):
+        manifest = f"""apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {name}-sandbox
+  namespace: {self.namespace}
+  labels:
+    app: {name}-sandbox
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {name}-sandbox
+  template:
+    metadata:
+      labels:
+        app: {name}-sandbox
+    spec:
+      containers:
+      - name: sandbox
+        image: {image}
+        command: ["tail", "-f", "/dev/null"]
+"""
+        with open(os.path.join(self.k8s_dir, f"{name}-sandbox.yaml"), "w", encoding="utf-8") as f:
             f.write(manifest)
 
     def _generate_kustomization(self, resources: List[str]):

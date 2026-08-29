@@ -317,6 +317,11 @@
 
                       <!-- Individual Container Actions -->
                       <div class="flex items-center gap-1 shrink-0">
+                        <!-- Terminal / CLI Button -->
+                        <button type="button" @click.stop="openTerminalModal(project, c.service)" title="Abrir CLI / Terminal interativo neste container (docker exec)" class="p-1 text-purple-400 hover:text-white bg-purple-500/10 hover:bg-purple-500/20 rounded transition cursor-pointer">
+                          <svg class="w-3.5 h-3.5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        </button>
+
                         <!-- Start / Restart Container Button -->
                         <button type="button" @click.stop="startSingleService(project, c.service)" :title="c.visual_status === 'green' ? 'Reiniciar container (docker compose restart)' : 'Iniciar container (docker compose up -d)'" class="p-1 text-emerald-400 hover:text-white bg-emerald-500/10 hover:bg-emerald-500/20 rounded transition cursor-pointer">
                           <svg class="w-3.5 h-3.5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -694,7 +699,7 @@
     </div>
   </div>
 
-  <!-- MODAL: GERENCIADOR DE PLUGINS -->
+  <!-- MODAL: GERENCIADOR DE SERVIÇOS CUSTOMIZADOS & PLUGINS -->
   <div x-show="showPluginsModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
     <div @click.away="showPluginsModal = false" class="bg-dark-900 border border-slate-700 rounded-2xl max-w-4xl w-full p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
       
@@ -705,8 +710,8 @@
             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"/></svg>
           </div>
           <div>
-            <h2 class="text-xl font-bold text-white">Gerenciador de Plugins</h2>
-            <p class="text-xs text-slate-400">Instale novas ferramentas e extenda o catálogo do StackStudio</p>
+            <h2 class="text-xl font-bold text-white">Serviços Customizados & Plugins</h2>
+            <p class="text-xs text-slate-400">Adicione novos serviços por Imagem Docker, Dockerfile ou Repositório GitHub</p>
           </div>
         </div>
         <button @click="showPluginsModal = false" class="text-slate-400 hover:text-white p-1 rounded-lg">
@@ -714,67 +719,118 @@
         </button>
       </div>
 
-      <!-- Plugins List -->
+      <!-- Content -->
       <div class="space-y-4">
         <div class="flex items-center justify-between">
           <h3 class="text-sm font-bold text-white flex items-center gap-2">
-            Plugins Instalados (<span x-text="plugins.length"></span>)
+            Serviços Customizados Disponíveis (<span x-text="plugins.length"></span>)
           </h3>
-          <button @click="showNewPluginForm = !showNewPluginForm" class="px-3 py-1.5 text-xs font-semibold bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg flex items-center gap-1.5 transition">
+          <button @click="showNewPluginForm = !showNewPluginForm" class="px-3 py-1.5 text-xs font-semibold bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg flex items-center gap-1.5 transition cursor-pointer">
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            <span x-text="showNewPluginForm ? 'Ocultar Formulário' : 'Criar Novo Plugin'"></span>
+            <span x-text="showNewPluginForm ? 'Ocultar Formulário' : '+ Adicionar Novo Serviço'"></span>
           </button>
         </div>
 
-        <!-- NEW PLUGIN FORM -->
-        <div x-show="showNewPluginForm" x-cloak class="p-4 bg-dark-950 border border-cyan-500/30 rounded-xl space-y-4">
-          <div class="text-xs font-bold text-cyan-400 uppercase tracking-wider">Novo Plugin de Ferramenta</div>
+        <!-- NEW CUSTOM SERVICE / PLUGIN FORM -->
+        <div x-show="showNewPluginForm" x-cloak class="p-5 bg-dark-950 border border-cyan-500/40 rounded-xl space-y-4 shadow-lg">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <span class="text-xs font-bold text-cyan-400 uppercase tracking-wider">Criar Serviço Customizado</span>
+            <!-- Source Type Selector -->
+            <div class="flex items-center gap-1 bg-dark-900 p-1 rounded-lg border border-slate-800 text-xs">
+              <button type="button" @click="customServiceTab = 'image'; pluginForm.source_type = 'image'" :class="customServiceTab === 'image' ? 'bg-cyan-600 text-white font-bold' : 'text-slate-400 hover:text-white'" class="px-2.5 py-1 rounded transition">🐳 Imagem Docker</button>
+              <button type="button" @click="customServiceTab = 'dockerfile'; pluginForm.source_type = 'dockerfile'" :class="customServiceTab === 'dockerfile' ? 'bg-cyan-600 text-white font-bold' : 'text-slate-400 hover:text-white'" class="px-2.5 py-1 rounded transition">📄 Dockerfile</button>
+              <button type="button" @click="customServiceTab = 'github'; pluginForm.source_type = 'github'" :class="customServiceTab === 'github' ? 'bg-cyan-600 text-white font-bold' : 'text-slate-400 hover:text-white'" class="px-2.5 py-1 rounded transition">🐙 GitHub Repo</button>
+            </div>
+          </div>
           
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             <div>
-              <label class="block text-[10px] text-slate-400 mb-1">ID Único *</label>
-              <input type="text" x-model="pluginForm.id" placeholder="ex: cassandra" class="w-full bg-dark-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
+              <label class="block text-[10px] text-slate-400 mb-1">ID do Serviço *</label>
+              <input type="text" x-model="pluginForm.id" placeholder="ex: my_custom_api" class="w-full bg-dark-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
             </div>
             <div>
-              <label class="block text-[10px] text-slate-400 mb-1">Nome da Ferramenta *</label>
-              <input type="text" x-model="pluginForm.name" placeholder="ex: Apache Cassandra" class="w-full bg-dark-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
+              <label class="block text-[10px] text-slate-400 mb-1">Nome de Exibição *</label>
+              <input type="text" x-model="pluginForm.name" placeholder="ex: Minha API Customizada" class="w-full bg-dark-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
             </div>
             <div>
               <label class="block text-[10px] text-slate-400 mb-1">Categoria *</label>
               <select x-model="pluginForm.category" class="w-full bg-dark-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
-                <option value="data_engineering">Engenharia de Dados</option>
-                <option value="mlops">MLOps</option>
-                <option value="backend">Backend & Mensageria</option>
+                <option value="data_engineering">Engenharia de Dados & Lakehouse</option>
+                <option value="mlops">MLOps & IA</option>
+                <option value="os_sandboxes">Sistemas Operacionais & Sandboxes</option>
+                <option value="backend">Backend & Microsserviços</option>
                 <option value="devops">DevOps & Observabilidade</option>
+                <option value="orchestration">Orquestração</option>
               </select>
             </div>
             <div>
-              <label class="block text-[10px] text-slate-400 mb-1">Porta Host Padrão</label>
-              <input type="number" x-model.number="pluginForm.default_port" placeholder="9042" class="w-full bg-dark-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
+              <label class="block text-[10px] text-slate-400 mb-1">Porta Host (Externa)</label>
+              <input type="number" x-model.number="pluginForm.default_port" placeholder="ex: 8080" class="w-full bg-dark-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
             </div>
             <div>
-              <label class="block text-[10px] text-slate-400 mb-1">URL da Web UI (Opcional)</label>
-              <input type="text" x-model="pluginForm.ui_url" placeholder="http://localhost:9042" class="w-full bg-dark-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
+              <label class="block text-[10px] text-slate-400 mb-1">Porta Container (Interna)</label>
+              <input type="number" x-model.number="pluginForm.container_port" placeholder="ex: 8080" class="w-full bg-dark-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
             </div>
             <div>
-              <label class="block text-[10px] text-slate-400 mb-1">Badge</label>
-              <input type="text" x-model="pluginForm.badge" placeholder="NoSQL / Wide-Column" class="w-full bg-dark-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
+              <label class="block text-[10px] text-slate-400 mb-1">Badge de Exibição</label>
+              <input type="text" x-model="pluginForm.badge" placeholder="Custom Service" class="w-full bg-dark-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
             </div>
           </div>
 
           <div>
             <label class="block text-[10px] text-slate-400 mb-1">Descrição</label>
-            <input type="text" x-model="pluginForm.description" placeholder="Banco de dados distribuído NoSQL de alta performance..." class="w-full bg-dark-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
+            <input type="text" x-model="pluginForm.description" placeholder="Serviço customizado adicionado para testes ou processamento..." class="w-full bg-dark-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
           </div>
 
-          <div>
-            <label class="block text-[10px] text-slate-400 mb-1">Imagem Docker (ex: cassandra:latest)</label>
-            <input type="text" x-model="pluginForm.docker_image" placeholder="cassandra:latest" class="w-full bg-dark-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
+          <!-- TAB 1: DOCKER IMAGE -->
+          <div x-show="customServiceTab === 'image'" class="space-y-3">
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-1">Nome da Imagem Docker (Docker Hub / Registry) *</label>
+              <input type="text" x-model="pluginForm.image" placeholder="ex: redis:7-alpine, ollama/ollama, python:3.11-slim" class="w-full bg-dark-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white font-mono">
+            </div>
           </div>
 
-          <div class="flex justify-end">
-            <button @click="saveNewPlugin()" :disabled="!pluginForm.id || !pluginForm.name || !pluginForm.docker_image" class="px-4 py-1.5 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition">
-              Salvar & Ativar Plugin
+          <!-- TAB 2: DOCKERFILE -->
+          <div x-show="customServiceTab === 'dockerfile'" class="space-y-3">
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-1">Conteúdo do Dockerfile *</label>
+              <textarea x-model="pluginForm.dockerfile_content" rows="6" placeholder="FROM alpine:latest\nRUN apk update && apk add --no-cache curl bash\nWORKDIR /app\nCMD [\"sh\"]" class="w-full bg-dark-900 border border-slate-800 rounded p-2.5 text-xs text-emerald-400 font-mono leading-relaxed"></textarea>
+            </div>
+          </div>
+
+          <!-- TAB 3: GITHUB REPO -->
+          <div x-show="customServiceTab === 'github'" class="space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="sm:col-span-2">
+                <label class="block text-[10px] text-slate-400 mb-1">URL do Repositório GitHub (Git Clone) *</label>
+                <input type="text" x-model="pluginForm.git_url" placeholder="https://github.com/usuario/meu-servico.git" class="w-full bg-dark-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white font-mono">
+              </div>
+              <div>
+                <label class="block text-[10px] text-slate-400 mb-1">Branch</label>
+                <input type="text" x-model="pluginForm.git_branch" placeholder="main" class="w-full bg-dark-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white font-mono">
+              </div>
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-1">Subdiretório com Dockerfile (opcional)</label>
+              <input type="text" x-model="pluginForm.git_subfolder" placeholder="ex: backend ou server (deixe em branco se for na raiz)" class="w-full bg-dark-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white font-mono">
+            </div>
+          </div>
+
+          <!-- Optional Command & Envs -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-slate-800/80">
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-1">Comando de Inicialização (Opcional)</label>
+              <input type="text" x-model="pluginForm.command" placeholder='ex: python -m app.main ou uvicorn main:app' class="w-full bg-dark-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white font-mono">
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-1">Variáveis de Ambiente (CHAVE=VALOR, separadas por vírgula)</label>
+              <input type="text" x-model="pluginForm.env_vars_str" placeholder="ENV=production, DEBUG=true" class="w-full bg-dark-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white font-mono">
+            </div>
+          </div>
+
+          <div class="flex justify-end pt-2">
+            <button @click="saveNewPlugin()" :disabled="!pluginForm.id || !pluginForm.name" class="px-5 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:opacity-40 text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-md">
+              Salvar & Disponibilizar no Catálogo
             </button>
           </div>
         </div>
@@ -786,14 +842,14 @@
               <div>
                 <div class="flex items-center justify-between mb-1">
                   <span class="font-bold text-xs text-white" x-text="p.name"></span>
-                  <span class="px-2 py-0.5 bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded text-[10px]" x-text="p.badge"></span>
+                  <span class="px-2 py-0.5 bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded text-[10px]" x-text="p.badge || 'Plugin'"></span>
                 </div>
-                <p class="text-[11px] text-slate-400 line-clamp-2" x-text="p.description"></p>
+                <p class="text-[11px] text-slate-400 line-clamp-2" x-text="p.description || 'Sem descrição'"></p>
               </div>
 
               <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400">
                 <span>Porta: <span class="text-slate-200" x-text="p.default_port || '-'"></span></span>
-                <button @click="deletePlugin(p.id)" class="text-red-400 hover:text-red-300 p-1 rounded">
+                <button @click="deletePlugin(p.id)" class="text-red-400 hover:text-red-300 p-1 rounded cursor-pointer">
                   <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                 </button>
               </div>
@@ -804,7 +860,7 @@
 
       <!-- Modal Footer -->
       <div class="flex items-center justify-end border-t border-slate-800 pt-4">
-        <button @click="showPluginsModal = false" class="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition">
+        <button @click="showPluginsModal = false" class="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition cursor-pointer">
           Fechar
         </button>
       </div>
@@ -1190,6 +1246,128 @@
     </div>
   </div>
 
+  <!-- MODAL: CONTAINER CLI / WEB TERMINAL -->
+  <div x-show="showTerminalModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
+    <div @click.away="closeTerminalModal()" class="bg-dark-950 border border-purple-500/40 rounded-2xl w-full max-w-5xl h-[88vh] flex flex-col shadow-2xl overflow-hidden font-mono">
+      <!-- Modal Header -->
+      <div class="p-3.5 border-b border-slate-800 bg-dark-900 flex items-center justify-between gap-3 shrink-0">
+        <div class="flex items-center space-x-3 min-w-0">
+          <div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <h3 class="text-sm font-bold text-white truncate font-sans">CLI / Web Terminal Interativo</h3>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/10 text-purple-400 border border-purple-500/30">docker exec</span>
+            </div>
+            <p class="text-[11px] text-slate-400 truncate font-sans">
+              Projeto: <strong class="text-slate-200" x-text="selectedProject?.name"></strong> | Container: <strong class="text-purple-300" x-text="terminalService"></strong>
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-2 shrink-0">
+          <!-- Service Dropdown Switcher -->
+          <div class="flex items-center gap-1.5 text-xs text-slate-400 font-sans">
+            <span>Container:</span>
+            <select x-model="terminalService" class="bg-dark-950 border border-slate-700 text-purple-300 rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:border-purple-500 font-sans">
+              <template x-for="c in (selectedProject?.containers || [])" :key="c.service">
+                <option :value="c.service" x-text="c.service + ' (' + (c.visual_status === 'green' ? 'Online' : c.status) + ')'"></option>
+              </template>
+            </select>
+          </div>
+
+          <!-- Clear Console -->
+          <button type="button" @click="clearTerminal()" title="Limpar terminal" class="p-1.5 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg transition text-xs font-sans flex items-center gap-1 cursor-pointer">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            <span class="hidden sm:inline">Limpar</span>
+          </button>
+
+          <!-- Close Modal -->
+          <button type="button" @click="closeTerminalModal()" class="p-1.5 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg transition cursor-pointer">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Command Bar -->
+      <div class="px-3.5 py-2 bg-dark-900/90 border-b border-slate-800/80 flex items-center gap-1.5 overflow-x-auto text-[11px] font-sans shrink-0">
+        <span class="text-slate-500 font-bold uppercase text-[10px] shrink-0">Comandos Rápidos:</span>
+        <button type="button" @click="runQuickCommand('cat /etc/os-release || uname -a')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-purple-900/50 text-slate-300 hover:text-purple-200 border border-slate-700/60 transition shrink-0 cursor-pointer">🐧 OS Release</button>
+        <button type="button" @click="runQuickCommand('ps aux || ps -ef || top -b -n 1')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-purple-900/50 text-slate-300 hover:text-purple-200 border border-slate-700/60 transition shrink-0 cursor-pointer">📊 Processos (ps)</button>
+        <button type="button" @click="runQuickCommand('df -h')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-purple-900/50 text-slate-300 hover:text-purple-200 border border-slate-700/60 transition shrink-0 cursor-pointer">💾 Disco (df -h)</button>
+        <button type="button" @click="runQuickCommand('ip a || ifconfig || hostname -I')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-purple-900/50 text-slate-300 hover:text-purple-200 border border-slate-700/60 transition shrink-0 cursor-pointer">🌐 Rede (ip a)</button>
+        <button type="button" @click="runQuickCommand('env | sort')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-purple-900/50 text-slate-300 hover:text-purple-200 border border-slate-700/60 transition shrink-0 cursor-pointer">🔑 Envs (env)</button>
+        <button type="button" @click="runQuickCommand('ls -la')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-purple-900/50 text-slate-300 hover:text-purple-200 border border-slate-700/60 transition shrink-0 cursor-pointer">📁 Arquivos (ls -la)</button>
+        <button type="button" @click="runQuickCommand('python --version || python3 --version || node -v || java -version')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-purple-900/50 text-slate-300 hover:text-purple-200 border border-slate-700/60 transition shrink-0 cursor-pointer">⚡ Runtimes</button>
+      </div>
+
+      <!-- Terminal Output Screen -->
+      <div id="terminal-screen" class="flex-1 p-4 bg-black/95 text-xs overflow-y-auto space-y-3 select-text">
+        <template x-for="(entry, index) in terminalHistory" :key="index">
+          <div class="space-y-1">
+            <!-- Command line -->
+            <div class="flex items-center gap-2 text-slate-400">
+              <span class="text-purple-400 font-bold" x-text="`root@${terminalService}:~$`"></span>
+              <span class="text-white font-semibold" x-text="entry.command"></span>
+              <span class="text-[10px] text-slate-500 font-sans ml-auto" x-text="`${entry.latency_ms || 0}ms`"></span>
+            </div>
+            <!-- Stdout -->
+            <template x-if="entry.stdout">
+              <pre class="text-emerald-300 whitespace-pre-wrap leading-relaxed pl-2 border-l-2 border-emerald-500/50" x-text="entry.stdout"></pre>
+            </template>
+            <!-- Stderr -->
+            <template x-if="entry.stderr">
+              <pre class="text-rose-400 whitespace-pre-wrap leading-relaxed pl-2 border-l-2 border-rose-500/50" x-text="entry.stderr"></pre>
+            </template>
+            <!-- Return code indicator if failed -->
+            <template x-if="entry.returncode !== 0">
+              <div class="text-[10px] text-rose-400 font-sans italic" x-text="`[Processo encerrou com exit code ${entry.returncode}]`"></div>
+            </template>
+          </div>
+        </template>
+        
+        <template x-if="terminalHistory.length === 0">
+          <div class="text-slate-500 text-xs italic py-10 text-center font-sans">
+            Terminal conectado. Digite qualquer comando abaixo ou use os atalhos rápidos para interagir com o container <strong class="text-purple-400 font-mono" x-text="terminalService"></strong>.
+          </div>
+        </template>
+
+        <template x-if="terminalLoading">
+          <div class="flex items-center gap-2 text-purple-400 animate-pulse text-xs py-2 font-sans">
+            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            <span>Executando comando no container...</span>
+          </div>
+        </template>
+      </div>
+
+      <!-- Interactive Input Prompt Footer -->
+      <div class="p-3 bg-dark-900 border-t border-slate-800 flex items-center gap-2 shrink-0">
+        <span class="text-purple-400 font-bold text-xs shrink-0 hidden sm:inline" x-text="`root@${terminalService}:~$`"></span>
+        <input 
+          id="terminal-input"
+          type="text" 
+          x-model="terminalInput" 
+          @keydown.enter.prevent="executeTerminalCommand()"
+          @keydown.up.prevent="navigateHistory('up')"
+          @keydown.down.prevent="navigateHistory('down')"
+          placeholder="Digite um comando shell (ex: ps aux, env, ls -la, python script.py, curl localhost)..."
+          class="flex-1 bg-black/70 border border-slate-700 focus:border-purple-500 text-white rounded-lg px-3 py-2 text-xs focus:outline-none placeholder-slate-500 font-mono"
+          :disabled="terminalLoading"
+        >
+        <button 
+          type="button" 
+          @click="executeTerminalCommand()" 
+          :disabled="terminalLoading || !terminalInput.trim()"
+          class="px-4 py-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-white rounded-lg text-xs font-bold font-sans transition flex items-center gap-1.5 cursor-pointer shrink-0"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          <span>Executar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ALPINE APP SCRIPT -->
   <script>
     function stackStudioApp() {
@@ -1208,6 +1386,14 @@
         showGraphModal: false,
         showLogsModal: false,
         showManifestsModal: false,
+        showTerminalModal: false,
+        terminalService: '',
+        terminalInput: '',
+        terminalLoading: false,
+        terminalHistory: [],
+        cmdHistory: [],
+        cmdHistoryIndex: -1,
+        customServiceTab: 'image',
         manifestTab: 'compose',
         selectedK8sFile: '',
         manifestsData: {
@@ -1333,10 +1519,18 @@
           name: '',
           category: 'backend',
           description: '',
-          docker_image: '',
+          source_type: 'image',
+          image: '',
+          dockerfile_content: 'FROM alpine:latest\nRUN apk update && apk add --no-cache curl bash\nWORKDIR /app\nCMD ["sh"]',
+          git_url: '',
+          git_branch: 'main',
+          git_subfolder: '',
           default_port: null,
+          container_port: null,
+          command: '',
+          env_vars_str: '',
           ui_url: '',
-          badge: 'Plugin',
+          badge: 'Custom',
           test_type: 'http',
           test_path: '/'
         },
@@ -1640,65 +1834,173 @@
           window.open(ideUrl, '_blank');
         },
 
+        openTerminalModal(project, serviceName) {
+          this.selectedProject = project;
+          this.terminalService = serviceName || (project.containers && project.containers.length > 0 ? project.containers[0].service : '');
+          this.showTerminalModal = true;
+          this.terminalInput = '';
+          this.terminalHistory = [];
+          this.cmdHistory = [];
+          this.cmdHistoryIndex = -1;
+          this.showToast('Terminal Conectado', `CLI interativo de "${this.terminalService}" aberto`, 'info');
+          this.$nextTick(() => {
+            const el = document.getElementById('terminal-input');
+            if (el) el.focus();
+          });
+        },
+
+        closeTerminalModal() {
+          this.showTerminalModal = false;
+        },
+
+        clearTerminal() {
+          this.terminalHistory = [];
+        },
+
+        async runQuickCommand(cmd) {
+          this.terminalInput = cmd;
+          await this.executeTerminalCommand();
+        },
+
+        navigateHistory(direction) {
+          if (this.cmdHistory.length === 0) return;
+          if (direction === 'up') {
+            if (this.cmdHistoryIndex < this.cmdHistory.length - 1) {
+              this.cmdHistoryIndex++;
+              this.terminalInput = this.cmdHistory[this.cmdHistory.length - 1 - this.cmdHistoryIndex];
+            }
+          } else if (direction === 'down') {
+            if (this.cmdHistoryIndex > 0) {
+              this.cmdHistoryIndex--;
+              this.terminalInput = this.cmdHistory[this.cmdHistory.length - 1 - this.cmdHistoryIndex];
+            } else if (this.cmdHistoryIndex === 0) {
+              this.cmdHistoryIndex = -1;
+              this.terminalInput = '';
+            }
+          }
+        },
+
+        async executeTerminalCommand() {
+          const cmd = this.terminalInput.trim();
+          if (!cmd || !this.selectedProject || !this.terminalService) return;
+
+          this.cmdHistory.push(cmd);
+          this.cmdHistoryIndex = -1;
+          this.terminalLoading = true;
+          const currentCmd = cmd;
+          this.terminalInput = '';
+
+          try {
+            const res = await fetch(`/api/projects/${this.selectedProject.id}/services/${this.terminalService}/exec`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ command: currentCmd })
+            });
+            const data = await res.json();
+            this.terminalHistory.push({
+              command: currentCmd,
+              stdout: data.stdout || '',
+              stderr: data.stderr || '',
+              returncode: data.returncode !== undefined ? data.returncode : (data.success ? 0 : 1),
+              latency_ms: data.latency_ms || 0
+            });
+          } catch (e) {
+            this.terminalHistory.push({
+              command: currentCmd,
+              stdout: '',
+              stderr: `Erro de conexão: ${e.message}`,
+              returncode: 1,
+              latency_ms: 0
+            });
+          } finally {
+            this.terminalLoading = false;
+            this.$nextTick(() => {
+              const screen = document.getElementById('terminal-screen');
+              if (screen) screen.scrollTop = screen.scrollHeight;
+              const el = document.getElementById('terminal-input');
+              if (el) el.focus();
+            });
+          }
+        },
+
         openPluginsModal() {
           this.showPluginsModal = true;
           this.showNewPluginForm = false;
+          this.customServiceTab = 'image';
           this.pluginForm = {
             id: '',
             name: '',
             category: 'backend',
             description: '',
-            docker_image: '',
+            source_type: 'image',
+            image: '',
+            dockerfile_content: 'FROM alpine:latest\nRUN apk update && apk add --no-cache curl bash\nWORKDIR /app\nCMD ["sh"]',
+            git_url: '',
+            git_branch: 'main',
+            git_subfolder: '',
             default_port: null,
+            container_port: null,
+            command: '',
+            env_vars_str: '',
             ui_url: '',
-            badge: 'Plugin',
+            badge: 'Custom',
             test_type: 'http',
             test_path: '/'
           };
         },
 
         async saveNewPlugin() {
-          if (!this.pluginForm.id || !this.pluginForm.name || !this.pluginForm.docker_image) return;
+          if (!this.pluginForm.id || !this.pluginForm.name) return;
 
-          const composeServices = {};
-          const ports = [];
-          if (this.pluginForm.default_port) {
-            ports.push(`${this.pluginForm.default_port}:${this.pluginForm.default_port}`);
+          // Parse env vars string (KEY=VAL, KEY2=VAL2)
+          const env_vars = {};
+          if (this.pluginForm.env_vars_str) {
+            this.pluginForm.env_vars_str.split(',').forEach(pair => {
+              const parts = pair.split('=');
+              if (parts.length >= 2) {
+                const k = parts[0].trim();
+                const v = parts.slice(1).join('=').trim();
+                if (k) env_vars[k] = v;
+              }
+            });
           }
 
-          composeServices[this.pluginForm.id] = {
-            image: this.pluginForm.docker_image,
-            ports: ports
-          };
-
           const payload = {
-            id: this.pluginForm.id.trim().toLowerCase(),
-            name: this.pluginForm.name,
+            id: this.pluginForm.id.trim().toLowerCase().replace(/\s+/g, '_').replace(/-/g, '_'),
+            name: this.pluginForm.name.trim(),
             category: this.pluginForm.category,
-            description: this.pluginForm.description || `Plugin ${this.pluginForm.name}`,
-            badge: this.pluginForm.badge || 'Plugin',
-            default_port: this.pluginForm.default_port,
+            description: this.pluginForm.description || `Serviço Customizado ${this.pluginForm.name}`,
+            badge: this.pluginForm.badge || 'Custom',
+            source_type: this.customServiceTab,
+            image: this.pluginForm.image ? this.pluginForm.image.trim() : null,
+            dockerfile_content: this.pluginForm.dockerfile_content || null,
+            git_url: this.pluginForm.git_url ? this.pluginForm.git_url.trim() : null,
+            git_branch: this.pluginForm.git_branch ? this.pluginForm.git_branch.trim() : 'main',
+            git_subfolder: this.pluginForm.git_subfolder ? this.pluginForm.git_subfolder.trim() : '',
+            default_port: this.pluginForm.default_port ? parseInt(this.pluginForm.default_port) : null,
+            container_port: this.pluginForm.container_port ? parseInt(this.pluginForm.container_port) : null,
+            command: this.pluginForm.command ? this.pluginForm.command.trim() : null,
+            env_vars: env_vars,
             ui_url: this.pluginForm.ui_url || null,
-            test_type: this.pluginForm.test_type,
-            test_path: this.pluginForm.test_path,
-            compose_services: composeServices
+            test_type: this.pluginForm.test_type || 'http',
+            test_path: this.pluginForm.test_path || '/'
           };
 
           try {
-            const res = await fetch('/api/plugins', {
+            const res = await fetch('/api/custom-services/create', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(payload)
             });
 
             if (res.ok) {
-              this.showToast('Plugin Salvo', `Plugin "${this.pluginForm.name}" instalado e ativado!`, 'success');
+              this.showToast('Serviço Salvo', `Serviço "${payload.name}" adicionado ao catálogo!`, 'success');
               await this.loadPlugins();
               await this.loadCatalog();
               this.showNewPluginForm = false;
             } else {
               const err = await res.json();
-              this.showToast('Erro no Plugin', err.detail || 'Falha ao salvar', 'error');
+              this.showToast('Erro ao Salvar', err.detail || 'Falha ao registrar serviço', 'error');
             }
           } catch (e) {
             this.showToast('Erro de Conexão', e.message, 'error');

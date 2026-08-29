@@ -80,6 +80,69 @@ class DockerManager:
         """Retrieves non-blocking tail logs for a specific service."""
         return await DockerManager.run_command(project_dir, ["logs", f"--tail={tail}", service])
 
+    @staticmethod
+    async def exec_in_container(project_dir: str, service: str, cmd: str, user: Optional[str] = None, workdir: Optional[str] = None) -> Dict[str, Any]:
+        """Executes a command inside a specific running container via docker compose exec (or fallback to docker exec)."""
+        start_time = time.time()
+        
+        # 1. Try via docker compose exec
+        args = ["docker", "compose", "exec", "-T"]
+        if user:
+            args.extend(["-u", user])
+        if workdir:
+            args.extend(["-w", workdir])
+        args.append(service)
+        args.extend(["/bin/sh", "-c", cmd])
+
+        try:
+            process = await asyncio.create_subprocess_exec(
+                *args,
+                cwd=project_dir,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            stdout, stderr = await process.communicate()
+            latency = (time.time() - start_time) * 1000
+            
+            # If sh failed because container doesn't have /bin/sh (e.g. scratch) or service name mismatch, try /bin/bash or direct container name
+            if process.returncode != 0 and "no such service" in stderr.decode("utf-8", errors="replace").lower():
+                # Fallback directly to docker exec
+                direct_args = ["docker", "exec", "-i"]
+                if user: direct_args.extend(["-u", user])
+                if workdir: direct_args.extend(["-w", workdir])
+                direct_args.extend([service, "/bin/sh", "-c", cmd])
+                
+                direct_proc = await asyncio.create_subprocess_exec(
+                    *direct_args,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE
+                )
+                d_stdout, d_stderr = await direct_proc.communicate()
+                latency = (time.time() - start_time) * 1000
+                return {
+                    "success": direct_proc.returncode == 0,
+                    "returncode": direct_proc.returncode,
+                    "stdout": d_stdout.decode("utf-8", errors="replace"),
+                    "stderr": d_stderr.decode("utf-8", errors="replace"),
+                    "latency_ms": round(latency, 2)
+                }
+
+            return {
+                "success": process.returncode == 0,
+                "returncode": process.returncode,
+                "stdout": stdout.decode("utf-8", errors="replace"),
+                "stderr": stderr.decode("utf-8", errors="replace"),
+                "latency_ms": round(latency, 2)
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "returncode": -1,
+                "stdout": "",
+                "stderr": str(e),
+                "latency_ms": round((time.time() - start_time) * 1000, 2)
+            }
+
     _RETRY_TRACKER: Dict[str, int] = {}
     _MAX_RETRIES: int = 5
 

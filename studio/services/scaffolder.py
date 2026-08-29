@@ -796,6 +796,88 @@ class ProjectScaffolder:
                 "networks": [network_name]
             }
 
+        # --- OLLAMA LOCAL LLM ENGINE ---
+        if "ollama" in self.tools:
+            ollama_port = self.request.custom_ports.get("ollama", 11434)
+            models_folder = self.request.custom_folders.get("ollama_models", "ollama/models")
+            services["ollama"] = {
+                "image": "ollama/ollama:latest",
+                "container_name": f"{self.project_name}-ollama",
+                "ports": [f"{ollama_port}:11434"],
+                "volumes": [f"./{models_folder}:/root/.ollama"],
+                "networks": [network_name]
+            }
+
+        # --- OPEN WEBUI ---
+        if "open_webui" in self.tools:
+            webui_port = self.request.custom_ports.get("open_webui", 3000)
+            services["open-webui"] = {
+                "image": "ghcr.io/open-webui/open-webui:main",
+                "container_name": f"{self.project_name}-open-webui",
+                "ports": [f"{webui_port}:8080"],
+                "depends_on": ["ollama"] if "ollama" in self.tools else [],
+                "environment": {
+                    "OLLAMA_BASE_URL": "http://ollama:11434"
+                },
+                "volumes": ["open_webui_data:/app/backend/data"],
+                "networks": [network_name]
+            }
+            volumes["open_webui_data"] = None
+
+        # --- LOCALAI ---
+        if "localai" in self.tools:
+            localai_port = self.request.custom_ports.get("localai", 8091)
+            services["localai"] = {
+                "image": "localai/localai:latest-cpu",
+                "container_name": f"{self.project_name}-localai",
+                "ports": [f"{localai_port}:8080"],
+                "environment": {"DEBUG": "true"},
+                "volumes": ["localai_models:/build/models"],
+                "networks": [network_name]
+            }
+            volumes["localai_models"] = None
+
+        # --- OS SANDBOXES ---
+        if "ubuntu_sandbox" in self.tools:
+            services["ubuntu-sandbox"] = {
+                "image": "ubuntu:24.04",
+                "container_name": f"{self.project_name}-ubuntu-sandbox",
+                "command": "tail -f /dev/null",
+                "working_dir": "/workspace",
+                "volumes": ["./workspace:/workspace"],
+                "networks": [network_name]
+            }
+
+        if "debian_sandbox" in self.tools:
+            services["debian-sandbox"] = {
+                "image": "debian:bookworm-slim",
+                "container_name": f"{self.project_name}-debian-sandbox",
+                "command": "tail -f /dev/null",
+                "working_dir": "/workspace",
+                "volumes": ["./workspace:/workspace"],
+                "networks": [network_name]
+            }
+
+        if "alpine_sandbox" in self.tools:
+            services["alpine-sandbox"] = {
+                "image": "alpine:latest",
+                "container_name": f"{self.project_name}-alpine-sandbox",
+                "command": "tail -f /dev/null",
+                "working_dir": "/workspace",
+                "volumes": ["./workspace:/workspace"],
+                "networks": [network_name]
+            }
+
+        if "arch_sandbox" in self.tools:
+            services["arch-sandbox"] = {
+                "image": "archlinux:latest",
+                "container_name": f"{self.project_name}-arch-sandbox",
+                "command": "tail -f /dev/null",
+                "working_dir": "/workspace",
+                "volumes": ["./workspace:/workspace"],
+                "networks": [network_name]
+            }
+
         # --- VS CODE WEB (CODE-SERVER) ---
         if "vscode" in self.tools:
             port = self.request.custom_ports.get("vscode", 8443)
@@ -1804,6 +1886,24 @@ def run_all_tests():
         port = CUSTOM_PORTS.get("zeppelin", 8090)
         ok, detail = check_http_endpoint(f"http://localhost:{{port}}")
         results.append(("Apache Zeppelin Notebook", port, ok, detail))
+
+    # 30. Ollama Local LLM Engine
+    if "ollama" in ENABLED_TOOLS:
+        port = CUSTOM_PORTS.get("ollama", 11434)
+        ok, detail = check_http_endpoint(f"http://localhost:{{port}}/api/version")
+        results.append(("Ollama LLM Engine", port, ok, detail))
+
+    # 31. Open WebUI
+    if "open_webui" in ENABLED_TOOLS:
+        port = CUSTOM_PORTS.get("open_webui", 3000)
+        ok, detail = check_http_endpoint(f"http://localhost:{{port}}")
+        results.append(("Open WebUI (ChatGPT Clone)", port, ok, detail))
+
+    # 32. LocalAI
+    if "localai" in ENABLED_TOOLS:
+        port = CUSTOM_PORTS.get("localai", 8091)
+        ok, detail = check_http_endpoint(f"http://localhost:{{port}}/readyz")
+        results.append(("LocalAI OpenAI Engine", port, ok, detail))
 
     # PRINT SUMMARY
     passed = 0

@@ -24,10 +24,10 @@ class ToolOption(BaseModel):
 class ToolPlugin(BaseModel):
     id: str
     name: str
-    category: str = "backend"  # data_engineering, mlops, backend, devops, orchestration
-    description: str
+    category: str = "backend"  # data_engineering, mlops, backend, devops, orchestration, os_sandboxes, ai_llms
+    description: str = ""
     icon: str = "box"
-    badge: str = "Plugin"
+    badge: str = "Custom / Plugin"
     default_port: Optional[int] = None
     ui_url: Optional[str] = None
     env_vars: Dict[str, str] = Field(default_factory=dict)
@@ -37,8 +37,24 @@ class ToolPlugin(BaseModel):
     volumes: List[str] = Field(default_factory=list)
     test_type: str = "http"  # "http", "tcp"
     test_path: str = "/"
-    author: Optional[str] = "Community"
+    author: Optional[str] = "User"
     version: Optional[str] = "1.0.0"
+    # Custom Service Source options: "image", "dockerfile", "github"
+    source_type: str = "image"
+    image: Optional[str] = None
+    dockerfile_content: Optional[str] = None
+    git_url: Optional[str] = None
+    git_branch: Optional[str] = "main"
+    git_dockerfile_path: Optional[str] = "Dockerfile"
+    git_compose_path: Optional[str] = "docker-compose.yml"
+    command: Optional[str] = None
+    container_port: Optional[int] = None
+
+
+class ContainerExecRequest(BaseModel):
+    command: str
+    user: Optional[str] = None
+    workdir: Optional[str] = None
 
 
 class ToolCategory(BaseModel):
