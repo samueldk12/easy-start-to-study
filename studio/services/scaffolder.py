@@ -107,7 +107,7 @@ class ProjectScaffolder:
                 },
                 "volumes": [f"./{pg_folder}/init.sql:/docker-entrypoint-initdb.d/init.sql", "pg_data:/var/lib/postgresql/data"],
                 "healthcheck": {
-                    "test": ["CMD-SHELL", "pg_isready -U postgres -d oltp_db"],
+                    "test": ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB || pg_isready"],
                     "interval": "5s",
                     "timeout": "5s",
                     "retries": 5

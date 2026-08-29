@@ -219,7 +219,7 @@
                           'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.9)]': project.visual_status === 'orange',
                           'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.9)] animate-pulse': project.visual_status === 'red'
                         }"></span>
-                      <span x-text="project.visual_status === 'green' ? 'Online' : (project.visual_status === 'yellow' ? 'Subindo...' : (project.visual_status === 'orange' ? 'Parado' : 'Erro / Caiu'))"></span>
+                      <span x-text="project.visual_status === 'green' ? 'Online' : (project.visual_status === 'yellow' ? 'Subindo...' : (project.status === 'paused' ? 'Pausado' : (project.visual_status === 'orange' ? 'Parado' : 'Erro / Caiu')))"></span>
                     </span>
                   </div>
                   <p class="text-xs text-slate-400 mt-1 truncate max-w-sm" x-text="project.description || project.path"></p>
@@ -307,7 +307,7 @@
                           'bg-orange-500/10 text-orange-400 border border-orange-500/20': c.visual_status === 'orange',
                           'bg-red-500/10 text-red-400 border border-red-500/20': c.visual_status === 'red'
                         }"
-                        x-text="c.visual_status === 'green' ? 'Online' : (c.visual_status === 'yellow' ? 'Subindo' : (c.visual_status === 'orange' ? 'Parado' : 'Erro'))">
+                        x-text="c.visual_status === 'green' ? 'Online' : (c.visual_status === 'yellow' ? 'Subindo' : (c.state === 'paused' ? 'Pausado' : (c.visual_status === 'orange' ? 'Parado' : 'Erro')))">
                       </span>
                     </div>
                   </template>

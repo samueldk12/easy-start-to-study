@@ -87,18 +87,22 @@ class DockerManager:
             ports_str = str(publishers)
 
         # Evaluate Visual Status:
-        # - "red": crashed, unhealthy, dead, error, non-zero exit
-        # - "yellow": starting, restarting, created, health starting
-        # - "green": running & healthy
-        # - "orange": stopped, paused, graceful exit
-        if health_raw == "unhealthy" or state_raw in ("dead", "crashed", "error") or (state_raw in ("exited", "stopped") and exit_code != 0):
+        # 1. Paused containers are ALWAYS orange and paused (never red!)
+        if state_raw == "paused" or "paused" in status_raw.lower():
+            visual_status = "orange"
+            state_raw = "paused"
+        # 2. Intentionally stopped (exit code 0, 137 [SIGKILL], 143 [SIGTERM]) is orange
+        elif state_raw in ("exited", "stopped") and exit_code in (0, 137, 143):
+            visual_status = "orange"
+        # 3. Crashed, Dead, non-graceful Exit, or Unhealthy running container
+        elif state_raw in ("dead", "crashed", "error") or (state_raw in ("exited", "stopped") and exit_code not in (0, 137, 143)) or (state_raw == "running" and health_raw == "unhealthy"):
             visual_status = "red"
+        # 4. Starting, Restarting, Created
         elif state_raw in ("starting", "restarting", "created") or health_raw == "starting" or "health: starting" in status_raw.lower():
             visual_status = "yellow"
+        # 5. Running & Healthy
         elif state_raw == "running":
             visual_status = "green"
-        elif state_raw in ("paused", "stopped", "exited"):
-            visual_status = "orange"
         else:
             visual_status = "orange"
 
@@ -147,8 +151,11 @@ class DockerManager:
         has_yellow = False
         has_green = False
         has_orange = False
+        has_paused = False
 
         for c in containers:
+            if c.state == "paused" or "paused" in c.status.lower():
+                has_paused = True
             if c.visual_status == "red":
                 has_red = True
             elif c.visual_status == "yellow":
@@ -160,6 +167,9 @@ class DockerManager:
 
         if not containers:
             status = "stopped"
+            visual_status = "orange"
+        elif has_paused:
+            status = "paused"
             visual_status = "orange"
         elif has_red:
             status = "error"
@@ -181,10 +191,19 @@ class DockerManager:
 
     @staticmethod
     async def auto_retry_crashed_containers(project_dir: str) -> List[str]:
-        """Automatically detects and retries/restarts crashed or unhealthy containers."""
+        """Automatically detects and retries/restarts crashed or unhealthy containers.
+        NEVER restarts paused or intentionally stopped containers!
+        """
         status_data = await DockerManager.get_project_status(project_dir)
+        # If the project as a whole is paused or stopped, do not auto-retry!
+        if status_data.get("status") in ("paused", "stopped"):
+            return []
+
         restarted = []
         for c in status_data["containers"]:
+            # NEVER restart paused containers
+            if c.state == "paused" or "paused" in c.status.lower():
+                continue
             if c.visual_status == "red":
                 current_retries = DockerManager._RETRY_TRACKER.get(c.name, 0)
                 if current_retries < DockerManager._MAX_RETRIES:
