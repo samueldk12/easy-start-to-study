@@ -72,6 +72,17 @@ RELATIONSHIPS = [
     {"source": "vscode", "target": "postgres", "label": "Direct Database SQL Editing", "type": "ide"},
     {"source": "vscode", "target": "ansible", "label": "Authors Playbooks & Tasks", "type": "ide"},
     {"source": "vscode", "target": "terraform", "label": "Authors HCL Modules & Plans", "type": "ide"},
+
+    # Hadoop & Big Data Ecosystem
+    {"source": "yarn", "target": "hdfs", "label": "Allocates Distributed Storage", "type": "storage"},
+    {"source": "hive", "target": "hdfs", "label": "Warehouse Directory Storage", "type": "storage"},
+    {"source": "hive", "target": "postgres", "label": "Metastore Relational DB (HMS)", "type": "metadata"},
+    {"source": "spark", "target": "hdfs", "label": "Reads/Writes HDFS Blocks", "type": "storage"},
+    {"source": "spark", "target": "hive", "label": "Hive Catalog & Schema Sharing", "type": "query"},
+    {"source": "spark", "target": "yarn", "label": "Cluster Resource Allocation", "type": "orchestration"},
+    {"source": "zeppelin", "target": "spark", "label": "Interactive Spark Session", "type": "interactive"},
+    {"source": "zeppelin", "target": "hive", "label": "JDBC SQL Queries (HiveServer2)", "type": "query"},
+    {"source": "zeppelin", "target": "hdfs", "label": "Direct File Exploration", "type": "interactive"},
 ]
 
 # Category colors for UI styling

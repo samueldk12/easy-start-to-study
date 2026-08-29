@@ -70,6 +70,12 @@ class ProjectScaffolder:
         if "terraform" in self.tools:
             self._generate_terraform_files()
 
+        if "hive" in self.tools:
+            self._generate_hive_files()
+
+        if "zeppelin" in self.tools:
+            self._generate_zeppelin_files()
+
         # Generate .vscode extensions & settings
         self._generate_vscode_files()
 
@@ -275,7 +281,11 @@ class ProjectScaffolder:
                 "image": "minio/mc:RELEASE.2024-05-09T17-04-24Z",
                 "container_name": f"{self.project_name}-minio-init",
                 "depends_on": ["minio"],
-                "entrypoint": '/bin/sh -c "until (/usr/bin/mc alias set myminio http://minio:9000 admin password123); do echo \'Waiting for MinIO...\'; sleep 2; done; /usr/bin/mc mb --ignore-existing myminio/lakehouse; /usr/bin/mc mb --ignore-existing myminio/warehouse; echo \'Buckets created successfully!\'; exit 0;"',
+                "environment": {
+                    "MINIO_ROOT_USER": "${MINIO_ROOT_USER:-admin}",
+                    "MINIO_ROOT_PASSWORD": "${MINIO_ROOT_PASSWORD:-password123}"
+                },
+                "entrypoint": '/bin/sh -c "until (/usr/bin/mc alias set myminio http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD); do echo \'Waiting for MinIO...\'; sleep 2; done; /usr/bin/mc mb --ignore-existing myminio/lakehouse; /usr/bin/mc mb --ignore-existing myminio/warehouse; echo \'Buckets created successfully!\'; exit 0;"',
                 "networks": [network_name]
             }
 
@@ -292,8 +302,8 @@ class ProjectScaffolder:
                     "CATALOG_IO__IMPL": "org.apache.iceberg.aws.s3.S3FileIO",
                     "CATALOG_S3_ENDPOINT": "http://minio:9000",
                     "CATALOG_S3_PATH__STYLE__ACCESS": "true",
-                    "AWS_ACCESS_KEY_ID": "admin",
-                    "AWS_SECRET_ACCESS_KEY": "password123",
+                    "AWS_ACCESS_KEY_ID": "${MINIO_ROOT_USER:-admin}",
+                    "AWS_SECRET_ACCESS_KEY": "${MINIO_ROOT_PASSWORD:-password123}",
                     "AWS_REGION": "us-east-1"
                 },
                 "networks": [network_name]
@@ -369,9 +379,11 @@ class ProjectScaffolder:
                 "container_name": f"{self.project_name}-airflow-init",
                 "depends_on": {"airflow-db": {"condition": "service_healthy"}},
                 "environment": {
-                    "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN": "postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow"
+                    "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN": "postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow",
+                    "AIRFLOW_USER": "${AIRFLOW_USER:-admin}",
+                    "AIRFLOW_PASSWORD": "${AIRFLOW_PASSWORD:-admin}"
                 },
-                "command": 'bash -c "airflow db migrate && airflow users create --username admin --firstname Admin --lastname User --role Admin --email admin@example.com --password admin || true"',
+                "command": 'bash -c "airflow db migrate && (airflow users create --username $$AIRFLOW_USER --firstname Admin --lastname User --role Admin --email admin@example.com --password $$AIRFLOW_PASSWORD || airflow users set-password --username $$AIRFLOW_USER --password $$AIRFLOW_PASSWORD || true)"',
                 "networks": [network_name]
             }
 
@@ -678,6 +690,112 @@ class ProjectScaffolder:
                 "networks": [network_name]
             }
 
+        # --- APACHE HADOOP HDFS (NameNode & DataNode) ---
+        if "hdfs" in self.tools:
+            nn_ui_port = self.request.custom_ports.get("hdfs", 9870)
+            services["namenode"] = {
+                "image": "bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8",
+                "container_name": f"{self.project_name}-namenode",
+                "environment": {
+                    "CLUSTER_NAME": "${CLUSTER_NAME:-hadoop-cluster}",
+                    "CORE_CONF_fs_defaultFS": "hdfs://namenode:9000",
+                    "HDFS_CONF_dfs_replication": "1"
+                },
+                "ports": [f"{nn_ui_port}:9870", "9000:9000"],
+                "volumes": ["hadoop_namenode:/hadoop/dfs/name"],
+                "networks": [network_name]
+            }
+            services["datanode"] = {
+                "image": "bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8",
+                "container_name": f"{self.project_name}-datanode",
+                "depends_on": ["namenode"],
+                "environment": {
+                    "CORE_CONF_fs_defaultFS": "hdfs://namenode:9000"
+                },
+                "ports": ["9864:9864"],
+                "volumes": ["hadoop_datanode:/hadoop/dfs/data"],
+                "networks": [network_name]
+            }
+            volumes["hadoop_namenode"] = None
+            volumes["hadoop_datanode"] = None
+
+        # --- APACHE HADOOP YARN (ResourceManager & NodeManager) ---
+        if "yarn" in self.tools:
+            rm_ui_port = self.request.custom_ports.get("yarn", 8089)
+            services["resourcemanager"] = {
+                "image": "bde2020/hadoop-resourcemanager:2.0.0-hadoop3.2.1-java8",
+                "container_name": f"{self.project_name}-resourcemanager",
+                "depends_on": ["namenode", "datanode"] if "hdfs" in self.tools else [],
+                "environment": {
+                    "CORE_CONF_fs_defaultFS": "hdfs://namenode:9000",
+                    "YARN_CONF_yarn_resourcemanager_hostname": "resourcemanager"
+                },
+                "ports": [f"{rm_ui_port}:8088"],
+                "networks": [network_name]
+            }
+            services["nodemanager"] = {
+                "image": "bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8",
+                "container_name": f"{self.project_name}-nodemanager",
+                "depends_on": ["resourcemanager"],
+                "environment": {
+                    "CORE_CONF_fs_defaultFS": "hdfs://namenode:9000",
+                    "YARN_CONF_yarn_resourcemanager_hostname": "resourcemanager"
+                },
+                "ports": ["8042:8042"],
+                "networks": [network_name]
+            }
+
+        # --- APACHE HIVE (Metastore & HiveServer2) ---
+        if "hive" in self.tools:
+            hive_ui_port = self.request.custom_ports.get("hive", 10002)
+            warehouse_folder = self.request.custom_folders.get("hive_warehouse", "hive/warehouse")
+            services["hive-metastore"] = {
+                "image": "bde2020/hive:2.3.2-postgresql-metastore",
+                "container_name": f"{self.project_name}-hive-metastore",
+                "depends_on": ["postgres"] if "postgres" in self.tools else [],
+                "environment": {
+                    "HIVE_CORE_CONF_javax_jdo_option_ConnectionURL": "jdbc:postgresql://postgres:5432/metastore_db",
+                    "HIVE_CORE_CONF_javax_jdo_option_ConnectionDriverName": "org.postgresql.Driver",
+                    "HIVE_CORE_CONF_javax_jdo_option_ConnectionUserName": "${POSTGRES_USER:-admin}",
+                    "HIVE_CORE_CONF_javax_jdo_option_ConnectionPassword": "${POSTGRES_PASSWORD:-admin123}",
+                    "CORE_CONF_fs_defaultFS": "hdfs://namenode:9000" if "hdfs" in self.tools else "file:///tmp/warehouse"
+                },
+                "ports": ["9083:9083"],
+                "networks": [network_name]
+            }
+            services["hive-server"] = {
+                "image": "bde2020/hive:2.3.2-postgresql-metastore",
+                "container_name": f"{self.project_name}-hive-server",
+                "depends_on": ["hive-metastore"],
+                "environment": {
+                    "HIVE_CORE_CONF_javax_jdo_option_ConnectionURL": "jdbc:postgresql://postgres:5432/metastore_db",
+                    "HIVE_CORE_CONF_javax_jdo_option_ConnectionDriverName": "org.postgresql.Driver",
+                    "HIVE_CORE_CONF_javax_jdo_option_ConnectionUserName": "${POSTGRES_USER:-admin}",
+                    "HIVE_CORE_CONF_javax_jdo_option_ConnectionPassword": "${POSTGRES_PASSWORD:-admin123}",
+                    "CORE_CONF_fs_defaultFS": "hdfs://namenode:9000" if "hdfs" in self.tools else "file:///tmp/warehouse"
+                },
+                "ports": [f"{hive_ui_port}:10002", "10000:10000"],
+                "command": "/opt/hive/bin/hive --service hiveserver2",
+                "volumes": [f"./{warehouse_folder}:/opt/hive/warehouse"],
+                "networks": [network_name]
+            }
+
+        # --- APACHE ZEPPELIN NOTEBOOK ---
+        if "zeppelin" in self.tools:
+            zeppelin_port = self.request.custom_ports.get("zeppelin", 8090)
+            notebook_folder = self.request.custom_folders.get("zeppelin_notebooks", "zeppelin/notebook")
+            services["zeppelin"] = {
+                "image": "apache/zeppelin:0.10.1",
+                "container_name": f"{self.project_name}-zeppelin",
+                "environment": {
+                    "ZEPPELIN_PORT": "8080",
+                    "ZEPPELIN_ANONYMOUS": "true"
+                },
+                "ports": [f"{zeppelin_port}:8080"],
+                "volumes": [f"./{notebook_folder}:/opt/zeppelin/notebook"],
+                "networks": [network_name]
+            }
+
         # --- VS CODE WEB (CODE-SERVER) ---
         if "vscode" in self.tools:
             port = self.request.custom_ports.get("vscode", 8443)
@@ -764,6 +882,12 @@ class ProjectScaffolder:
                     val = self.request.custom_envs.get(k, val)
                     env_lines.append(f"{k}={val}")
                 env_lines.append("")
+
+        if "airflow" in self.tools:
+            env_lines.append("# Apache Airflow")
+            env_lines.append(f"AIRFLOW_USER={user}")
+            env_lines.append(f"AIRFLOW_PASSWORD={password}")
+            env_lines.append("")
 
         content = "\n".join(env_lines)
         with open(os.path.join(self.project_dir, ".env"), "w", encoding="utf-8") as f:
@@ -1279,10 +1403,10 @@ resource "local_file" "environment_metadata" {{
         with open(os.path.join(tf_dir, "variables.tf"), "w", encoding="utf-8") as f:
             f.write(vars_tf)
 
-        outputs_tf = """output "project_metadata_file" {
+        outputs_tf = f"""output "project_metadata_file" {{
   value       = local_file.environment_metadata.filename
   description = "Path to generated deployment metadata"
-}
+}}
 """
         with open(os.path.join(tf_dir, "outputs.tf"), "w", encoding="utf-8") as f:
             f.write(outputs_tf)
@@ -1291,6 +1415,70 @@ resource "local_file" "environment_metadata" {{
 """
         with open(os.path.join(tf_dir, "terraform.tfvars"), "w", encoding="utf-8") as f:
             f.write(tfvars)
+
+    def _generate_hive_files(self):
+        hive_folder = self.request.custom_folders.get("hive_warehouse", "hive/warehouse")
+        hive_dir = os.path.join(self.project_dir, hive_folder)
+        os.makedirs(hive_dir, exist_ok=True)
+
+        if self.include_templates:
+            init_hql = f"""-- =============================================================================
+-- APACHE HIVE WAREHOUSE & METASTORE INITIALIZATION
+-- Project: {self.project_name}
+-- =============================================================================
+
+CREATE DATABASE IF NOT EXISTS analytics
+COMMENT 'Analytical Data Warehouse database managed by Hive'
+LOCATION 'hdfs://namenode:9000/user/hive/warehouse/analytics.db';
+
+USE analytics;
+
+CREATE EXTERNAL TABLE IF NOT EXISTS analytics.pageviews (
+    user_id STRING,
+    page_url STRING,
+    event_timestamp TIMESTAMP,
+    device_type STRING,
+    ip_address STRING
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE
+LOCATION 'hdfs://namenode:9000/user/hive/warehouse/analytics.db/pageviews';
+
+SHOW TABLES IN analytics;
+"""
+            with open(os.path.join(self.project_dir, "hive", "init.sql"), "w", encoding="utf-8") as f:
+                f.write(init_hql)
+
+    def _generate_zeppelin_files(self):
+        nb_folder = self.request.custom_folders.get("zeppelin_notebooks", "zeppelin/notebook")
+        nb_dir = os.path.join(self.project_dir, nb_folder)
+        os.makedirs(nb_dir, exist_ok=True)
+
+        if self.include_templates:
+            sample_nb = {
+                "paragraphs": [
+                    {
+                        "text": f"%md\n# 🐘 Apache Zeppelin - {self.project_name}\nExploração Interativa de Big Data com Spark, Hive e PySpark",
+                        "status": "READY"
+                    },
+                    {
+                        "text": "%pyspark\n# Inicializando Spark Session\nprint('Spark Version:', spark.version)\ndf = spark.range(1, 100).toDF('id')\ndf.show(5)",
+                        "status": "READY"
+                    },
+                    {
+                        "text": "%sql\n-- Consulta SQL direta no Hive Metastore / Spark\nSHOW DATABASES;\n",
+                        "status": "READY"
+                    }
+                ],
+                "name": f"Tutorial-{self.project_name}",
+                "id": "2A94M5J1Z",
+                "noteParams": {},
+                "noteForms": {},
+                "angularObjects": {}
+            }
+            with open(os.path.join(nb_dir, "note.json"), "w", encoding="utf-8") as f:
+                json.dump(sample_nb, f, indent=2)
 
     def _generate_scripts(self):
         scripts_dir = os.path.join(self.project_dir, "scripts")
@@ -1593,6 +1781,30 @@ def run_all_tests():
         ok, detail = check_http_endpoint(f"http://localhost:{{port}}")
         results.append(("pgAdmin 4 Web", port, ok, detail))
 
+    # 26. Apache Hadoop HDFS
+    if "hdfs" in ENABLED_TOOLS:
+        port = CUSTOM_PORTS.get("hdfs", 9870)
+        ok, detail = check_http_endpoint(f"http://localhost:{{port}}")
+        results.append(("Hadoop HDFS (NameNode UI)", port, ok, detail))
+
+    # 27. Apache Hadoop YARN
+    if "yarn" in ENABLED_TOOLS:
+        port = CUSTOM_PORTS.get("yarn", 8089)
+        ok, detail = check_http_endpoint(f"http://localhost:{{port}}/cluster")
+        results.append(("Hadoop YARN (ResourceManager UI)", port, ok, detail))
+
+    # 28. Apache Hive
+    if "hive" in ENABLED_TOOLS:
+        port = CUSTOM_PORTS.get("hive", 10002)
+        ok, detail = check_tcp_port("localhost", 10000)
+        results.append(("Apache Hive (HiveServer2 10000)", port, ok, detail))
+
+    # 29. Apache Zeppelin
+    if "zeppelin" in ENABLED_TOOLS:
+        port = CUSTOM_PORTS.get("zeppelin", 8090)
+        ok, detail = check_http_endpoint(f"http://localhost:{{port}}")
+        results.append(("Apache Zeppelin Notebook", port, ok, detail))
+
     # PRINT SUMMARY
     passed = 0
     total = len(results)
@@ -1861,7 +2073,11 @@ if __name__ == "__main__":
             "nginx": ["ahmadalli.vscode-nginx-conf"],
             "k8s": ["ms-kubernetes-tools.vscode-kubernetes-tools", "redhat.vscode-yaml"],
             "opentelemetry": ["redhat.vscode-yaml"],
-            "openmetadata": ["redhat.vscode-yaml"]
+            "openmetadata": ["redhat.vscode-yaml"],
+            "hdfs": ["redhat.vscode-yaml"],
+            "yarn": ["redhat.vscode-yaml"],
+            "hive": ["alanz.vscode-hql", "mtxr.sqltools", "redhat.vscode-yaml"],
+            "zeppelin": ["ms-python.python", "ms-toolsai.jupyter"]
         }
 
         for tool in self.tools:

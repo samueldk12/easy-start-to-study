@@ -122,10 +122,10 @@ services:
     container_name: velocelog-minio-init
     depends_on:
     - minio
-    entrypoint: /bin/sh -c "until (/usr/bin/mc alias set myminio http://minio:9000
-      admin password123); do echo 'Waiting for MinIO...'; sleep 2; done; /usr/bin/mc
-      mb --ignore-existing myminio/lakehouse; /usr/bin/mc mb --ignore-existing myminio/warehouse;
-      echo 'Buckets created successfully!'; exit 0;"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-admin123}
+    entrypoint: /bin/sh -c "until (/usr/bin/mc alias set myminio http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD); do echo 'Waiting for MinIO...'; sleep 2; done; /usr/bin/mc mb --ignore-existing myminio/lakehouse; /usr/bin/mc mb --ignore-existing myminio/warehouse; echo 'Buckets created successfully!'; exit 0;"
     networks:
     - velocelog-net
   iceberg-rest:
@@ -141,8 +141,8 @@ services:
       CATALOG_IO__IMPL: org.apache.iceberg.aws.s3.S3FileIO
       CATALOG_S3_ENDPOINT: http://minio:9000
       CATALOG_S3_PATH__STYLE__ACCESS: 'true'
-      AWS_ACCESS_KEY_ID: admin
-      AWS_SECRET_ACCESS_KEY: password123
+      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-admin}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-admin123}
       AWS_REGION: us-east-1
     networks:
     - velocelog-net
@@ -213,9 +213,9 @@ services:
         condition: service_healthy
     environment:
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow
-    command: bash -c "airflow db migrate && airflow users create --username admin
-      --firstname Admin --lastname User --role Admin --email admin@example.com --password
-      admin || true"
+      AIRFLOW_USER: ${AIRFLOW_USER:-admin}
+      AIRFLOW_PASSWORD: ${AIRFLOW_PASSWORD:-admin}
+    command: bash -c "airflow db migrate && (airflow users create --username $$AIRFLOW_USER --firstname Admin --lastname User --role Admin --email admin@example.com --password $$AIRFLOW_PASSWORD || airflow users set-password --username $$AIRFLOW_USER --password $$AIRFLOW_PASSWORD || true)"
     networks:
     - velocelog-net
   airflow-webserver:

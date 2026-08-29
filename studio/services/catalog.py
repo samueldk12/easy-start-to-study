@@ -158,6 +158,51 @@ CATEGORIES: List[ToolCategory] = [
                     "DB_USER": "postgres",
                     "DB_USER_PASSWORD": "postgres_password"
                 }
+            ),
+            ToolOption(
+                id="hdfs",
+                name="Apache Hadoop HDFS",
+                category="data_engineering",
+                description="Sistema de arquivos distribuído tolerante a falhas (HDFS) com NameNode e DataNode para armazenamento de Data Lakes massivos.",
+                icon="hard-drive",
+                badge="Distributed FS",
+                default_port=9870,
+                ui_url="http://localhost:9870",
+                env_vars={"CLUSTER_NAME": "hadoop-cluster"}
+            ),
+            ToolOption(
+                id="yarn",
+                name="Apache Hadoop YARN",
+                category="data_engineering",
+                description="Gerenciador de recursos de cluster distribuído (YARN) com ResourceManager e NodeManager para execução de jobs de processamento.",
+                icon="cpu",
+                badge="Resource Manager",
+                default_port=8089,
+                ui_url="http://localhost:8089",
+                dependencies=["hdfs"]
+            ),
+            ToolOption(
+                id="hive",
+                name="Apache Hive Metastore & Server",
+                category="data_engineering",
+                description="Data Warehouse distribuído com Hive Metastore (HMS) e HiveServer2 para consultas SQL sobre HDFS e S3/MinIO.",
+                icon="database",
+                badge="Data Warehouse / HMS",
+                default_port=10002,
+                ui_url="http://localhost:10002",
+                dependencies=["postgres", "hdfs"],
+                default_folders={"warehouse": "hive/warehouse"}
+            ),
+            ToolOption(
+                id="zeppelin",
+                name="Apache Zeppelin Notebook",
+                category="data_engineering",
+                description="Notebook colaborativo e interativo multi-linguagem (Spark, PySpark, SQL, Hive, Python, Shell) para análise e exploração de dados.",
+                icon="book-open",
+                badge="Interactive Notebook",
+                default_port=8090,
+                ui_url="http://localhost:8090",
+                default_folders={"notebooks": "zeppelin/notebook"}
             )
         ]
     ),
@@ -467,6 +512,13 @@ PRESETS: List[ProjectPreset] = [
         description="Stack analítica com PostgreSQL, ClickHouse, MinIO, Iceberg, Trino, dbt, Airflow e Grafana.",
         icon="bar-chart-2",
         tools=["postgres", "clickhouse", "minio", "iceberg_rest", "trino", "dbt", "airflow", "grafana"]
+    ),
+    ProjectPreset(
+        id="hadoop_big_data_ecosystem",
+        name="🐘 Hadoop & Big Data Ecosystem",
+        description="Stack clássica e robusta de Big Data com HDFS NameNode/DataNode, YARN ResourceManager, Hive Metastore, Spark 3.5, Zeppelin Notebook e PostgreSQL.",
+        icon="server",
+        tools=["hdfs", "yarn", "hive", "spark", "zeppelin", "postgres", "minio"]
     )
 ]
 

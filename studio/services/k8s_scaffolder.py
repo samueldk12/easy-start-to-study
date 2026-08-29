@@ -92,6 +92,22 @@ class K8sScaffolder:
             self._generate_vscode_manifest()
             resources.append("vscode.yaml")
 
+        if "hdfs" in self.tools:
+            self._generate_hdfs_manifest()
+            resources.append("hdfs.yaml")
+
+        if "yarn" in self.tools:
+            self._generate_yarn_manifest()
+            resources.append("yarn.yaml")
+
+        if "hive" in self.tools:
+            self._generate_hive_manifest()
+            resources.append("hive.yaml")
+
+        if "zeppelin" in self.tools:
+            self._generate_zeppelin_manifest()
+            resources.append("zeppelin.yaml")
+
         # 4. Kustomization
         self._generate_kustomization(resources)
 
@@ -923,6 +939,364 @@ spec:
     app: vscode
 """
         with open(os.path.join(self.k8s_dir, "vscode.yaml"), "w", encoding="utf-8") as f:
+            f.write(manifest)
+
+    def _generate_hdfs_manifest(self):
+        manifest = f"""apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: namenode
+  namespace: {self.namespace}
+  labels:
+    app: namenode
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: namenode
+  template:
+    metadata:
+      labels:
+        app: namenode
+    spec:
+      containers:
+      - name: namenode
+        image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+        ports:
+        - containerPort: 9870
+          name: http
+        - containerPort: 9000
+          name: ipc
+        env:
+        - name: CLUSTER_NAME
+          value: "hadoop-cluster"
+        - name: CORE_CONF_fs_defaultFS
+          value: "hdfs://namenode:9000"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: namenode
+  namespace: {self.namespace}
+  labels:
+    app: namenode
+spec:
+  type: ClusterIP
+  ports:
+  - port: 9870
+    targetPort: 9870
+    name: http
+  - port: 9000
+    targetPort: 9000
+    name: ipc
+  selector:
+    app: namenode
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: datanode
+  namespace: {self.namespace}
+  labels:
+    app: datanode
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: datanode
+  template:
+    metadata:
+      labels:
+        app: datanode
+    spec:
+      containers:
+      - name: datanode
+        image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+        ports:
+        - containerPort: 9864
+          name: http
+        env:
+        - name: CORE_CONF_fs_defaultFS
+          value: "hdfs://namenode:9000"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: datanode
+  namespace: {self.namespace}
+  labels:
+    app: datanode
+spec:
+  type: ClusterIP
+  ports:
+  - port: 9864
+    targetPort: 9864
+    name: http
+  selector:
+    app: datanode
+"""
+        with open(os.path.join(self.k8s_dir, "hdfs.yaml"), "w", encoding="utf-8") as f:
+            f.write(manifest)
+
+    def _generate_yarn_manifest(self):
+        manifest = f"""apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resourcemanager
+  namespace: {self.namespace}
+  labels:
+    app: resourcemanager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: resourcemanager
+  template:
+    metadata:
+      labels:
+        app: resourcemanager
+    spec:
+      containers:
+      - name: resourcemanager
+        image: bde2020/hadoop-resourcemanager:2.0.0-hadoop3.2.1-java8
+        ports:
+        - containerPort: 8088
+          name: http
+        env:
+        - name: CORE_CONF_fs_defaultFS
+          value: "hdfs://namenode:9000"
+        - name: YARN_CONF_yarn_resourcemanager_hostname
+          value: "resourcemanager"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: resourcemanager
+  namespace: {self.namespace}
+  labels:
+    app: resourcemanager
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8088
+    targetPort: 8088
+    name: http
+  selector:
+    app: resourcemanager
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodemanager
+  namespace: {self.namespace}
+  labels:
+    app: nodemanager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nodemanager
+  template:
+    metadata:
+      labels:
+        app: nodemanager
+    spec:
+      containers:
+      - name: nodemanager
+        image: bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8
+        ports:
+        - containerPort: 8042
+          name: http
+        env:
+        - name: CORE_CONF_fs_defaultFS
+          value: "hdfs://namenode:9000"
+        - name: YARN_CONF_yarn_resourcemanager_hostname
+          value: "resourcemanager"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nodemanager
+  namespace: {self.namespace}
+  labels:
+    app: nodemanager
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8042
+    targetPort: 8042
+    name: http
+  selector:
+    app: nodemanager
+"""
+        with open(os.path.join(self.k8s_dir, "yarn.yaml"), "w", encoding="utf-8") as f:
+            f.write(manifest)
+
+    def _generate_hive_manifest(self):
+        manifest = f"""apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hive-metastore
+  namespace: {self.namespace}
+  labels:
+    app: hive-metastore
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hive-metastore
+  template:
+    metadata:
+      labels:
+        app: hive-metastore
+    spec:
+      containers:
+      - name: hive-metastore
+        image: bde2020/hive:2.3.2-postgresql-metastore
+        ports:
+        - containerPort: 9083
+          name: thrift
+        env:
+        - name: HIVE_CORE_CONF_javax_jdo_option_ConnectionURL
+          value: "jdbc:postgresql://postgres:5432/metastore_db"
+        - name: HIVE_CORE_CONF_javax_jdo_option_ConnectionDriverName
+          value: "org.postgresql.Driver"
+        - name: HIVE_CORE_CONF_javax_jdo_option_ConnectionUserName
+          value: "postgres"
+        - name: HIVE_CORE_CONF_javax_jdo_option_ConnectionPassword
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: POSTGRES_PASSWORD
+        - name: CORE_CONF_fs_defaultFS
+          value: "hdfs://namenode:9000"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hive-metastore
+  namespace: {self.namespace}
+  labels:
+    app: hive-metastore
+spec:
+  type: ClusterIP
+  ports:
+  - port: 9083
+    targetPort: 9083
+    name: thrift
+  selector:
+    app: hive-metastore
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hive-server
+  namespace: {self.namespace}
+  labels:
+    app: hive-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hive-server
+  template:
+    metadata:
+      labels:
+        app: hive-server
+    spec:
+      containers:
+      - name: hive-server
+        image: bde2020/hive:2.3.2-postgresql-metastore
+        command: ["/opt/hive/bin/hive", "--service", "hiveserver2"]
+        ports:
+        - containerPort: 10002
+          name: http
+        - containerPort: 10000
+          name: thrift
+        env:
+        - name: HIVE_CORE_CONF_javax_jdo_option_ConnectionURL
+          value: "jdbc:postgresql://postgres:5432/metastore_db"
+        - name: HIVE_CORE_CONF_javax_jdo_option_ConnectionDriverName
+          value: "org.postgresql.Driver"
+        - name: HIVE_CORE_CONF_javax_jdo_option_ConnectionUserName
+          value: "postgres"
+        - name: HIVE_CORE_CONF_javax_jdo_option_ConnectionPassword
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: POSTGRES_PASSWORD
+        - name: CORE_CONF_fs_defaultFS
+          value: "hdfs://namenode:9000"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hive-server
+  namespace: {self.namespace}
+  labels:
+    app: hive-server
+spec:
+  type: ClusterIP
+  ports:
+  - port: 10002
+    targetPort: 10002
+    name: http
+  - port: 10000
+    targetPort: 10000
+    name: thrift
+  selector:
+    app: hive-server
+"""
+        with open(os.path.join(self.k8s_dir, "hive.yaml"), "w", encoding="utf-8") as f:
+            f.write(manifest)
+
+    def _generate_zeppelin_manifest(self):
+        manifest = f"""apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zeppelin
+  namespace: {self.namespace}
+  labels:
+    app: zeppelin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zeppelin
+  template:
+    metadata:
+      labels:
+        app: zeppelin
+    spec:
+      containers:
+      - name: zeppelin
+        image: apache/zeppelin:0.10.1
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: ZEPPELIN_PORT
+          value: "8080"
+        - name: ZEPPELIN_ANONYMOUS
+          value: "true"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zeppelin
+  namespace: {self.namespace}
+  labels:
+    app: zeppelin
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: http
+  selector:
+    app: zeppelin
+"""
+        with open(os.path.join(self.k8s_dir, "zeppelin.yaml"), "w", encoding="utf-8") as f:
             f.write(manifest)
 
     def _generate_kustomization(self, resources: List[str]):
