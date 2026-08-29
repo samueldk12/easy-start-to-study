@@ -63,6 +63,8 @@ class ProjectCreateRequest(BaseModel):
     description: Optional[str] = "Projeto gerado via StackStudio"
     tools: List[str]
     include_templates: bool = True  # True = com código/boilerplates; False = estrutura limpa
+    default_user: Optional[str] = "admin"
+    default_password: Optional[str] = "admin123"
     custom_ports: Dict[str, int] = Field(default_factory=dict)
     custom_envs: Dict[str, str] = Field(default_factory=dict)
     custom_folders: Dict[str, str] = Field(default_factory=dict)

@@ -106,15 +106,20 @@ class K8sScaffolder:
         with open(os.path.join(self.k8s_dir, "configmap.yaml"), "w", encoding="utf-8") as f:
             yaml.dump(cm_dict, f, sort_keys=False)
 
+        user = self.request.default_user or "admin"
+        password = self.request.default_password or "admin123"
+
         secret_dict = {
             "apiVersion": "v1",
             "kind": "Secret",
             "metadata": {"name": f"{self.project_name}-secret", "namespace": self.namespace},
             "type": "Opaque",
             "stringData": {
-                "POSTGRES_PASSWORD": "postgres_secure_pass",
-                "MINIO_ROOT_PASSWORD": "password123",
-                "RABBITMQ_DEFAULT_PASS": "guest"
+                "DEFAULT_USER": user,
+                "DEFAULT_PASSWORD": password,
+                "POSTGRES_PASSWORD": password,
+                "MINIO_ROOT_PASSWORD": password,
+                "RABBITMQ_DEFAULT_PASS": password
             }
         }
         with open(os.path.join(self.k8s_dir, "secret.yaml"), "w", encoding="utf-8") as f:

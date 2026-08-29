@@ -5,7 +5,7 @@ Docker Compose Lifecycle Manager
 import asyncio
 import os
 import json
-from typing import List, Dict, Any, AsyncGenerator
+from typing import List, Dict, Any, AsyncGenerator, Optional
 from studio.models import ContainerInfo
 
 
@@ -115,9 +115,12 @@ class DockerManager:
         )
 
     @staticmethod
-    async def stream_logs(project_dir: str, tail: int = 100) -> AsyncGenerator[str, None]:
-        """Streams real-time logs from docker compose logs."""
+    async def stream_logs(project_dir: str, service: Optional[str] = None, tail: int = 100) -> AsyncGenerator[str, None]:
+        """Streams real-time logs from docker compose logs, optionally filtered by service."""
         full_cmd = ["docker", "compose", "logs", "-f", f"--tail={tail}"]
+        if service and service.strip() and service.lower() != "all":
+            full_cmd.append(service.strip())
+
         process = await asyncio.create_subprocess_exec(
             *full_cmd,
             cwd=project_dir,

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: stack-crypto-trading-stream
+  labels:
+    app.kubernetes.io/name: crypto-trading-stream
+    app.kubernetes.io/managed-by: StackStudio

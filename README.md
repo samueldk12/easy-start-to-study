@@ -37,11 +37,42 @@ Acesse no seu navegador: **[http://localhost:5050](http://localhost:5050)**
 
 ### Funcionalidades do Painel:
 1. **Criar Novos Projetos**: Escolha o nome, selecione as ferramentas ou aplique **Presets de 1-Clique**.
-2. **🧩 Sistema de Plugins Extensível**: Adicione qualquer nova ferramenta via arquivo YAML ou diretamente pela Web UI sem alterar o código-fonte.
-3. **Controle de Templates & Pastas**: Alterne entre estrutura limpa ou com código starter; customize portas e nomes de pastas montadas nos volumes.
-4. **Orquestração com 1-Clique**: Botões **Start**, **Pausar**, **Parar** e **Reiniciar** por projeto.
-5. **Testes Automatizados com 1-Clique**: O botão **"Testar"** roda a bateria de testes do projeto e exibe o relatório de conformidade no terminal integrado.
-6. **Acesso Direto às Web UIs**: Links automáticos para o Airflow, Kafka UI, Spark Master, MinIO Console, Trino, RabbitMQ, Redis Commander, Grafana, MLflow, etc.
+2. **🔐 Credenciais Padrão Customizáveis**: Configure usuário e senha padrão aplicados instantaneamente em PostgreSQL, MinIO, RabbitMQ, Grafana, MLflow, Keycloak e K8s Secrets.
+3. **📊 Logs Separados por Serviço**: Filtre e acompanhe os logs em tempo real por serviço individual (`postgres`, `kafka`, `spark`, `redis`, etc.) ou todos juntos.
+4. **🧩 Sistema de Plugins Extensível**: Adicione qualquer nova ferramenta via arquivo YAML ou diretamente pela Web UI sem alterar o código-fonte.
+5. **Controle de Templates & Pastas**: Alterne entre estrutura limpa ou com código starter; customize portas e nomes de pastas montadas nos volumes.
+6. **Orquestração com 1-Clique**: Botões **Start**, **Pausar**, **Parar** e **Reiniciar** por projeto.
+7. **Testes Automatizados com 1-Clique**: O botão **"Testar"** roda a bateria de testes do projeto e exibe o relatório de conformidade no terminal integrado.
+8. **Acesso Direto às Web UIs**: Links automáticos para o Airflow, Kafka UI, Spark Master, MinIO Console, Trino, RabbitMQ, Redis Commander, Grafana, MLflow, etc.
+
+---
+
+## 💻 CLI Unificado (StackStudio CLI)
+
+Além da interface Web, você pode gerenciar projetos, criar ambientes, filtrar logs por serviço e disparar deploys no Kubernetes diretamente pelo terminal:
+
+```bash
+# Listar todos os projetos e status de containers:
+python studio_cli.py list
+
+# Ver logs de um serviço específico em tempo real:
+python studio_cli.py logs velocelog-lakehouse --service postgres -f
+python studio_cli.py logs velocelog-lakehouse --service redis --tail 30
+
+# Iniciar ou Parar projetos:
+python studio_cli.py start velocelog-lakehouse
+python studio_cli.py stop velocelog-lakehouse
+
+# Rodar a bateria de testes automatizados:
+python studio_cli.py test fintech-backend-queue
+
+# Criar um novo projeto com credenciais customizadas e estrutura limpa:
+python studio_cli.py create --name "meu-app" --tools "postgres,redis,rabbitmq" --user "dev_admin" --password "segredo123" --clean
+
+# Gerenciar no Kubernetes:
+python studio_cli.py k8s deploy velocelog-lakehouse
+python studio_cli.py k8s status velocelog-lakehouse
+```
 
 ---
 

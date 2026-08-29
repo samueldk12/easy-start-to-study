@@ -95,5 +95,18 @@
     ],
     "include_templates": true,
     "created_at": "2026-08-29 12:18:04"
+  },
+  "crypto-trading-stream": {
+    "id": "crypto-trading-stream",
+    "name": "crypto-trading-stream",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\crypto-trading-stream",
+    "description": "Projeto crypto-trading-stream criado via CLI",
+    "tools": [
+      "postgres",
+      "redis",
+      "rabbitmq"
+    ],
+    "include_templates": true,
+    "created_at": "2026-08-29 12:50:00"
   }
 }

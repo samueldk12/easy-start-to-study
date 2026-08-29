@@ -624,12 +624,25 @@ class ProjectScaffolder:
             ""
         ]
 
+        user = self.request.default_user or "admin"
+        password = self.request.default_password or "admin123"
+
         for tool_id in sorted(self.tools):
             tool = get_tool_by_id(tool_id)
             if tool.env_vars:
                 env_lines.append(f"# {tool.name}")
                 for k, v in tool.env_vars.items():
-                    val = self.request.custom_envs.get(k, v)
+                    val = v
+                    if k in ("POSTGRES_USER", "MINIO_ROOT_USER", "RABBITMQ_DEFAULT_USER", "GF_SECURITY_ADMIN_USER", "KEYCLOAK_ADMIN", "MONGO_INITDB_ROOT_USERNAME", "MYSQL_USER"):
+                        val = user
+                    elif k in ("POSTGRES_PASSWORD", "MINIO_ROOT_PASSWORD", "RABBITMQ_DEFAULT_PASS", "GF_SECURITY_ADMIN_PASSWORD", "KEYCLOAK_ADMIN_PASSWORD", "MONGO_INITDB_ROOT_PASSWORD", "PGADMIN_DEFAULT_PASSWORD", "MYSQL_PASSWORD", "MYSQL_ROOT_PASSWORD"):
+                        val = password
+                    elif k == "PGADMIN_DEFAULT_EMAIL":
+                        val = f"{user}@example.com" if "@" not in user else user
+                    elif k == "NEO4J_AUTH":
+                        val = f"{user}/{password}"
+
+                    val = self.request.custom_envs.get(k, val)
                     env_lines.append(f"{k}={val}")
                 env_lines.append("")
 

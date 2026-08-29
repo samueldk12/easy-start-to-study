@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: crypto-trading-stream-config
+  namespace: stack-crypto-trading-stream
+data:
+  ENVIRONMENT: development
+  PROJECT_NAME: crypto-trading-stream
