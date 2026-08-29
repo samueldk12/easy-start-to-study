@@ -1639,6 +1639,16 @@ class ProjectScaffolder:
     def _create_default_files(self):
         if "postgres" in self.tools:
             self._generate_postgres_files()
+        if "mysql" in self.tools:
+            self._generate_mysql_files()
+        if "clickhouse" in self.tools:
+            self._generate_clickhouse_files()
+        if "prometheus" in self.tools:
+            self._generate_prometheus_files()
+        if "grafana" in self.tools:
+            self._generate_grafana_files()
+        if "superset" in self.tools:
+            self._generate_superset_files()
         if "kafka_connect" in self.tools:
             self._generate_debezium_files()
         if "spark" in self.tools:
@@ -1664,6 +1674,132 @@ class ProjectScaffolder:
         if "zeppelin" in self.tools:
             self._generate_zeppelin_files()
         self._generate_additional_tool_files()
+        self._ensure_all_volume_directories()
+
+    def _ensure_all_volume_directories(self):
+        """Scans the generated docker-compose.yml and guarantees that all host-mounted volume paths exist on disk."""
+        compose_path = os.path.join(self.project_dir, "docker-compose.yml")
+        if not os.path.exists(compose_path):
+            return
+        try:
+            with open(compose_path, "r", encoding="utf-8") as f:
+                data = yaml.safe_load(f)
+            if isinstance(data, dict) and "services" in data:
+                for svc_name, svc_conf in data.get("services", {}).items():
+                    if isinstance(svc_conf, dict):
+                        for vol in svc_conf.get("volumes", []):
+                            if isinstance(vol, str) and ":" in vol:
+                                host_part = vol.split(":")[0].strip()
+                                if host_part.startswith("/") or host_part.startswith("\\"):
+                                    continue
+                                clean_rel = host_part.lstrip("./\\").replace("\\", "/")
+                                if not clean_rel or clean_rel.endswith("_data"):
+                                    continue
+                                target_full = os.path.join(self.project_dir, clean_rel)
+                                _, ext = os.path.splitext(clean_rel)
+                                if ext:
+                                    os.makedirs(os.path.dirname(target_full), exist_ok=True)
+                                    if not os.path.exists(target_full):
+                                        with open(target_full, "w", encoding="utf-8") as stub_f:
+                                            stub_f.write(f"# Auto-generated configuration for {clean_rel}\n")
+                                else:
+                                    os.makedirs(target_full, exist_ok=True)
+        except Exception:
+            pass
+
+    def _generate_mysql_files(self):
+        init_folder = self.request.custom_folders.get("mysql_init", "mysql/init.sql")
+        init_file = os.path.join(self.project_dir, init_folder)
+        os.makedirs(os.path.dirname(init_file), exist_ok=True)
+        if self.include_templates:
+            sql = f"""-- MySQL Database Setup for {self.project_name}
+CREATE DATABASE IF NOT EXISTS app_db;
+USE app_db;
+
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS orders (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    amount DECIMAL(10, 2) NOT NULL,
+    status VARCHAR(50) DEFAULT 'PENDING',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+INSERT INTO users (username, email) VALUES 
+('admin_user', 'admin@example.com'),
+('developer', 'dev@example.com')
+ON DUPLICATE KEY UPDATE email=VALUES(email);
+"""
+            with open(init_file, "w", encoding="utf-8") as f:
+                f.write(sql)
+
+    def _generate_clickhouse_files(self):
+        init_folder = self.request.custom_folders.get("clickhouse_init", "clickhouse/init.sql")
+        init_file = os.path.join(self.project_dir, init_folder)
+        os.makedirs(os.path.dirname(init_file), exist_ok=True)
+        if self.include_templates:
+            sql = f"""-- ClickHouse Real-time Analytics Setup for {self.project_name}
+CREATE DATABASE IF NOT EXISTS analytics;
+
+CREATE TABLE IF NOT EXISTS analytics.events (
+    event_id UUID DEFAULT generateUUIDv4(),
+    user_id UInt64,
+    event_type LowCardinality(String),
+    event_timestamp DateTime DEFAULT now(),
+    payload String
+) ENGINE = MergeTree()
+ORDER BY (event_type, event_timestamp);
+"""
+            with open(init_file, "w", encoding="utf-8") as f:
+                f.write(sql)
+
+    def _generate_prometheus_files(self):
+        prom_dir = os.path.join(self.project_dir, "prometheus")
+        os.makedirs(prom_dir, exist_ok=True)
+        prom_cfg = """global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+"""
+        with open(os.path.join(prom_dir, "prometheus.yml"), "w", encoding="utf-8") as f:
+            f.write(prom_cfg)
+
+    def _generate_grafana_files(self):
+        ds_dir = os.path.join(self.project_dir, "grafana", "provisioning", "datasources")
+        os.makedirs(ds_dir, exist_ok=True)
+        ds_cfg = """apiVersion: 1
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+"""
+        with open(os.path.join(ds_dir, "datasource.yml"), "w", encoding="utf-8") as f:
+            f.write(ds_cfg)
+
+    def _generate_superset_files(self):
+        sup_dir = os.path.join(self.project_dir, "superset")
+        os.makedirs(os.path.join(sup_dir, "dashboards"), exist_ok=True)
+        os.makedirs(os.path.join(sup_dir, "sqllab"), exist_ok=True)
+        sup_cfg = """# Superset local configuration
+ROW_LIMIT = 5000
+SUPERSET_WEBSERVER_PORT = 8088
+SECRET_KEY = 'supersecretkey123456789'
+"""
+        with open(os.path.join(sup_dir, "superset_config.py"), "w", encoding="utf-8") as f:
+            f.write(sup_cfg)
 
     def _generate_postgres_files(self):
         init_folder = self.request.custom_folders.get("postgres_init", "postgres/init.sql")

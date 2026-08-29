@@ -506,7 +506,46 @@ class FolderAnalyzer:
                 }
             }
         }
-        if "postgres" in tools:
-            compose_dict["volumes"] = {f"{clean_name}_pgdata": None}
-
         return yaml.dump(compose_dict, sort_keys=False)
+
+    @staticmethod
+    def ensure_volume_folders(project_path: Path) -> List[str]:
+        """Inspects docker-compose.yml in project_path and guarantees that all host volume paths exist on disk."""
+        created_paths: List[str] = []
+        compose_files = [
+            project_path / "docker-compose.yml",
+            project_path / "docker-compose.yaml",
+            project_path / "compose.yml",
+            project_path / "compose.yaml"
+        ]
+        for cf in compose_files:
+            if cf.exists():
+                try:
+                    with open(cf, "r", encoding="utf-8", errors="replace") as f:
+                        data = yaml.safe_load(f)
+                    if isinstance(data, dict) and "services" in data:
+                        for svc_name, svc_conf in data.get("services", {}).items():
+                            if isinstance(svc_conf, dict):
+                                for vol in svc_conf.get("volumes", []):
+                                    if isinstance(vol, str) and ":" in vol:
+                                        host_part = vol.split(":")[0].strip()
+                                        if host_part.startswith("/") or host_part.startswith("\\"):
+                                            continue
+                                        clean_rel = host_part.lstrip("./\\").replace("\\", "/")
+                                        if not clean_rel or clean_rel.endswith("_data"):
+                                            continue
+                                        target_full = project_path / clean_rel
+                                        _, ext = os.path.splitext(clean_rel)
+                                        if ext:
+                                            target_full.parent.mkdir(parents=True, exist_ok=True)
+                                            if not target_full.exists():
+                                                target_full.write_text(f"# Initial configuration stub for {clean_rel}\n", encoding="utf-8")
+                                                created_paths.append(str(target_full))
+                                        else:
+                                            if not target_full.exists():
+                                                target_full.mkdir(parents=True, exist_ok=True)
+                                                created_paths.append(str(target_full))
+                except Exception:
+                    pass
+        return created_paths
+

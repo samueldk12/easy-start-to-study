@@ -176,6 +176,12 @@ async def import_existing_project(req: ProjectImportRequest):
         with open(compose_file, "w", encoding="utf-8") as f:
             f.write(req.compose_content)
 
+    # Ensure all volume host folders declared in docker-compose.yml exist on disk
+    try:
+        FolderAnalyzer.ensure_volume_folders(target_path)
+    except Exception:
+        pass
+
     # Check if VS Code Web config should be set up
     if req.auto_install_extensions:
         try:
