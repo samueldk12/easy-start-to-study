@@ -247,36 +247,43 @@ class FolderAnalyzer:
                 pass
 
         # Parse Languages & Frameworks from files
+        # Parse Languages & Frameworks from all detected files across the tree
         # A. Python
-        req_file = path / "requirements.txt"
-        pyproject_file = path / "pyproject.toml"
-        if req_file.exists() or pyproject_file.exists() or any(f.endswith(".py") for f in detected_files):
+        python_manifests = [path / f for f in detected_files if f.lower().endswith("requirements.txt") or f.lower().endswith("pyproject.toml")]
+        if python_manifests or any(f.lower().endswith(".py") for f in detected_files):
             tech_names = []
-            if req_file.exists():
-                try:
-                    with open(req_file, "r", encoding="utf-8", errors="replace") as rf:
-                        req_text = rf.read().lower()
-                        if "fastapi" in req_text: tech_names.append("FastAPI")
-                        if "flask" in req_text: tech_names.append("Flask")
-                        if "django" in req_text: tech_names.append("Django")
-                        if "pyspark" in req_text:
-                            tech_names.append("PySpark")
-                            detected_tools.add("spark")
-                        if "pyiceberg" in req_text or "iceberg" in req_text:
-                            tech_names.append("Apache Iceberg")
-                            detected_tools.add("iceberg")
-                        if "kafka" in req_text:
-                            tech_names.append("Kafka Client")
-                            detected_tools.add("kafka")
-                        if "streamlit" in req_text: tech_names.append("Streamlit")
-                        if "torch" in req_text or "pytorch" in req_text: tech_names.append("PyTorch")
-                        if "langchain" in req_text: tech_names.append("LangChain")
-                except Exception:
-                    pass
+            for pm in python_manifests:
+                if pm.exists():
+                    try:
+                        with open(pm, "r", encoding="utf-8", errors="replace") as rf:
+                            req_text = rf.read().lower()
+                            if "fastapi" in req_text and "FastAPI" not in tech_names: tech_names.append("FastAPI")
+                            if "flask" in req_text and "Flask" not in tech_names: tech_names.append("Flask")
+                            if "django" in req_text and "Django" not in tech_names: tech_names.append("Django")
+                            if "pyspark" in req_text:
+                                if "PySpark" not in tech_names: tech_names.append("PySpark")
+                                detected_tools.add("spark")
+                            if "pyiceberg" in req_text or "iceberg" in req_text:
+                                if "Apache Iceberg" not in tech_names: tech_names.append("Apache Iceberg")
+                                detected_tools.add("iceberg")
+                            if "confluent-kafka" in req_text or "kafka-python" in req_text:
+                                if "Kafka Client" not in tech_names: tech_names.append("Kafka Client")
+                                detected_tools.add("kafka")
+                            if "airflow" in req_text or "apache-airflow" in req_text:
+                                if "Airflow" not in tech_names: tech_names.append("Airflow")
+                                detected_tools.add("airflow")
+                            if "google-generativeai" in req_text or "gemini" in req_text:
+                                if "Gemini AI" not in tech_names: tech_names.append("Gemini AI")
+                            if "pandas" in req_text and "Pandas" not in tech_names: tech_names.append("Pandas")
+                            if "streamlit" in req_text and "Streamlit" not in tech_names: tech_names.append("Streamlit")
+                            if ("torch" in req_text or "pytorch" in req_text) and "PyTorch" not in tech_names: tech_names.append("PyTorch")
+                            if "langchain" in req_text and "LangChain" not in tech_names: tech_names.append("LangChain")
+                    except Exception:
+                        pass
 
             badge = "🐍 Python"
             if tech_names:
-                badge += f" ({', '.join(tech_names[:3])})"
+                badge += f" ({', '.join(tech_names[:4])})"
             detected_techs.append({
                 "name": "Python",
                 "category": "language",
@@ -285,34 +292,40 @@ class FolderAnalyzer:
             })
 
         # B. Node.js / TypeScript
-        pkg_file = path / "package.json"
-        if pkg_file.exists():
-            try:
-                with open(pkg_file, "r", encoding="utf-8", errors="replace") as pf:
-                    pkg_data = json.load(pf)
-                    deps = {**pkg_data.get("dependencies", {}), **pkg_data.get("devDependencies", {})}
-                    frameworks = []
-                    if "next" in deps: frameworks.append("Next.js")
-                    elif "react" in deps: frameworks.append("React")
-                    if "vue" in deps: frameworks.append("Vue")
-                    if "express" in deps: frameworks.append("Express")
-                    if "nest" in deps or "@nestjs/core" in deps: frameworks.append("NestJS")
-                    if "typescript" in deps: frameworks.append("TypeScript")
+        node_manifests = [path / f for f in detected_files if f.lower().endswith("package.json")]
+        if node_manifests:
+            for pkg_file in node_manifests:
+                if pkg_file.exists():
+                    try:
+                        with open(pkg_file, "r", encoding="utf-8", errors="replace") as pf:
+                            pkg_data = json.load(pf)
+                            deps = {**pkg_data.get("dependencies", {}), **pkg_data.get("devDependencies", {})}
+                            frameworks = []
+                            if "next" in deps and "Next.js" not in frameworks: frameworks.append("Next.js")
+                            elif "react" in deps and "React" not in frameworks: frameworks.append("React")
+                            if "vue" in deps and "Vue" not in frameworks: frameworks.append("Vue")
+                            if "express" in deps and "Express" not in frameworks: frameworks.append("Express")
+                            if ("nest" in deps or "@nestjs/core" in deps) and "NestJS" not in frameworks: frameworks.append("NestJS")
+                            if ("prisma" in deps or "@prisma/client" in deps) and "Prisma ORM" not in frameworks: frameworks.append("Prisma ORM")
+                            if "tailwindcss" in deps and "Tailwind CSS" not in frameworks: frameworks.append("Tailwind CSS")
+                            if "typescript" in deps and "TypeScript" not in frameworks: frameworks.append("TypeScript")
 
-                    badge = "⚡ Node.js"
-                    if frameworks:
-                        badge += f" ({', '.join(frameworks[:3])})"
-                    detected_techs.append({
-                        "name": "Node.js / Web",
-                        "category": "language",
-                        "badge": badge,
-                        "confidence": "high"
-                    })
-            except Exception:
-                pass
+                            rel_loc = str(pkg_file.relative_to(path).parent)
+                            loc_label = f" [{rel_loc}]" if rel_loc != "." else ""
+                            badge = f"⚡ Node.js{loc_label}"
+                            if frameworks:
+                                badge += f" ({', '.join(frameworks[:4])})"
+                            detected_techs.append({
+                                "name": f"Node.js{loc_label}",
+                                "category": "language",
+                                "badge": badge,
+                                "confidence": "high"
+                            })
+                    except Exception:
+                        pass
 
         # C. Java / JVM
-        if (path / "pom.xml").exists() or (path / "build.gradle").exists():
+        if any(f.lower().endswith("pom.xml") or "build.gradle" in f.lower() for f in detected_files):
             detected_techs.append({
                 "name": "Java / JVM",
                 "category": "language",
@@ -321,7 +334,7 @@ class FolderAnalyzer:
             })
 
         # D. Go
-        if (path / "go.mod").exists():
+        if any(f.lower().endswith("go.mod") for f in detected_files):
             detected_techs.append({
                 "name": "Go",
                 "category": "language",
@@ -330,7 +343,7 @@ class FolderAnalyzer:
             })
 
         # E. Rust
-        if (path / "Cargo.toml").exists():
+        if any(f.lower().endswith("cargo.toml") for f in detected_files):
             detected_techs.append({
                 "name": "Rust",
                 "category": "language",
@@ -339,7 +352,7 @@ class FolderAnalyzer:
             })
 
         # F. dbt Data Build Tool
-        if (path / "dbt_project.yml").exists():
+        if any(f.lower().endswith("dbt_project.yml") for f in detected_files):
             detected_tools.add("dbt")
             detected_techs.append({
                 "name": "dbt",
@@ -348,15 +361,17 @@ class FolderAnalyzer:
                 "confidence": "high"
             })
 
-        # G. Airflow DAGs folder
-        if (path / "dags").exists() or (path / "airflow").exists():
+        # G. Airflow DAGs folder or files
+        has_airflow_files = any("dags" in f.lower() or f.lower().endswith("_dag.py") for f in detected_files)
+        if has_airflow_files or (path / "dags").exists() or (path / "data" / "dags").exists():
             detected_tools.add("airflow")
-            detected_techs.append({
-                "name": "Apache Airflow",
-                "category": "orchestration",
-                "badge": "🌪️ Apache Airflow",
-                "confidence": "high"
-            })
+            if not any(t["name"] == "Apache Airflow" for t in detected_techs):
+                detected_techs.append({
+                    "name": "Apache Airflow",
+                    "category": "orchestration",
+                    "badge": "🌪️ Apache Airflow (DAGs)",
+                    "confidence": "high"
+                })
 
         # H. Kubernetes manifests
         if has_k8s:
