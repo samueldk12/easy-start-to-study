@@ -4,7 +4,7 @@ FastAPI Server & REST API for StackStudio
 
 import os
 import asyncio
-from typing import List
+from typing import List, Dict, Any, Optional
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
@@ -97,9 +97,65 @@ async def create_project(request: ProjectCreateRequest):
         name=request.name,
         path=project_dir,
         description=request.description or "Projeto gerado via StackStudio",
-        tools=list(scaffolder.tools)
+        tools=list(scaffolder.tools),
+        include_templates=request.include_templates
     )
     return proj
+
+
+from studio.models import ProjectUpdateRequest
+from studio.services.topology_graph import TopologyGraphEngine
+
+
+@app.put("/api/projects/{project_id}", response_model=ProjectInfo)
+async def update_project(project_id: str, update_req: ProjectUpdateRequest):
+    proj = ProjectStore.get_project(project_id)
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found.")
+
+    if not update_req.tools:
+        raise HTTPException(status_code=400, detail="At least one tool must remain in the project.")
+
+    # Build create request to trigger re-scaffold with updated tools
+    create_req = ProjectCreateRequest(
+        name=proj.name,
+        path=proj.path,
+        description=update_req.description or proj.description,
+        tools=update_req.tools,
+        include_templates=proj.include_templates,
+        default_user=update_req.default_user or "admin",
+        default_password=update_req.default_password or "admin123",
+        custom_ports=update_req.custom_ports,
+        custom_envs=update_req.custom_envs,
+        custom_folders=update_req.custom_folders
+    )
+
+    scaffolder = ProjectScaffolder(create_req)
+    scaffolder.scaffold()
+
+    updated_proj = ProjectStore.register_project(
+        project_id=project_id,
+        name=proj.name,
+        path=proj.path,
+        description=create_req.description,
+        tools=list(scaffolder.tools),
+        include_templates=proj.include_templates
+    )
+    return updated_proj
+
+
+@app.get("/api/projects/{project_id}/graph")
+async def get_project_topology_graph(project_id: str):
+    proj = ProjectStore.get_project(project_id)
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found.")
+    return TopologyGraphEngine.build_graph(proj.tools)
+
+
+@app.post("/api/graph/preview")
+async def preview_topology_graph(payload: Dict[str, List[str]]):
+    tools = payload.get("tools", [])
+    return TopologyGraphEngine.build_graph(tools)
 
 
 @app.post("/api/projects/{project_id}/start")

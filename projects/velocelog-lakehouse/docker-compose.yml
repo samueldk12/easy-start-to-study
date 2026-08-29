@@ -285,6 +285,20 @@ services:
     - rabbitmq_data:/var/lib/rabbitmq
     networks:
     - velocelog-lakehouse-net
+  opentelemetry:
+    image: otel/opentelemetry-collector-contrib:0.102.0
+    container_name: velocelog-lakehouse-opentelemetry
+    command:
+    - --config=/etc/otelcol-contrib/config.yaml
+    ports:
+    - 4317:4317
+    - 4318:4318
+    - 13133:13133
+    - 8888:8888
+    volumes:
+    - ./otel/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml:ro
+    networks:
+    - velocelog-lakehouse-net
 networks:
   velocelog-lakehouse-net:
     driver: bridge

@@ -70,6 +70,16 @@ class ProjectCreateRequest(BaseModel):
     custom_folders: Dict[str, str] = Field(default_factory=dict)
 
 
+class ProjectUpdateRequest(BaseModel):
+    tools: List[str]
+    description: Optional[str] = None
+    default_user: Optional[str] = None
+    default_password: Optional[str] = None
+    custom_ports: Dict[str, int] = Field(default_factory=dict)
+    custom_envs: Dict[str, str] = Field(default_factory=dict)
+    custom_folders: Dict[str, str] = Field(default_factory=dict)
+
+
 class ContainerInfo(BaseModel):
     name: str
     service: str

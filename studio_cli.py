@@ -233,6 +233,70 @@ def cmd_plugins(args):
         print(f"{BOLD}{p.id:<15}{RESET} {p.name:<30} {p.category:<20} {str(p.default_port or '-'):<8} {p.badge:<15}")
 
 
+from studio.services.topology_graph import TopologyGraphEngine
+
+
+async def cmd_edit(args):
+    proj = ProjectStore.get_project(args.project_id)
+    if not proj:
+        print(f"{RED}Erro: Projeto '{args.project_id}' não encontrado.{RESET}")
+        return
+
+    current_tools = set(proj.tools)
+    if args.add:
+        for t in args.add.split(","):
+            if t.strip():
+                current_tools.add(t.strip())
+    if args.remove:
+        for t in args.remove.split(","):
+            if t.strip():
+                current_tools.discard(t.strip())
+
+    if not current_tools:
+        print(f"{RED}Erro: O projeto deve conter ao menos uma ferramenta ativa.{RESET}")
+        return
+
+    user = args.user or "admin"
+    password = args.password or "admin123"
+
+    req = ProjectCreateRequest(
+        name=proj.name,
+        path=proj.path,
+        description=args.description or proj.description,
+        tools=list(current_tools),
+        include_templates=proj.include_templates,
+        default_user=user,
+        default_password=password
+    )
+
+    scaffolder = ProjectScaffolder(req)
+    project_dir = scaffolder.scaffold()
+
+    ProjectStore.register_project(
+        project_id=proj.id,
+        name=proj.name,
+        path=project_dir,
+        description=req.description,
+        tools=list(scaffolder.tools),
+        include_templates=proj.include_templates
+    )
+
+    print(f"\n{GREEN}✓ Projeto '{proj.name}' atualizado com sucesso!{RESET}")
+    print(f"{CYAN}Ferramentas Ativas ({len(current_tools)}):{RESET} {', '.join(sorted(current_tools))}")
+
+
+def cmd_graph(args):
+    proj = ProjectStore.get_project(args.project_id)
+    if not proj:
+        print(f"{RED}Erro: Projeto '{args.project_id}' não encontrado.{RESET}")
+        return
+
+    if args.mermaid:
+        print(f"\n```mermaid\n{TopologyGraphEngine.generate_mermaid(proj.tools)}\n```")
+    else:
+        print(f"\n{TopologyGraphEngine.generate_ascii_graph(proj.tools)}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="StackStudio CLI")
     subparsers = parser.add_subparsers(dest="command")
@@ -273,9 +337,19 @@ def main():
     p_k8s.add_argument("k8s_action", choices=["deploy", "destroy", "status"], help="Ação K8s")
     p_k8s.add_argument("project_id", help="ID do projeto")
 
-    # plugins
-    p_plugins = subparsers.add_parser("plugins", help="Gerencia plugins")
-    p_plugins.add_argument("plugin_action", choices=["list"], help="Ação de plugins")
+    # edit
+    p_edit = subparsers.add_parser("edit", help="Adiciona ou remove ferramentas de um projeto existente")
+    p_edit.add_argument("project_id", help="ID do projeto")
+    p_edit.add_argument("--add", help="Ferramentas a adicionar (separadas por vírgula)")
+    p_edit.add_argument("--remove", help="Ferramentas a remover (separadas por vírgula)")
+    p_edit.add_argument("--description", help="Nova descrição do projeto")
+    p_edit.add_argument("--user", help="Novo usuário administrador padrão")
+    p_edit.add_argument("--password", help="Nova senha administradora padrão")
+
+    # graph
+    p_graph = subparsers.add_parser("graph", help="Visualiza o grafo de dependências e arquitetura do projeto")
+    p_graph.add_argument("project_id", help="ID do projeto")
+    p_graph.add_argument("--mermaid", help="Exibe no formato Mermaid.js", action="store_true")
 
     args = parser.parse_args()
     if not args.command:
@@ -295,6 +369,10 @@ def main():
         asyncio.run(cmd_test(args))
     elif args.command == "create":
         asyncio.run(cmd_create(args))
+    elif args.command == "edit":
+        asyncio.run(cmd_edit(args))
+    elif args.command == "graph":
+        cmd_graph(args)
     elif args.command == "k8s":
         asyncio.run(cmd_k8s(args))
     elif args.command == "plugins":

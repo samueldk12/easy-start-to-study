@@ -14,8 +14,8 @@ import urllib.request
 import urllib.error
 import json
 
-ENABLED_TOOLS = set(['airflow', 'trino', 'schema_registry', 'kafka_connect', 'postgres', 'rabbitmq', 'spark', 'kafka', 'kafka_ui', 'redis', 'minio', 'iceberg_rest'])
-CUSTOM_PORTS = {'postgres': 5434, 'kafka_ui': 8087, 'redis': 6380, 'rabbitmq': 15672}
+ENABLED_TOOLS = set(['trino', 'kafka', 'redis', 'kafka_connect', 'spark', 'opentelemetry', 'airflow', 'rabbitmq', 'iceberg_rest', 'postgres', 'minio', 'schema_registry', 'kafka_ui'])
+CUSTOM_PORTS = {}
 
 class Colors:
     GREEN = "\033[92m"

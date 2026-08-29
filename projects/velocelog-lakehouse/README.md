@@ -12,6 +12,7 @@
 | **Kafka Connect + Debezium** | `data_engineering` | `8083` | http://localhost:8083 |
 | **Kafka UI (Provectus)** | `data_engineering` | `8087` | http://localhost:8087 |
 | **MinIO Object Storage** | `data_engineering` | `9001` | http://localhost:9001 |
+| **OpenTelemetry Collector** | `devops` | `4318` | http://localhost:13133 |
 | **PostgreSQL (OLTP + CDC)** | `data_engineering` | `5434` | - |
 | **RabbitMQ + Management** | `backend` | `15672` | http://localhost:15672 |
 | **Redis & Redis Commander** | `backend` | `6380` | http://localhost:8089 |

@@ -5,21 +5,22 @@
     "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\velocelog-lakehouse",
     "description": "Lakehouse de Logistica e Entregas em Tempo Real (CDC + Iceberg + Spark + Trino + Airflow)",
     "tools": [
-      "kafka_ui",
-      "airflow",
-      "spark",
-      "kafka_connect",
-      "postgres",
-      "iceberg_rest",
-      "minio",
-      "rabbitmq",
       "trino",
       "kafka",
       "redis",
-      "schema_registry"
+      "kafka_connect",
+      "spark",
+      "opentelemetry",
+      "airflow",
+      "rabbitmq",
+      "iceberg_rest",
+      "postgres",
+      "minio",
+      "schema_registry",
+      "kafka_ui"
     ],
     "include_templates": true,
-    "created_at": "2026-08-29 12:14:08"
+    "created_at": "2026-08-29 12:58:23"
   },
   "ecommerce-mlops": {
     "id": "ecommerce-mlops",
