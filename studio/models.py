@@ -3,6 +3,7 @@ Pydantic Data Models for StackStudio with Plugin Support, Custom Configuration &
 """
 
 from typing import List, Dict, Optional, Any
+from datetime import datetime
 from pydantic import BaseModel, Field
 
 
@@ -120,7 +121,7 @@ class ProjectInfo(BaseModel):
     description: str
     tools: List[str]
     include_templates: bool = True
-    created_at: str
+    created_at: str = Field(default_factory=lambda: datetime.now().isoformat())
     status: str = "stopped"  # "running", "starting", "stopped", "paused", "error", "partial"
     visual_status: str = "orange"  # "green", "yellow", "orange", "red"
     retry_count: int = 0

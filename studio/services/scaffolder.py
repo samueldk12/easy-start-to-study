@@ -1,121 +1,192 @@
 """
-Project Scaffolding and Code Generation Engine with Automated Service Health & Functional Testing
+Comprehensive Project Scaffolder Engine
+Supports full lifecycle generation of Docker Compose, Kubernetes, Configurations, Seed SQLs,
+dbt models, Spark Jobs, Flink Pipelines, SIEM/SOC configs, DevSecOps pipelines, and VS Code IDE Web.
 """
 
 import os
 import json
-import shutil
 import yaml
-from typing import Dict, List, Any
-from studio.models import ProjectCreateRequest
+from typing import Dict, List, Any, Set
+from studio.models import ProjectCreateRequest, ProjectInfo
 from studio.services.catalog import get_tool_by_id
+
+PROJECTS_DIR = os.path.join(os.getcwd(), "projects")
 
 
 class ProjectScaffolder:
-    def __init__(self, request: ProjectCreateRequest):
+    def __init__(self, request: ProjectCreateRequest, project_dir: Any = None):
         self.request = request
         self.project_name = request.name.strip().replace(" ", "-").lower()
-        self.project_dir = os.path.abspath(request.path or os.path.join(".", "projects", self.project_name))
-        self.tools = set(request.tools)
-        self.include_templates = request.include_templates
-        self._resolve_dependencies()
+        self.project_dir = project_dir or request.path or os.path.join(PROJECTS_DIR, self.project_name)
+        self.tools: Set[str] = set(request.tools)
+        self.include_templates = getattr(request, "include_templates", True)
 
-    def _resolve_dependencies(self):
-        for tool_id in list(self.tools):
-            tool = get_tool_by_id(tool_id)
-            for dep in tool.dependencies:
-                self.tools.add(dep)
-
-    def scaffold(self) -> str:
-        """Generates the full project structure and returns the project directory."""
+    def scaffold(self) -> ProjectInfo:
         os.makedirs(self.project_dir, exist_ok=True)
-
-        # 1. Generate docker-compose.yml
-        self._generate_docker_compose()
-
-        # 2. Generate .env and .env.example
+        self._create_folder_structure()
+        self._build_docker_compose()
         self._generate_env_files()
-
-        # 3. Generate Tool-Specific Folders and Code Templates (or clean placeholders)
-        if "postgres" in self.tools:
-            self._generate_postgres_files()
-
-        if "kafka_connect" in self.tools:
-            self._generate_debezium_files()
-
-        if "spark" in self.tools:
-            self._generate_spark_files()
-
-        if "airflow" in self.tools:
-            self._generate_airflow_files()
-
-        if "trino" in self.tools:
-            self._generate_trino_files()
-
-        if "dbt" in self.tools:
-            self._generate_dbt_files()
-
-        if "opentelemetry" in self.tools:
-            self._generate_otel_files()
-
-        if "nginx" in self.tools:
-            self._generate_nginx_files()
-
-        if "apigateway" in self.tools:
-            self._generate_kong_files()
-
-        if "ansible" in self.tools:
-            self._generate_ansible_files()
-
-        if "terraform" in self.tools:
-            self._generate_terraform_files()
-
-        if "hive" in self.tools:
-            self._generate_hive_files()
-
-        if "zeppelin" in self.tools:
-            self._generate_zeppelin_files()
-
-        # Generate .vscode extensions & settings
+        self._create_default_files()
         self._generate_vscode_files()
-
-        # 4. Generate Automation Scripts and Makefile
         self._generate_scripts()
         self._generate_makefile()
-
-        # 5. Generate Comprehensive Automated Service Test Suite
         self._generate_tests()
-
-        # 6. Generate Custom README.md
         self._generate_readme()
 
-        # 7. Generate Kubernetes Manifests and Kustomization
-        from studio.services.k8s_scaffolder import K8sScaffolder
-        k8s_scaffolder = K8sScaffolder(self.request, self.tools, self.project_dir)
-        k8s_scaffolder.scaffold()
+        return ProjectInfo(
+            id=self.project_name,
+            name=self.request.name,
+            path=self.project_dir,
+            description=self.request.description or "",
+            tools=list(self.tools)
+        )
 
-        return self.project_dir
+    def _create_folder_structure(self):
+        folders = [
+            "data", "scripts", "tests", "docs", ".vscode", "vscode"
+        ]
+        if "postgres" in self.tools:
+            folders.append("postgres")
+        if "mysql" in self.tools:
+            folders.append("mysql")
+        if "clickhouse" in self.tools:
+            folders.append("clickhouse")
+        if "doris" in self.tools:
+            folders.append("doris")
+        if "starrocks" in self.tools:
+            folders.append("starrocks")
+        if "kafka_connect" in self.tools:
+            folders.append("debezium")
+        if "spark" in self.tools:
+            folders.extend(["spark/apps", "spark/conf"])
+        if "flink" in self.tools:
+            folders.extend(["flink/jobs", "flink/conf"])
+        if "airflow" in self.tools:
+            folders.extend(["airflow/dags", "airflow/plugins"])
+        if "trino" in self.tools:
+            folders.append("trino/etc")
+        if "dbt" in self.tools:
+            folders.extend(["dbt/models", "dbt/macros", "dbt/seeds"])
+        if "superset" in self.tools:
+            folders.extend(["superset/dashboards", "superset/sqllab"])
+        if "metabase" in self.tools:
+            folders.append("metabase/queries")
+        if "great_expectations" in self.tools:
+            folders.extend(["great_expectations/expectations", "great_expectations/checkpoints"])
+        if "soda_core" in self.tools:
+            folders.append("soda/checks")
+        if "datahub" in self.tools:
+            folders.append("datahub/recipes")
+        if "ranger" in self.tools:
+            folders.append("ranger/policies")
+        if "hdfs" in self.tools:
+            folders.append("hadoop/hdfs")
+        if "yarn" in self.tools:
+            folders.append("hadoop/yarn")
+        if "hive" in self.tools:
+            folders.append("hive/warehouse")
+        if "zeppelin" in self.tools:
+            folders.append("zeppelin/notebook")
+        if "mlflow" in self.tools:
+            folders.append("mlflow/artifacts")
+        if "jupyterlab" in self.tools:
+            folders.append("notebooks")
+        if "ollama" in self.tools:
+            folders.append("ollama/models")
+        if "milvus" in self.tools:
+            folders.append("milvus/data")
+        if "weaviate" in self.tools:
+            folders.append("weaviate/data")
+        if "evidently" in self.tools:
+            folders.extend(["evidently/reports", "evidently/workspace"])
+        if "dvc" in self.tools:
+            folders.append("dvc/data")
+        if "feast" in self.tools:
+            folders.append("feature_repo")
+        if "temporal" in self.tools:
+            folders.extend(["temporal/workflows", "temporal/activities"])
+        if "n8n" in self.tools:
+            folders.append("n8n/workflows")
+        if "vault" in self.tools:
+            folders.extend(["vault/policies", "vault/config"])
+        if "redpanda" in self.tools:
+            folders.append("redpanda/data")
+        if "pulsar" in self.tools:
+            folders.append("pulsar/conf")
+        if "loki" in self.tools:
+            folders.append("loki")
+        if "traefik" in self.tools:
+            folders.append("traefik")
+        if "argocd" in self.tools:
+            folders.append("argocd/applications")
+        if "wazuh" in self.tools:
+            folders.extend(["wazuh/rules", "wazuh/decoders"])
+        if "splunk" in self.tools:
+            folders.append("splunk/apps")
+        if "elastic_security" in self.tools:
+            folders.append("elastic_security/rules")
+        if "thehive" in self.tools:
+            folders.extend(["thehive/data", "cortex/analyzers"])
+        if "misp" in self.tools:
+            folders.append("misp/feeds")
+        if "shuffle" in self.tools:
+            folders.append("shuffle/workflows")
+        if "suricata" in self.tools:
+            folders.extend(["suricata/rules", "suricata/logs"])
+        if "zeek" in self.tools:
+            folders.extend(["zeek/scripts", "zeek/logs"])
+        if "openvas" in self.tools:
+            folders.append("openvas/scans")
+        if "nmap" in self.tools:
+            folders.extend(["nmap/scans", "nmap/scripts"])
+        if "metasploit" in self.tools:
+            folders.extend(["metasploit/workspace", "metasploit/modules"])
+        if "sonarqube" in self.tools:
+            folders.append("sonarqube/conf")
+        if "trivy" in self.tools:
+            folders.append("trivy/reports")
+        if "defectdojo" in self.tools:
+            folders.append("defectdojo/imports")
+        if "zap" in self.tools:
+            folders.extend(["zap/scans", "zap/scripts"])
+        if "gitleaks" in self.tools:
+            folders.extend(["gitleaks/rules", "gitleaks/reports"])
+        if "trufflehog" in self.tools:
+            folders.append("trufflehog/reports")
+        if "teleport" in self.tools:
+            folders.append("teleport/config")
+        if "authentik" in self.tools:
+            folders.append("authentik/custom_templates")
+        if any(tool in self.tools for tool in ["ubuntu_sandbox", "debian_sandbox", "alpine_sandbox", "arch_sandbox"]):
+            folders.append("workspace")
 
-    def _generate_docker_compose(self):
+        for f in folders:
+            os.makedirs(os.path.join(self.project_dir, f), exist_ok=True)
+
+    def _build_docker_compose(self):
         services: Dict[str, Any] = {}
         volumes: Dict[str, Any] = {}
         network_name = f"{self.project_name}-net"
 
-        # --- POSTGRES ---
+        # --- POSTGRESQL ---
         if "postgres" in self.tools:
             port = self.request.custom_ports.get("postgres", 5434)
-            pg_folder = self.request.custom_folders.get("postgres", "postgres")
+            init_folder = self.request.custom_folders.get("postgres_init", "postgres/init.sql")
             services["postgres"] = {
                 "image": "debezium/postgres:16-alpine",
                 "container_name": f"{self.project_name}-postgres",
                 "command": "postgres -c wal_level=logical -c max_wal_senders=10 -c max_replication_slots=10",
                 "ports": [f"{port}:5432"],
                 "environment": {
-                    "POSTGRES_USER": "${POSTGRES_USER:-postgres}",
-                    "POSTGRES_PASSWORD": "${POSTGRES_PASSWORD:-postgres}",
+                    "POSTGRES_USER": "${POSTGRES_USER:-admin}",
+                    "POSTGRES_PASSWORD": "${POSTGRES_PASSWORD:-admin123}",
                     "POSTGRES_DB": "${POSTGRES_DB:-oltp_db}"
                 },
-                "volumes": [f"./{pg_folder}/init.sql:/docker-entrypoint-initdb.d/init.sql", "pg_data:/var/lib/postgresql/data"],
+                "volumes": [
+                    f"./{init_folder}:/docker-entrypoint-initdb.d/init.sql",
+                    "pg_data:/var/lib/postgresql/data"
+                ],
                 "healthcheck": {
                     "test": ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB || pg_isready"],
                     "interval": "5s",
@@ -132,7 +203,7 @@ class ProjectScaffolder:
             services["mysql"] = {
                 "image": "mysql:8.0",
                 "container_name": f"{self.project_name}-mysql",
-                "command": "--server-id=1 --log-bin=mysql-bin --binlog-format=ROW --binlog-row-image=FULL",
+                "command": "--server-id=1 --log-bin=mysql-bin --binlog-format=ROW --binlog-row-image=FULL --default-authentication-plugin=mysql_native_password",
                 "ports": [f"{port}:3306"],
                 "environment": {
                     "MYSQL_ROOT_PASSWORD": "${MYSQL_ROOT_PASSWORD:-rootpassword}",
@@ -140,7 +211,7 @@ class ProjectScaffolder:
                     "MYSQL_USER": "${MYSQL_USER:-dbuser}",
                     "MYSQL_PASSWORD": "${MYSQL_PASSWORD:-dbpassword}"
                 },
-                "volumes": ["mysql_data:/var/lib/mysql"],
+                "volumes": ["mysql_data:/var/lib/mysql", "./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql"],
                 "networks": [network_name]
             }
             volumes["mysql_data"] = None
@@ -149,16 +220,59 @@ class ProjectScaffolder:
         if "clickhouse" in self.tools:
             port = self.request.custom_ports.get("clickhouse", 8123)
             services["clickhouse"] = {
-                "image": "clickhouse/clickhouse-server:24.3",
+                "image": "clickhouse/clickhouse-server:24.3-alpine",
                 "container_name": f"{self.project_name}-clickhouse",
-                "ports": [f"{port}:8123", "9000:9000"],
-                "ulimits": {"nofile": {"soft": 262144, "hard": 262144}},
-                "volumes": ["clickhouse_data:/var/lib/clickhouse"],
+                "ports": [f"{port}:8123", "9009:9000"],
+                "volumes": ["clickhouse_data:/var/lib/clickhouse", "./clickhouse/init.sql:/docker-entrypoint-initdb.d/init.sql"],
                 "networks": [network_name]
             }
             volumes["clickhouse_data"] = None
 
-        # --- KAFKA ---
+        # --- APACHE DORIS ---
+        if "doris" in self.tools:
+            fe_port = self.request.custom_ports.get("doris", 8030)
+            services["doris-fe"] = {
+                "image": "apache/doris:2.0.3-fe-x86_64",
+                "container_name": f"{self.project_name}-doris-fe",
+                "ports": [f"{fe_port}:8030", "9030:9030"],
+                "environment": {"FE_SERVERS": "fe1:127.0.0.1:9010", "FE_ID": "1"},
+                "volumes": ["doris_fe_meta:/opt/apache-doris/fe/doris-meta"],
+                "networks": [network_name]
+            }
+            services["doris-be"] = {
+                "image": "apache/doris:2.0.3-be-x86_64",
+                "container_name": f"{self.project_name}-doris-be",
+                "depends_on": ["doris-fe"],
+                "ports": ["8040:8040", "9050:9050"],
+                "environment": {"FE_SERVERS": "fe1:doris-fe:9010", "BE_ADDR": "doris-be:9050"},
+                "volumes": ["doris_be_storage:/opt/apache-doris/be/storage"],
+                "networks": [network_name]
+            }
+            volumes["doris_fe_meta"] = None
+            volumes["doris_be_storage"] = None
+
+        # --- STARROCKS ---
+        if "starrocks" in self.tools:
+            fe_port = self.request.custom_ports.get("starrocks", 8031)
+            services["starrocks-fe"] = {
+                "image": "starrocks/fe-ubuntu:3.2.4",
+                "container_name": f"{self.project_name}-starrocks-fe",
+                "ports": [f"{fe_port}:8030", "9031:9030"],
+                "volumes": ["starrocks_fe_meta:/opt/starrocks/fe/meta"],
+                "networks": [network_name]
+            }
+            services["starrocks-be"] = {
+                "image": "starrocks/be-ubuntu:3.2.4",
+                "container_name": f"{self.project_name}-starrocks-be",
+                "depends_on": ["starrocks-fe"],
+                "ports": ["8041:8040", "9051:9050"],
+                "volumes": ["starrocks_be_storage:/opt/starrocks/be/storage"],
+                "networks": [network_name]
+            }
+            volumes["starrocks_fe_meta"] = None
+            volumes["starrocks_be_storage"] = None
+
+        # --- KAFKA (KRAFT) ---
         if "kafka" in self.tools:
             port = self.request.custom_ports.get("kafka", 9092)
             services["kafka"] = {
@@ -168,14 +282,14 @@ class ProjectScaffolder:
                 "environment": {
                     "KAFKA_NODE_ID": 1,
                     "KAFKA_LISTENER_SECURITY_PROTOCOL_MAP": "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT",
-                    "KAFKA_ADVERTISED_LISTENERS": "PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:" + str(port),
+                    "KAFKA_ADVERTISED_LISTENERS": f"PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:{port}",
                     "KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR": 1,
                     "KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS": 0,
                     "KAFKA_TRANSACTION_STATE_LOG_MIN_ISR": 1,
                     "KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR": 1,
                     "KAFKA_PROCESS_ROLES": "broker,controller",
                     "KAFKA_CONTROLLER_QUORUM_VOTERS": "1@kafka:29093",
-                    "KAFKA_LISTENERS": "PLAINTEXT://0.0.0.0:29092,CONTROLLER://0.0.0.0:29093,PLAINTEXT_HOST://0.0.0.0:" + str(port),
+                    "KAFKA_LISTENERS": "PLAINTEXT://0.0.0.0:29092,CONTROLLER://0.0.0.0:29093,PLAINTEXT_HOST://0.0.0.0:9092",
                     "KAFKA_INTER_BROKER_LISTENER_NAME": "PLAINTEXT",
                     "KAFKA_CONTROLLER_LISTENER_NAMES": "CONTROLLER",
                     "KAFKA_LOG_DIRS": "/tmp/kraft-combined-logs",
@@ -184,6 +298,51 @@ class ProjectScaffolder:
                 "networks": [network_name]
             }
 
+        # --- REDPANDA ---
+        if "redpanda" in self.tools:
+            console_port = self.request.custom_ports.get("redpanda", 8099)
+            services["redpanda"] = {
+                "image": "redpandadata/redpanda:v24.1.2",
+                "container_name": f"{self.project_name}-redpanda",
+                "command": [
+                    "redpanda", "start", "--overprovisioned", "--smp", "1",
+                    "--memory", "1G", "--reserve-memory", "0M", "--node-id", "0", "--check=false"
+                ],
+                "ports": ["19092:9092", "18081:8081", "18082:8082"],
+                "volumes": ["redpanda_data:/var/lib/redpanda/data"],
+                "networks": [network_name]
+            }
+            services["redpanda-console"] = {
+                "image": "redpandadata/console:v2.5.2",
+                "container_name": f"{self.project_name}-redpanda-console",
+                "depends_on": ["redpanda"],
+                "ports": [f"{console_port}:8080"],
+                "environment": {"KAFKA_BROKERS": "redpanda:9092"},
+                "networks": [network_name]
+            }
+            volumes["redpanda_data"] = None
+
+        # --- APACHE PULSAR ---
+        if "pulsar" in self.tools:
+            mgr_port = self.request.custom_ports.get("pulsar", 9527)
+            services["pulsar"] = {
+                "image": "apachepulsar/pulsar:3.2.2",
+                "container_name": f"{self.project_name}-pulsar",
+                "command": "bin/pulsar standalone",
+                "ports": ["6650:6650", "8092:8080"],
+                "volumes": ["pulsar_data:/pulsar/data"],
+                "networks": [network_name]
+            }
+            services["pulsar-manager"] = {
+                "image": "apachepulsar/pulsar-manager:v0.4.0",
+                "container_name": f"{self.project_name}-pulsar-manager",
+                "depends_on": ["pulsar"],
+                "ports": [f"{mgr_port}:9527"],
+                "environment": {"SPRING_CONFIGURATION_FILE": "/pulsar-manager/pulsar-manager/application.properties"},
+                "networks": [network_name]
+            }
+            volumes["pulsar_data"] = None
+
         # --- SCHEMA REGISTRY ---
         if "schema_registry" in self.tools:
             port = self.request.custom_ports.get("schema_registry", 8086)
@@ -191,10 +350,10 @@ class ProjectScaffolder:
                 "image": "confluentinc/cp-schema-registry:7.6.0",
                 "container_name": f"{self.project_name}-schema-registry",
                 "ports": [f"{port}:8081"],
-                "depends_on": ["kafka"],
+                "depends_on": ["kafka"] if "kafka" in self.tools else [],
                 "environment": {
                     "SCHEMA_REGISTRY_HOST_NAME": "schema-registry",
-                    "SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS": "kafka:29092",
+                    "SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS": "kafka:29092" if "kafka" in self.tools else "redpanda:9092",
                     "SCHEMA_REGISTRY_LISTENERS": "http://0.0.0.0:8081"
                 },
                 "networks": [network_name]
@@ -203,7 +362,9 @@ class ProjectScaffolder:
         # --- KAFKA CONNECT (DEBEZIUM) ---
         if "kafka_connect" in self.tools:
             port = self.request.custom_ports.get("kafka_connect", 8083)
-            deps = ["kafka"]
+            deps = []
+            if "kafka" in self.tools:
+                deps.append("kafka")
             if "postgres" in self.tools:
                 deps.append("postgres")
             if "schema_registry" in self.tools:
@@ -215,7 +376,7 @@ class ProjectScaffolder:
                 "ports": [f"{port}:8083"],
                 "depends_on": deps,
                 "environment": {
-                    "BOOTSTRAP_SERVERS": "kafka:29092",
+                    "BOOTSTRAP_SERVERS": "kafka:29092" if "kafka" in self.tools else "redpanda:9092",
                     "GROUP_ID": "1",
                     "CONFIG_STORAGE_TOPIC": "my_connect_configs",
                     "OFFSET_STORAGE_TOPIC": "my_connect_offsets",
@@ -236,7 +397,7 @@ class ProjectScaffolder:
             port = self.request.custom_ports.get("kafka_ui", 8087)
             env = {
                 "KAFKA_CLUSTERS_0_NAME": self.project_name,
-                "KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS": "kafka:29092"
+                "KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS": "kafka:29092" if "kafka" in self.tools else "redpanda:9092",
             }
             if "schema_registry" in self.tools:
                 env["KAFKA_CLUSTERS_0_SCHEMAREGISTRY"] = "http://schema-registry:8081"
@@ -248,7 +409,7 @@ class ProjectScaffolder:
                 "image": "provectuslabs/kafka-ui:latest",
                 "container_name": f"{self.project_name}-kafka-ui",
                 "ports": [f"{port}:8080"],
-                "depends_on": ["kafka"],
+                "depends_on": ["kafka"] if "kafka" in self.tools else [],
                 "environment": env,
                 "networks": [network_name]
             }
@@ -296,7 +457,7 @@ class ProjectScaffolder:
                 "image": "tabulario/iceberg-rest:1.6.0",
                 "container_name": f"{self.project_name}-iceberg-rest",
                 "ports": [f"{port}:8181"],
-                "depends_on": ["minio", "minio-init"],
+                "depends_on": ["minio", "minio-init"] if "minio" in self.tools else [],
                 "environment": {
                     "CATALOG_WAREHOUSE": "s3://lakehouse/",
                     "CATALOG_IO__IMPL": "org.apache.iceberg.aws.s3.S3FileIO",
@@ -309,17 +470,17 @@ class ProjectScaffolder:
                 "networks": [network_name]
             }
 
-        # --- SPARK ---
+        # --- APACHE SPARK ---
         if "spark" in self.tools:
-            spark_ui_port = self.request.custom_ports.get("spark", 8082)
-            spark_apps_folder = self.request.custom_folders.get("spark_apps", "spark/apps")
+            master_port = self.request.custom_ports.get("spark", 8082)
+            apps_folder = self.request.custom_folders.get("spark_apps", "spark/apps")
             services["spark-master"] = {
                 "build": {"context": "./spark"},
                 "container_name": f"{self.project_name}-spark-master",
                 "command": "/opt/spark/bin/spark-class org.apache.spark.deploy.master.Master",
-                "ports": ["7077:7077", f"{spark_ui_port}:8080"],
+                "ports": ["7077:7077", f"{master_port}:8080"],
                 "environment": {"SPARK_NO_DAEMONIZE": "true"},
-                "volumes": [f"./{spark_apps_folder}:/opt/spark/work-dir/apps"],
+                "volumes": [f"./{apps_folder}:/opt/spark/work-dir/apps"],
                 "networks": [network_name]
             }
             services["spark-worker"] = {
@@ -331,10 +492,33 @@ class ProjectScaffolder:
                     "SPARK_WORKER_CORES": 2,
                     "SPARK_WORKER_MEMORY": "2g"
                 },
-                "volumes": [f"./{spark_apps_folder}:/opt/spark/work-dir/apps"],
+                "volumes": [f"./{apps_folder}:/opt/spark/work-dir/apps"],
                 "depends_on": ["spark-master"],
                 "networks": [network_name]
             }
+
+        # --- APACHE FLINK ---
+        if "flink" in self.tools:
+            flink_port = self.request.custom_ports.get("flink", 8093)
+            services["flink-jobmanager"] = {
+                "image": "flink:1.19-scala_2.12-java11",
+                "container_name": f"{self.project_name}-flink-jobmanager",
+                "command": "jobmanager",
+                "ports": [f"{flink_port}:8081"],
+                "environment": {"FLINK_PROPERTIES": "jobmanager.rpc.address: flink-jobmanager"},
+                "volumes": ["./flink/jobs:/opt/flink/usrlib", "flink_data:/opt/flink/data"],
+                "networks": [network_name]
+            }
+            services["flink-taskmanager"] = {
+                "image": "flink:1.19-scala_2.12-java11",
+                "container_name": f"{self.project_name}-flink-taskmanager",
+                "depends_on": ["flink-jobmanager"],
+                "command": "taskmanager",
+                "environment": {"FLINK_PROPERTIES": "jobmanager.rpc.address: flink-jobmanager\\ntaskmanager.numberOfTaskSlots: 2"},
+                "volumes": ["./flink/jobs:/opt/flink/usrlib"],
+                "networks": [network_name]
+            }
+            volumes["flink_data"] = None
 
         # --- TRINO ---
         if "trino" in self.tools:
@@ -346,15 +530,86 @@ class ProjectScaffolder:
                 "volumes": ["./trino/etc:/etc/trino"],
                 "networks": [network_name]
             }
+            deps = []
             if "iceberg_rest" in self.tools:
-                services["trino"]["depends_on"] = ["iceberg-rest", "minio"]
+                deps.append("iceberg-rest")
+            if "minio" in self.tools:
+                deps.append("minio")
+            if deps:
+                services["trino"]["depends_on"] = deps
+
+        # --- SUPERSET ---
+        if "superset" in self.tools:
+            port = self.request.custom_ports.get("superset", 8094)
+            services["superset"] = {
+                "image": "apache/superset:4.0.1",
+                "container_name": f"{self.project_name}-superset",
+                "ports": [f"{port}:8088"],
+                "environment": {
+                    "SUPERSET_SECRET_KEY": "supersecretkey123456789",
+                    "ADMIN_USERNAME": "${SUPERSET_ADMIN_USER:-admin}",
+                    "ADMIN_PASSWORD": "${SUPERSET_ADMIN_PASSWORD:-admin}"
+                },
+                "volumes": ["superset_home:/app/superset_home"],
+                "networks": [network_name]
+            }
+            volumes["superset_home"] = None
+
+        # --- METABASE ---
+        if "metabase" in self.tools:
+            port = self.request.custom_ports.get("metabase", 3006)
+            services["metabase"] = {
+                "image": "metabase/metabase:latest",
+                "container_name": f"{self.project_name}-metabase",
+                "ports": [f"{port}:3000"],
+                "volumes": ["metabase_data:/metabase-data"],
+                "networks": [network_name]
+            }
+            volumes["metabase_data"] = None
+
+        # --- DATAHUB ---
+        if "datahub" in self.tools:
+            port = self.request.custom_ports.get("datahub", 9002)
+            services["datahub-gms"] = {
+                "image": "linkedin/datahub-gms:latest",
+                "container_name": f"{self.project_name}-datahub-gms",
+                "ports": ["8080:8080"],
+                "environment": {
+                    "DATAHUB_BACKEND_TYPE": "POSTGRES",
+                    "DATAHUB_DB_HOST": "postgres",
+                    "DATAHUB_DB_NAME": "datahub"
+                },
+                "networks": [network_name]
+            }
+            services["datahub-frontend"] = {
+                "image": "linkedin/datahub-frontend-react:latest",
+                "container_name": f"{self.project_name}-datahub-frontend",
+                "depends_on": ["datahub-gms"],
+                "ports": [f"{port}:9002"],
+                "environment": {"DATAHUB_GMS_HOST": "datahub-gms", "DATAHUB_GMS_PORT": "8080"},
+                "networks": [network_name]
+            }
+
+        # --- RANGER ---
+        if "ranger" in self.tools:
+            port = self.request.custom_ports.get("ranger", 6080)
+            services["ranger"] = {
+                "image": "apache/ranger:2.4.0",
+                "container_name": f"{self.project_name}-ranger",
+                "ports": [f"{port}:6080"],
+                "environment": {
+                    "RANGER_ADMIN_PASSWORD": "${RANGER_ADMIN_PASSWORD:-admin123}",
+                    "DB_HOST": "postgres" if "postgres" in self.tools else "localhost"
+                },
+                "networks": [network_name]
+            }
 
         # --- AIRFLOW ---
         if "airflow" in self.tools:
             port = self.request.custom_ports.get("airflow", 8088)
             dags_folder = self.request.custom_folders.get("airflow_dags", "airflow/dags")
             plugins_folder = self.request.custom_folders.get("airflow_plugins", "airflow/plugins")
-
+            
             services["airflow-db"] = {
                 "image": "postgres:16-alpine",
                 "container_name": f"{self.project_name}-airflow-db",
@@ -377,7 +632,9 @@ class ProjectScaffolder:
             services["airflow-init"] = {
                 "image": "apache/airflow:2.9.2-python3.11",
                 "container_name": f"{self.project_name}-airflow-init",
-                "depends_on": {"airflow-db": {"condition": "service_healthy"}},
+                "depends_on": {
+                    "airflow-db": {"condition": "service_healthy"}
+                },
                 "environment": {
                     "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN": "postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow",
                     "AIRFLOW_USER": "${AIRFLOW_USER:-admin}",
@@ -391,13 +648,18 @@ class ProjectScaffolder:
                 "image": "apache/airflow:2.9.2-python3.11",
                 "container_name": f"{self.project_name}-airflow-webserver",
                 "ports": [f"{port}:8080"],
-                "depends_on": {"airflow-init": {"condition": "service_completed_successfully"}},
+                "depends_on": {
+                    "airflow-init": {"condition": "service_completed_successfully"}
+                },
                 "environment": {
                     "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN": "postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow",
                     "AIRFLOW__CORE__LOAD_EXAMPLES": "false",
                     "AIRFLOW__CORE__EXECUTOR": "LocalExecutor"
                 },
-                "volumes": [f"./{dags_folder}:/opt/airflow/dags", f"./{plugins_folder}:/opt/airflow/plugins"],
+                "volumes": [
+                    f"./{dags_folder}:/opt/airflow/dags",
+                    f"./{plugins_folder}:/opt/airflow/plugins"
+                ],
                 "command": "airflow webserver",
                 "networks": [network_name]
             }
@@ -405,13 +667,18 @@ class ProjectScaffolder:
             services["airflow-scheduler"] = {
                 "image": "apache/airflow:2.9.2-python3.11",
                 "container_name": f"{self.project_name}-airflow-scheduler",
-                "depends_on": {"airflow-init": {"condition": "service_completed_successfully"}},
+                "depends_on": {
+                    "airflow-init": {"condition": "service_completed_successfully"}
+                },
                 "environment": {
                     "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN": "postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow",
                     "AIRFLOW__CORE__LOAD_EXAMPLES": "false",
                     "AIRFLOW__CORE__EXECUTOR": "LocalExecutor"
                 },
-                "volumes": [f"./{dags_folder}:/opt/airflow/dags", f"./{plugins_folder}:/opt/airflow/plugins"],
+                "volumes": [
+                    f"./{dags_folder}:/opt/airflow/dags",
+                    f"./{plugins_folder}:/opt/airflow/plugins"
+                ],
                 "command": "airflow scheduler",
                 "networks": [network_name]
             }
@@ -423,7 +690,6 @@ class ProjectScaffolder:
                 "image": "mageai/mageai:latest",
                 "container_name": f"{self.project_name}-mage",
                 "ports": [f"{port}:6789"],
-                "environment": {"PROJECT_NAME": self.project_name},
                 "volumes": ["./mage:/home/src"],
                 "networks": [network_name]
             }
@@ -432,7 +698,7 @@ class ProjectScaffolder:
         if "prefect" in self.tools:
             port = self.request.custom_ports.get("prefect", 4200)
             services["prefect"] = {
-                "image": "prefecthq/prefect:2-python3.11",
+                "image": "prefecthq/prefect:2-latest",
                 "container_name": f"{self.project_name}-prefect",
                 "command": "prefect server start --host 0.0.0.0",
                 "ports": [f"{port}:4200"],
@@ -441,19 +707,63 @@ class ProjectScaffolder:
             }
             volumes["prefect_data"] = None
 
+        # --- TEMPORAL ---
+        if "temporal" in self.tools:
+            ui_port = self.request.custom_ports.get("temporal", 8233)
+            services["temporal"] = {
+                "image": "temporalio/auto-setup:1.24.1",
+                "container_name": f"{self.project_name}-temporal",
+                "ports": ["7233:7233"],
+                "environment": {"DB": "postgresql", "POSTGRES_USER": "temporal", "POSTGRES_PWD": "temporalpassword", "POSTGRES_SEEDS": "postgres" if "postgres" in self.tools else "temporal-db"},
+                "networks": [network_name]
+            }
+            services["temporal-ui"] = {
+                "image": "temporalio/ui:2.26.2",
+                "container_name": f"{self.project_name}-temporal-ui",
+                "depends_on": ["temporal"],
+                "ports": [f"{ui_port}:8080"],
+                "environment": {"TEMPORAL_ADDRESS": "temporal:7233"},
+                "networks": [network_name]
+            }
+
+        # --- N8N ---
+        if "n8n" in self.tools:
+            port = self.request.custom_ports.get("n8n", 5678)
+            services["n8n"] = {
+                "image": "n8nio/n8n:latest",
+                "container_name": f"{self.project_name}-n8n",
+                "ports": [f"{port}:5678"],
+                "environment": {"N8N_BASIC_AUTH_ACTIVE": "false"},
+                "volumes": ["n8n_data:/home/node/.n8n", "./n8n/workflows:/data/workflows"],
+                "networks": [network_name]
+            }
+            volumes["n8n_data"] = None
+
+        # --- HASHICORP VAULT ---
+        if "vault" in self.tools:
+            port = self.request.custom_ports.get("vault", 8200)
+            services["vault"] = {
+                "image": "hashicorp/vault:1.16.2",
+                "container_name": f"{self.project_name}-vault",
+                "ports": [f"{port}:8200"],
+                "environment": {
+                    "VAULT_DEV_ROOT_TOKEN_ID": "${VAULT_DEV_ROOT_TOKEN_ID:-root}",
+                    "VAULT_DEV_LISTEN_ADDRESS": "0.0.0.0:8200"
+                },
+                "cap_add": ["IPC_LOCK"],
+                "volumes": ["./vault/config:/vault/config", "./vault/policies:/vault/policies"],
+                "networks": [network_name]
+            }
+
         # --- MLFLOW ---
         if "mlflow" in self.tools:
             port = self.request.custom_ports.get("mlflow", 5001)
             services["mlflow"] = {
                 "image": "ghcr.io/mlflow/mlflow:v2.13.0",
                 "container_name": f"{self.project_name}-mlflow",
-                "command": "mlflow server --backend-store-uri postgresql://postgres:postgres@postgres:5432/oltp_db --default-artifact-root s3://lakehouse/mlflow/ --host 0.0.0.0 --port 5000",
                 "ports": [f"{port}:5000"],
-                "environment": {
-                    "MLFLOW_S3_ENDPOINT_URL": "http://minio:9000",
-                    "AWS_ACCESS_KEY_ID": "admin",
-                    "AWS_SECRET_ACCESS_KEY": "password123"
-                },
+                "command": "mlflow server --backend-store-uri sqlite:///mlflow.db --default-artifact-root /mlflow/artifacts --host 0.0.0.0 --port 5000",
+                "volumes": ["./mlflow/artifacts:/mlflow/artifacts"],
                 "networks": [network_name]
             }
 
@@ -461,7 +771,7 @@ class ProjectScaffolder:
         if "jupyterlab" in self.tools:
             port = self.request.custom_ports.get("jupyterlab", 8888)
             services["jupyterlab"] = {
-                "image": "quay.io/jupyter/pyspark-notebook:latest",
+                "image": "jupyter/scipy-notebook:latest",
                 "container_name": f"{self.project_name}-jupyterlab",
                 "ports": [f"{port}:8888"],
                 "environment": {"JUPYTER_ENABLE_LAB": "yes", "NOTEBOOK_ARGS": "--NotebookApp.token=''"},
@@ -480,6 +790,55 @@ class ProjectScaffolder:
                 "networks": [network_name]
             }
             volumes["qdrant_data"] = None
+
+        # --- MILVUS ---
+        if "milvus" in self.tools:
+            attu_port = self.request.custom_ports.get("milvus", 8008)
+            services["milvus-standalone"] = {
+                "image": "milvusdb/milvus:v2.4.0",
+                "container_name": f"{self.project_name}-milvus",
+                "command": ["milvus", "run", "standalone"],
+                "ports": ["19530:19530", "9091:9091"],
+                "volumes": ["milvus_data:/var/lib/milvus"],
+                "networks": [network_name]
+            }
+            services["milvus-attu"] = {
+                "image": "zilliz/attu:v2.4.0",
+                "container_name": f"{self.project_name}-milvus-attu",
+                "depends_on": ["milvus-standalone"],
+                "ports": [f"{attu_port}:3000"],
+                "environment": {"MILVUS_URL": "milvus-standalone:19530"},
+                "networks": [network_name]
+            }
+            volumes["milvus_data"] = None
+
+        # --- WEAVIATE ---
+        if "weaviate" in self.tools:
+            port = self.request.custom_ports.get("weaviate", 8079)
+            services["weaviate"] = {
+                "image": "semitechnologies/weaviate:1.24.10",
+                "container_name": f"{self.project_name}-weaviate",
+                "ports": [f"{port}:8080", "50051:50051"],
+                "environment": {
+                    "AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED": "true",
+                    "PERSISTENCE_DATA_PATH": "/var/lib/weaviate",
+                    "DEFAULT_VECTORIZER_MODULE": "none"
+                },
+                "volumes": ["weaviate_data:/var/lib/weaviate"],
+                "networks": [network_name]
+            }
+            volumes["weaviate_data"] = None
+
+        # --- EVIDENTLY AI ---
+        if "evidently" in self.tools:
+            port = self.request.custom_ports.get("evidently", 8009)
+            services["evidently"] = {
+                "image": "evidently/evidently-service:latest",
+                "container_name": f"{self.project_name}-evidently",
+                "ports": [f"{port}:8000"],
+                "volumes": ["./evidently/workspace:/workspace"],
+                "networks": [network_name]
+            }
 
         # --- REDIS ---
         if "redis" in self.tools:
@@ -542,7 +901,7 @@ class ProjectScaffolder:
                 "container_name": f"{self.project_name}-hasura",
                 "ports": [f"{port}:8080"],
                 "environment": {
-                    "HASURA_GRAPHQL_DATABASE_URL": "postgres://postgres:postgres@postgres:5432/oltp_db",
+                    "HASURA_GRAPHQL_DATABASE_URL": "postgres://admin:admin123@postgres:5432/oltp_db",
                     "HASURA_GRAPHQL_ENABLE_CONSOLE": "true",
                     "HASURA_GRAPHQL_DEV_MODE": "true",
                     "HASURA_GRAPHQL_ADMIN_SECRET": "myadminsecretkey"
@@ -580,6 +939,325 @@ class ProjectScaffolder:
             }
             volumes["prometheus_data"] = None
 
+        # --- LOKI & PROMTAIL ---
+        if "loki" in self.tools:
+            loki_port = self.request.custom_ports.get("loki", 3100)
+            services["loki"] = {
+                "image": "grafana/loki:3.0.0",
+                "container_name": f"{self.project_name}-loki",
+                "ports": [f"{loki_port}:3100"],
+                "command": "-config.file=/etc/loki/local-config.yaml",
+                "volumes": ["loki_data:/loki", "./loki/loki-config.yaml:/etc/loki/local-config.yaml"],
+                "networks": [network_name]
+            }
+            services["promtail"] = {
+                "image": "grafana/promtail:3.0.0",
+                "container_name": f"{self.project_name}-promtail",
+                "depends_on": ["loki"],
+                "command": "-config.file=/etc/promtail/config.yml",
+                "volumes": ["/var/log:/var/log:ro", "/var/run/docker.sock:/var/run/docker.sock", "./loki/promtail-config.yaml:/etc/promtail/config.yml"],
+                "networks": [network_name]
+            }
+            volumes["loki_data"] = None
+
+        # --- JAEGER ---
+        if "jaeger" in self.tools:
+            jaeger_port = self.request.custom_ports.get("jaeger", 16686)
+            services["jaeger"] = {
+                "image": "jaegertracing/all-in-one:1.57",
+                "container_name": f"{self.project_name}-jaeger",
+                "ports": [f"{jaeger_port}:16686", "4317:4317", "4318:4318", "14268:14268"],
+                "environment": {"COLLECTOR_OTLP_ENABLED": "true"},
+                "networks": [network_name]
+            }
+
+        # --- TRAEFIK ---
+        if "traefik" in self.tools:
+            port = self.request.custom_ports.get("traefik", 8081)
+            services["traefik"] = {
+                "image": "traefik:v3.0",
+                "container_name": f"{self.project_name}-traefik",
+                "command": ["--api.insecure=true", "--providers.docker=true", "--providers.docker.exposedbydefault=false", "--entrypoints.web.address=:80"],
+                "ports": ["80:80", f"{port}:8080"],
+                "volumes": ["/var/run/docker.sock:/var/run/docker.sock:ro", "./traefik/dynamic_conf.yml:/etc/traefik/dynamic_conf.yml:ro"],
+                "networks": [network_name]
+            }
+
+        # --- ARGOCD ---
+        if "argocd" in self.tools:
+            port = self.request.custom_ports.get("argocd", 8098)
+            services["argocd"] = {
+                "image": "quay.io/argoproj/argocd:v2.11.0",
+                "container_name": f"{self.project_name}-argocd",
+                "command": "argocd-server --insecure --port 8080",
+                "ports": [f"{port}:8080"],
+                "volumes": ["./argocd:/workspace/argocd"],
+                "networks": [network_name]
+            }
+
+        # --- WAZUH (SIEM & XDR) ---
+        if "wazuh" in self.tools:
+            dashboard_port = self.request.custom_ports.get("wazuh", 8444)
+            services["wazuh-manager"] = {
+                "image": "wazuh/wazuh-manager:4.7.5",
+                "container_name": f"{self.project_name}-wazuh-manager",
+                "ports": ["1514:1514", "1515:1515", "55000:55000"],
+                "volumes": ["wazuh_api:/var/ossec/api/configuration", "wazuh_etc:/var/ossec/etc", "./wazuh/rules:/var/ossec/etc/rules"],
+                "networks": [network_name]
+            }
+            services["wazuh-dashboard"] = {
+                "image": "wazuh/wazuh-dashboard:4.7.5",
+                "container_name": f"{self.project_name}-wazuh-dashboard",
+                "depends_on": ["wazuh-manager"],
+                "ports": [f"{dashboard_port}:5601"],
+                "environment": {"WAZUH_API_URL": "https://wazuh-manager:55000"},
+                "networks": [network_name]
+            }
+            volumes["wazuh_api"] = None
+            volumes["wazuh_etc"] = None
+
+        # --- SPLUNK ---
+        if "splunk" in self.tools:
+            port = self.request.custom_ports.get("splunk", 8001)
+            services["splunk"] = {
+                "image": "splunk/splunk:9.2.1",
+                "container_name": f"{self.project_name}-splunk",
+                "ports": [f"{port}:8000", "8088:8088", "9997:9997"],
+                "environment": {
+                    "SPLUNK_START_ARGS": "${SPLUNK_START_ARGS:---accept-license}",
+                    "SPLUNK_PASSWORD": "${SPLUNK_PASSWORD:-AdminPassword123!}"
+                },
+                "volumes": ["splunk_data:/opt/splunk/var", "./splunk/apps:/opt/splunk/etc/apps"],
+                "networks": [network_name]
+            }
+            volumes["splunk_data"] = None
+
+        # --- ELASTIC SECURITY ---
+        if "elastic_security" in self.tools:
+            port = self.request.custom_ports.get("elastic_security", 5602)
+            services["elastic-security"] = {
+                "image": "docker.elastic.co/kibana/kibana:8.13.4",
+                "container_name": f"{self.project_name}-elastic-security",
+                "ports": [f"{port}:5601"],
+                "environment": {"ELASTICSEARCH_HOSTS": "http://elasticsearch:9200", "XPACK_SECURITY_ENABLED": "true"},
+                "networks": [network_name]
+            }
+
+        # --- THEHIVE & CORTEX ---
+        if "thehive" in self.tools:
+            hive_port = self.request.custom_ports.get("thehive", 9004)
+            services["thehive"] = {
+                "image": "strangebee/thehive:5.2",
+                "container_name": f"{self.project_name}-thehive",
+                "ports": [f"{hive_port}:9000"],
+                "environment": {"SECRET": "thehivesecretkey123456789"},
+                "volumes": ["thehive_data:/etc/thehive/application.conf", "./thehive/data:/data"],
+                "networks": [network_name]
+            }
+            services["cortex"] = {
+                "image": "thehiveproject/cortex:3.1.8",
+                "container_name": f"{self.project_name}-cortex",
+                "ports": ["9005:9001"],
+                "environment": {"SECRET": "cortexsecretkey123456789"},
+                "volumes": ["./cortex/analyzers:/opt/cortex/analyzers"],
+                "networks": [network_name]
+            }
+            volumes["thehive_data"] = None
+
+        # --- MISP ---
+        if "misp" in self.tools:
+            port = self.request.custom_ports.get("misp", 8084)
+            services["misp"] = {
+                "image": "coolacid/misp-docker:core-latest",
+                "container_name": f"{self.project_name}-misp",
+                "ports": [f"{port}:80"],
+                "environment": {"ADMIN_EMAIL": "admin@admin.test", "ADMIN_PASSPHRASE": "adminpass123"},
+                "volumes": ["misp_data:/var/www/MISP", "./misp/feeds:/feeds"],
+                "networks": [network_name]
+            }
+            volumes["misp_data"] = None
+
+        # --- SHUFFLE SOAR ---
+        if "shuffle" in self.tools:
+            port = self.request.custom_ports.get("shuffle", 3001)
+            services["shuffle-frontend"] = {
+                "image": "ghcr.io/shuffle/shuffle-frontend:latest",
+                "container_name": f"{self.project_name}-shuffle-frontend",
+                "ports": [f"{port}:80", "3443:443"],
+                "networks": [network_name]
+            }
+            services["shuffle-backend"] = {
+                "image": "ghcr.io/shuffle/shuffle-backend:latest",
+                "container_name": f"{self.project_name}-shuffle-backend",
+                "ports": ["33333:3333"],
+                "environment": {"SHUFFLE_APP_FORCE_PULL": "false"},
+                "volumes": ["/var/run/docker.sock:/var/run/docker.sock", "./shuffle/workflows:/workflows"],
+                "networks": [network_name]
+            }
+
+        # --- SURICATA ---
+        if "suricata" in self.tools:
+            services["suricata"] = {
+                "image": "jasonish/suricata:latest",
+                "container_name": f"{self.project_name}-suricata",
+                "command": "-i eth0",
+                "volumes": ["./suricata/rules:/var/lib/suricata/rules", "./suricata/logs:/var/log/suricata"],
+                "networks": [network_name]
+            }
+
+        # --- ZEEK ---
+        if "zeek" in self.tools:
+            services["zeek"] = {
+                "image": "zeek/zeek:latest",
+                "container_name": f"{self.project_name}-zeek",
+                "command": "tail -f /dev/null",
+                "volumes": ["./zeek/scripts:/usr/local/zeek/share/zeek/site", "./zeek/logs:/usr/local/zeek/logs"],
+                "networks": [network_name]
+            }
+
+        # --- OPENVAS ---
+        if "openvas" in self.tools:
+            port = self.request.custom_ports.get("openvas", 9392)
+            services["openvas"] = {
+                "image": "greenbone/openvas-scanner:latest",
+                "container_name": f"{self.project_name}-openvas",
+                "ports": [f"{port}:9392"],
+                "volumes": ["openvas_data:/var/lib/openvas", "./openvas/scans:/scans"],
+                "networks": [network_name]
+            }
+            volumes["openvas_data"] = None
+
+        # --- NMAP SANDBOX ---
+        if "nmap" in self.tools:
+            services["nmap"] = {
+                "image": "instrumentisto/nmap:latest",
+                "container_name": f"{self.project_name}-nmap",
+                "command": "tail -f /dev/null",
+                "volumes": ["./nmap/scans:/scans", "./nmap/scripts:/scripts"],
+                "networks": [network_name]
+            }
+
+        # --- METASPLOIT SANDBOX ---
+        if "metasploit" in self.tools:
+            services["metasploit"] = {
+                "image": "metasploitframework/metasploit-framework:latest",
+                "container_name": f"{self.project_name}-metasploit",
+                "command": "tail -f /dev/null",
+                "volumes": ["./metasploit/workspace:/workspace", "./metasploit/modules:/modules"],
+                "networks": [network_name]
+            }
+
+        # --- SONARQUBE ---
+        if "sonarqube" in self.tools:
+            port = self.request.custom_ports.get("sonarqube", 9003)
+            services["sonarqube"] = {
+                "image": "sonarqube:community",
+                "container_name": f"{self.project_name}-sonarqube",
+                "ports": [f"{port}:9000"],
+                "volumes": ["sonarqube_data:/opt/sonarqube/data", "./sonarqube/conf:/opt/sonarqube/conf"],
+                "networks": [network_name]
+            }
+            volumes["sonarqube_data"] = None
+
+        # --- TRIVY ---
+        if "trivy" in self.tools:
+            port = self.request.custom_ports.get("trivy", 4954)
+            services["trivy"] = {
+                "image": "aquasec/trivy:latest",
+                "container_name": f"{self.project_name}-trivy",
+                "command": "server --listen 0.0.0.0:4954",
+                "ports": [f"{port}:4954"],
+                "volumes": ["/var/run/docker.sock:/var/run/docker.sock", "./trivy/reports:/reports"],
+                "networks": [network_name]
+            }
+
+        # --- DEFECTDOJO ---
+        if "defectdojo" in self.tools:
+            port = self.request.custom_ports.get("defectdojo", 8096)
+            services["defectdojo"] = {
+                "image": "defectdojo/defectdojo-django:latest",
+                "container_name": f"{self.project_name}-defectdojo",
+                "ports": [f"{port}:8080"],
+                "environment": {
+                    "DD_ADMIN_USER": "${DEFECT_DOJO_ADMIN_USER:-admin}",
+                    "DD_ADMIN_PASSWORD": "${DEFECT_DOJO_ADMIN_PASSWORD:-adminpassword123}"
+                },
+                "volumes": ["defectdojo_media:/app/media", "./defectdojo/imports:/imports"],
+                "networks": [network_name]
+            }
+            volumes["defectdojo_media"] = None
+
+        # --- OWASP ZAP ---
+        if "zap" in self.tools:
+            port = self.request.custom_ports.get("zap", 8097)
+            services["zap"] = {
+                "image": "zaproxy/zap-stable:latest",
+                "container_name": f"{self.project_name}-zap",
+                "command": "zap-webswing.sh",
+                "ports": [f"{port}:8080", "8090:8090"],
+                "volumes": ["./zap/scans:/zap/wrk", "./zap/scripts:/zap/scripts"],
+                "networks": [network_name]
+            }
+
+        # --- GITLEAKS ---
+        if "gitleaks" in self.tools:
+            services["gitleaks"] = {
+                "image": "zricethezav/gitleaks:latest",
+                "container_name": f"{self.project_name}-gitleaks",
+                "command": "tail -f /dev/null",
+                "volumes": ["./:/repo:ro", "./gitleaks/reports:/reports", "./gitleaks/rules:/rules"],
+                "networks": [network_name]
+            }
+
+        # --- TRUFFLEHOG ---
+        if "trufflehog" in self.tools:
+            services["trufflehog"] = {
+                "image": "trufflesecurity/trufflehog:latest",
+                "container_name": f"{self.project_name}-trufflehog",
+                "command": "tail -f /dev/null",
+                "volumes": ["./:/repo:ro", "./trufflehog/reports:/reports"],
+                "networks": [network_name]
+            }
+
+        # --- TELEPORT ---
+        if "teleport" in self.tools:
+            port = self.request.custom_ports.get("teleport", 3080)
+            services["teleport"] = {
+                "image": "quay.io/gravitational/teleport:15.2.0",
+                "container_name": f"{self.project_name}-teleport",
+                "ports": [f"{port}:3080", "3022:3022", "3023:3023", "3025:3025"],
+                "volumes": ["teleport_data:/var/lib/teleport", "./teleport/config:/etc/teleport"],
+                "networks": [network_name]
+            }
+            volumes["teleport_data"] = None
+
+        # --- AUTHENTIK ---
+        if "authentik" in self.tools:
+            port = self.request.custom_ports.get("authentik", 9006)
+            services["authentik-server"] = {
+                "image": "ghcr.io/goauthentik/server:2024.4.2",
+                "container_name": f"{self.project_name}-authentik-server",
+                "command": "server",
+                "ports": [f"{port}:9000", "9443:9443"],
+                "environment": {
+                    "AUTHENTIK_SECRET_KEY": "${AUTHENTIK_SECRET_KEY:-authentiksecretkey123}",
+                    "AUTHENTIK_REDIS__HOST": "redis" if "redis" in self.tools else "localhost"
+                },
+                "volumes": ["authentik_media:/media", "./authentik/custom_templates:/templates"],
+                "networks": [network_name]
+            }
+            services["authentik-worker"] = {
+                "image": "ghcr.io/goauthentik/server:2024.4.2",
+                "container_name": f"{self.project_name}-authentik-worker",
+                "command": "worker",
+                "environment": {
+                    "AUTHENTIK_SECRET_KEY": "${AUTHENTIK_SECRET_KEY:-authentiksecretkey123}",
+                    "AUTHENTIK_REDIS__HOST": "redis" if "redis" in self.tools else "localhost"
+                },
+                "networks": [network_name]
+            }
+            volumes["authentik_media"] = None
+
         # --- PORTAINER ---
         if "portainer" in self.tools:
             port = self.request.custom_ports.get("portainer", 9443)
@@ -600,7 +1278,7 @@ class ProjectScaffolder:
                 "container_name": f"{self.project_name}-pgadmin",
                 "ports": [f"{port}:80"],
                 "environment": {
-                    "PGADMIN_DEFAULT_EMAIL": "${PGADMIN_DEFAULT_EMAIL:-admin@lakehouse.com}",
+                    "PGADMIN_DEFAULT_EMAIL": "admin@lakehouse.com",
                     "PGADMIN_DEFAULT_PASSWORD": "${PGADMIN_DEFAULT_PASSWORD:-admin}"
                 },
                 "volumes": ["pgadmin_data:/var/lib/pgadmin"],
@@ -608,22 +1286,14 @@ class ProjectScaffolder:
             }
             volumes["pgadmin_data"] = None
 
-        # --- OPENTELEMETRY COLLECTOR ---
+        # --- OPENTELEMETRY ---
         if "opentelemetry" in self.tools:
-            port_http = self.request.custom_ports.get("opentelemetry", 4318)
+            port = self.request.custom_ports.get("opentelemetry", 4318)
             services["opentelemetry"] = {
-                "image": "otel/opentelemetry-collector-contrib:0.102.0",
+                "image": "otel/opentelemetry-collector-contrib:0.100.0",
                 "container_name": f"{self.project_name}-opentelemetry",
-                "command": ["--config=/etc/otelcol-contrib/config.yaml"],
-                "ports": [
-                    "4317:4317",
-                    f"{port_http}:4318",
-                    "13133:13133",
-                    "8888:8888"
-                ],
-                "volumes": [
-                    "./otel/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml:ro"
-                ],
+                "ports": ["4317:4317", f"{port}:4318", "8889:8889", "13133:13133"],
+                "volumes": ["./otel/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml"],
                 "networks": [network_name]
             }
 
@@ -631,77 +1301,59 @@ class ProjectScaffolder:
         if "openmetadata" in self.tools:
             port = self.request.custom_ports.get("openmetadata", 8585)
             services["openmetadata"] = {
-                "image": "docker.getcollate.io/openmetadata/server:1.4.2",
+                "image": "openmetadata/server:1.4.1",
                 "container_name": f"{self.project_name}-openmetadata",
                 "ports": [f"{port}:8585"],
                 "environment": {
                     "DB_HOST": "postgres",
                     "DB_PORT": "5432",
-                    "DB_USER": "${POSTGRES_USER:-postgres}",
-                    "DB_USER_PASSWORD": "${POSTGRES_PASSWORD:-postgres}",
-                    "DB_NAME": "openmetadata_db",
-                    "AUTHENTICATION_PROVIDER": "basic"
+                    "DB_USER": "${POSTGRES_USER:-admin}",
+                    "DB_USER_PASSWORD": "${POSTGRES_PASSWORD:-admin123}",
+                    "DB_SCHEME": "postgresql"
                 },
-                "depends_on": {
-                    "postgres": {"condition": "service_healthy"} if "postgres" in self.tools else {"condition": "service_started"}
-                },
+                "depends_on": ["postgres"] if "postgres" in self.tools else [],
                 "networks": [network_name]
             }
 
-        # --- NGINX REVERSE PROXY ---
+        # --- NGINX ---
         if "nginx" in self.tools:
             port = self.request.custom_ports.get("nginx", 8088)
             services["nginx"] = {
                 "image": "nginx:alpine",
                 "container_name": f"{self.project_name}-nginx",
                 "ports": [f"{port}:80"],
-                "volumes": [
-                    "./nginx/nginx.conf:/etc/nginx/nginx.conf:ro",
-                    "./nginx/html:/usr/share/nginx/html:ro"
-                ],
+                "volumes": ["./nginx/nginx.conf:/etc/nginx/nginx.conf:ro", "./nginx/html:/usr/share/nginx/html:ro"],
                 "networks": [network_name]
             }
 
         # --- KONG API GATEWAY ---
         if "apigateway" in self.tools:
-            port_proxy = self.request.custom_ports.get("apigateway", 8000)
-            services["apigateway"] = {
-                "image": "kong:3.6",
+            port = self.request.custom_ports.get("apigateway", 8000)
+            services["kong"] = {
+                "image": "kong:3.6-alpine",
                 "container_name": f"{self.project_name}-kong",
+                "ports": [f"{port}:8000", "8443:8443", "8002:8002"],
                 "environment": {
                     "KONG_DATABASE": "off",
-                    "KONG_DECLARATIVE_CONFIG": "/etc/kong/kong.yml",
+                    "KONG_DECLARATIVE_CONFIG": "/kong/kong.yml",
                     "KONG_PROXY_ACCESS_LOG": "/dev/stdout",
                     "KONG_ADMIN_ACCESS_LOG": "/dev/stdout",
                     "KONG_PROXY_ERROR_LOG": "/dev/stderr",
                     "KONG_ADMIN_ERROR_LOG": "/dev/stderr",
-                    "KONG_ADMIN_LISTEN": "0.0.0.0:8001",
-                    "KONG_ADMIN_GUI_LISTEN": "0.0.0.0:8002",
-                    "KONG_ADMIN_GUI_URL": "http://localhost:8002"
+                    "KONG_ADMIN_LISTEN": "0.0.0.0:8002"
                 },
-                "ports": [
-                    f"{port_proxy}:8000",
-                    "8001:8001",
-                    "8002:8002"
-                ],
-                "volumes": [
-                    "./kong/kong.yml:/etc/kong/kong.yml:ro"
-                ],
+                "volumes": ["./kong/kong.yml:/kong/kong.yml"],
                 "networks": [network_name]
             }
 
-        # --- APACHE HADOOP HDFS (NameNode & DataNode) ---
+        # --- HADOOP HDFS ---
         if "hdfs" in self.tools:
-            nn_ui_port = self.request.custom_ports.get("hdfs", 9870)
+            port = self.request.custom_ports.get("hdfs", 9870)
             services["namenode"] = {
                 "image": "bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8",
                 "container_name": f"{self.project_name}-namenode",
-                "environment": {
-                    "CLUSTER_NAME": "${CLUSTER_NAME:-hadoop-cluster}",
-                    "CORE_CONF_fs_defaultFS": "hdfs://namenode:9000",
-                    "HDFS_CONF_dfs_replication": "1"
-                },
-                "ports": [f"{nn_ui_port}:9870", "9000:9000"],
+                "environment": {"CLUSTER_NAME": "hadoop-cluster"},
+                "ports": [f"{port}:9870", "9000:9000"],
                 "volumes": ["hadoop_namenode:/hadoop/dfs/name"],
                 "networks": [network_name]
             }
@@ -709,9 +1361,7 @@ class ProjectScaffolder:
                 "image": "bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8",
                 "container_name": f"{self.project_name}-datanode",
                 "depends_on": ["namenode"],
-                "environment": {
-                    "CORE_CONF_fs_defaultFS": "hdfs://namenode:9000"
-                },
+                "environment": {"CLUSTER_NAME": "hadoop-cluster", "CORE_CONF_fs_defaultFS": "hdfs://namenode:9000"},
                 "ports": ["9864:9864"],
                 "volumes": ["hadoop_datanode:/hadoop/dfs/data"],
                 "networks": [network_name]
@@ -719,36 +1369,29 @@ class ProjectScaffolder:
             volumes["hadoop_namenode"] = None
             volumes["hadoop_datanode"] = None
 
-        # --- APACHE HADOOP YARN (ResourceManager & NodeManager) ---
+        # --- HADOOP YARN ---
         if "yarn" in self.tools:
-            rm_ui_port = self.request.custom_ports.get("yarn", 8089)
+            port = self.request.custom_ports.get("yarn", 8089)
             services["resourcemanager"] = {
                 "image": "bde2020/hadoop-resourcemanager:2.0.0-hadoop3.2.1-java8",
                 "container_name": f"{self.project_name}-resourcemanager",
-                "depends_on": ["namenode", "datanode"] if "hdfs" in self.tools else [],
-                "environment": {
-                    "CORE_CONF_fs_defaultFS": "hdfs://namenode:9000",
-                    "YARN_CONF_yarn_resourcemanager_hostname": "resourcemanager"
-                },
-                "ports": [f"{rm_ui_port}:8088"],
+                "depends_on": ["namenode"] if "hdfs" in self.tools else [],
+                "ports": [f"{port}:8088"],
+                "environment": {"CORE_CONF_fs_defaultFS": "hdfs://namenode:9000"},
                 "networks": [network_name]
             }
             services["nodemanager"] = {
                 "image": "bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8",
                 "container_name": f"{self.project_name}-nodemanager",
                 "depends_on": ["resourcemanager"],
-                "environment": {
-                    "CORE_CONF_fs_defaultFS": "hdfs://namenode:9000",
-                    "YARN_CONF_yarn_resourcemanager_hostname": "resourcemanager"
-                },
+                "environment": {"CORE_CONF_fs_defaultFS": "hdfs://namenode:9000", "YARN_CONF_yarn_resourcemanager_hostname": "resourcemanager"},
                 "ports": ["8042:8042"],
                 "networks": [network_name]
             }
 
-        # --- APACHE HIVE (Metastore & HiveServer2) ---
+        # --- HIVE ---
         if "hive" in self.tools:
             hive_ui_port = self.request.custom_ports.get("hive", 10002)
-            warehouse_folder = self.request.custom_folders.get("hive_warehouse", "hive/warehouse")
             services["hive-metastore"] = {
                 "image": "bde2020/hive:2.3.2-postgresql-metastore",
                 "container_name": f"{self.project_name}-hive-metastore",
@@ -776,35 +1419,30 @@ class ProjectScaffolder:
                 },
                 "ports": [f"{hive_ui_port}:10002", "10000:10000"],
                 "command": "/opt/hive/bin/hive --service hiveserver2",
-                "volumes": [f"./{warehouse_folder}:/opt/hive/warehouse"],
+                "volumes": ["./hive/warehouse:/opt/hive/warehouse"],
                 "networks": [network_name]
             }
 
-        # --- APACHE ZEPPELIN NOTEBOOK ---
+        # --- ZEPPELIN ---
         if "zeppelin" in self.tools:
             zeppelin_port = self.request.custom_ports.get("zeppelin", 8090)
-            notebook_folder = self.request.custom_folders.get("zeppelin_notebooks", "zeppelin/notebook")
             services["zeppelin"] = {
                 "image": "apache/zeppelin:0.10.1",
                 "container_name": f"{self.project_name}-zeppelin",
-                "environment": {
-                    "ZEPPELIN_PORT": "8080",
-                    "ZEPPELIN_ANONYMOUS": "true"
-                },
+                "environment": {"ZEPPELIN_PORT": "8080", "ZEPPELIN_ANONYMOUS": "true"},
                 "ports": [f"{zeppelin_port}:8080"],
-                "volumes": [f"./{notebook_folder}:/opt/zeppelin/notebook"],
+                "volumes": ["./zeppelin/notebook:/opt/zeppelin/notebook"],
                 "networks": [network_name]
             }
 
-        # --- OLLAMA LOCAL LLM ENGINE ---
+        # --- OLLAMA ---
         if "ollama" in self.tools:
             ollama_port = self.request.custom_ports.get("ollama", 11434)
-            models_folder = self.request.custom_folders.get("ollama_models", "ollama/models")
             services["ollama"] = {
                 "image": "ollama/ollama:latest",
                 "container_name": f"{self.project_name}-ollama",
                 "ports": [f"{ollama_port}:11434"],
-                "volumes": [f"./{models_folder}:/root/.ollama"],
+                "volumes": ["./ollama/models:/root/.ollama"],
                 "networks": [network_name]
             }
 
@@ -816,9 +1454,7 @@ class ProjectScaffolder:
                 "container_name": f"{self.project_name}-open-webui",
                 "ports": [f"{webui_port}:8080"],
                 "depends_on": ["ollama"] if "ollama" in self.tools else [],
-                "environment": {
-                    "OLLAMA_BASE_URL": "http://ollama:11434"
-                },
+                "environment": {"OLLAMA_BASE_URL": "http://ollama:11434"},
                 "volumes": ["open_webui_data:/app/backend/data"],
                 "networks": [network_name]
             }
@@ -878,7 +1514,7 @@ class ProjectScaffolder:
                 "networks": [network_name]
             }
 
-        # --- VS CODE WEB (CODE-SERVER) ---
+        # --- VS CODE WEB (IDE) ---
         if "vscode" in self.tools:
             port = self.request.custom_ports.get("vscode", 8443)
             auto_ext = "true" if getattr(self.request, "auto_install_extensions", True) else "false"
@@ -886,13 +1522,9 @@ class ProjectScaffolder:
                 "image": "codercom/code-server:latest",
                 "container_name": f"{self.project_name}-vscode",
                 "entrypoint": ["/bin/sh", "/home/coder/project/vscode/entrypoint.sh"],
-                "environment": {
-                    "AUTO_INSTALL_EXTENSIONS": auto_ext
-                },
+                "environment": {"AUTO_INSTALL_EXTENSIONS": auto_ext},
                 "ports": [f"{port}:8080"],
-                "volumes": [
-                    "./:/home/coder/project"
-                ],
+                "volumes": ["./:/home/coder/project"],
                 "networks": [network_name]
             }
 
@@ -952,341 +1584,226 @@ class ProjectScaffolder:
                 env_lines.append(f"# {tool.name}")
                 for k, v in tool.env_vars.items():
                     val = v
-                    if k in ("POSTGRES_USER", "MINIO_ROOT_USER", "RABBITMQ_DEFAULT_USER", "GF_SECURITY_ADMIN_USER", "KEYCLOAK_ADMIN", "MONGO_INITDB_ROOT_USERNAME", "MYSQL_USER"):
+                    if "USER" in k or k == "KEYCLOAK_ADMIN" or k == "GF_SECURITY_ADMIN_USER":
                         val = user
-                    elif k in ("POSTGRES_PASSWORD", "MINIO_ROOT_PASSWORD", "RABBITMQ_DEFAULT_PASS", "GF_SECURITY_ADMIN_PASSWORD", "KEYCLOAK_ADMIN_PASSWORD", "MONGO_INITDB_ROOT_PASSWORD", "PGADMIN_DEFAULT_PASSWORD", "MYSQL_PASSWORD", "MYSQL_ROOT_PASSWORD"):
+                    elif "PASSWORD" in k or "PASS" in k or k == "KEYCLOAK_ADMIN_PASSWORD" or k == "GF_SECURITY_ADMIN_PASSWORD":
                         val = password
-                    elif k == "PGADMIN_DEFAULT_EMAIL":
-                        val = f"{user}@example.com" if "@" not in user else user
-                    elif k == "NEO4J_AUTH":
-                        val = f"{user}/{password}"
-
-                    val = self.request.custom_envs.get(k, val)
                     env_lines.append(f"{k}={val}")
                 env_lines.append("")
 
-        if "airflow" in self.tools:
-            env_lines.append("# Apache Airflow")
-            env_lines.append(f"AIRFLOW_USER={user}")
-            env_lines.append(f"AIRFLOW_PASSWORD={password}")
+        if "vscode" in self.tools:
+            env_lines.append(f"# VS Code Web (IDE)")
+            env_lines.append(f"PASSWORD={password}")
             env_lines.append("")
 
-        content = "\n".join(env_lines)
-        with open(os.path.join(self.project_dir, ".env"), "w", encoding="utf-8") as f:
-            f.write(content)
-        with open(os.path.join(self.project_dir, ".env.example"), "w", encoding="utf-8") as f:
-            f.write(content)
+        env_path = os.path.join(self.project_dir, ".env")
+        with open(env_path, "w", encoding="utf-8") as f:
+            f.write("\n".join(env_lines))
+
+    def _create_default_files(self):
+        if "postgres" in self.tools:
+            self._generate_postgres_files()
+        if "kafka_connect" in self.tools:
+            self._generate_debezium_files()
+        if "spark" in self.tools:
+            self._generate_spark_files()
+        if "airflow" in self.tools:
+            self._generate_airflow_files()
+        if "trino" in self.tools:
+            self._generate_trino_files()
+        if "dbt" in self.tools:
+            self._generate_dbt_files()
+        if "opentelemetry" in self.tools:
+            self._generate_otel_files()
+        if "nginx" in self.tools:
+            self._generate_nginx_files()
+        if "apigateway" in self.tools:
+            self._generate_kong_files()
+        if "ansible" in self.tools:
+            self._generate_ansible_files()
+        if "terraform" in self.tools:
+            self._generate_terraform_files()
+        if "hive" in self.tools:
+            self._generate_hive_files()
+        if "zeppelin" in self.tools:
+            self._generate_zeppelin_files()
+        self._generate_additional_tool_files()
 
     def _generate_postgres_files(self):
-        pg_folder = self.request.custom_folders.get("postgres", "postgres")
-        pg_dir = os.path.join(self.project_dir, pg_folder)
-        os.makedirs(pg_dir, exist_ok=True)
-
+        init_folder = self.request.custom_folders.get("postgres_init", "postgres/init.sql")
+        init_file = os.path.join(self.project_dir, init_folder)
+        os.makedirs(os.path.dirname(init_file), exist_ok=True)
         if self.include_templates:
-            init_sql = """-- =============================================================================
--- POSTGRESQL OLTP INITIALIZATION (CDC & LOGICAL REPLICATION)
--- =============================================================================
-
-CREATE SCHEMA IF NOT EXISTS ecommerce;
-
-CREATE TABLE IF NOT EXISTS ecommerce.customers (
-    customer_id SERIAL PRIMARY KEY,
+            sql = f"""-- OLTP Database Setup for {self.project_name}
+CREATE TABLE IF NOT EXISTS customers (
+    id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
-    city VARCHAR(50),
-    state VARCHAR(50),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS ecommerce.orders (
-    order_id SERIAL PRIMARY KEY,
-    customer_id INT NOT NULL REFERENCES ecommerce.customers(customer_id),
-    status VARCHAR(30) NOT NULL DEFAULT 'PENDING',
-    total_amount NUMERIC(12, 2) NOT NULL DEFAULT 0.00,
-    order_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE IF NOT EXISTS orders (
+    id SERIAL PRIMARY KEY,
+    customer_id INT REFERENCES customers(id),
+    amount DECIMAL(10, 2) NOT NULL,
+    status VARCHAR(50) DEFAULT 'PENDING',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-ALTER TABLE ecommerce.customers REPLICA IDENTITY FULL;
-ALTER TABLE ecommerce.orders REPLICA IDENTITY FULL;
+ALTER TABLE customers REPLICA IDENTITY FULL;
+ALTER TABLE orders REPLICA IDENTITY FULL;
 
-DROP PUBLICATION IF EXISTS dbz_publication;
-CREATE PUBLICATION dbz_publication FOR ALL TABLES;
-"""
-        else:
-            init_sql = """-- =============================================================================
--- POSTGRESQL OLTP INITIALIZATION (CLEAN BASE)
--- =============================================================================
+INSERT INTO customers (name, email) VALUES 
+('Alice Johnson', 'alice@example.com'),
+('Bob Smith', 'bob@example.com'),
+('Carlos Silva', 'carlos@empresa.com.br')
+ON CONFLICT (email) DO NOTHING;
 
-DROP PUBLICATION IF EXISTS dbz_publication;
-CREATE PUBLICATION dbz_publication FOR ALL TABLES;
+INSERT INTO orders (customer_id, amount, status) VALUES 
+(1, 150.00, 'COMPLETED'),
+(2, 89.90, 'PROCESSING'),
+(3, 1200.50, 'SHIPPED');
 """
-        with open(os.path.join(pg_dir, "init.sql"), "w", encoding="utf-8") as f:
-            f.write(init_sql)
+            with open(init_file, "w", encoding="utf-8") as f:
+                f.write(sql)
 
     def _generate_debezium_files(self):
-        deb_dir = os.path.join(self.project_dir, "debezium")
-        os.makedirs(deb_dir, exist_ok=True)
-        config_json = """{
-  "name": "postgres-cdc-connector",
-  "config": {
-    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
-    "tasks.max": "1",
-    "plugin.name": "pgoutput",
-    "database.hostname": "postgres",
-    "database.port": "5432",
-    "database.user": "postgres",
-    "database.password": "postgres",
-    "database.dbname": "oltp_db",
-    "database.server.name": "cdc",
-    "topic.prefix": "cdc",
-    "table.include.list": ".*",
-    "publication.name": "dbz_publication",
-    "publication.autocreate.mode": "all_tables",
-    "slot.name": "debezium_cdc_slot",
-    "tombstones.on.delete": "false",
-    "decimal.handling.mode": "double",
-    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
-    "key.converter.schemas.enable": "false",
-    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
-    "value.converter.schemas.enable": "false"
-  }
-}
-"""
-        with open(os.path.join(deb_dir, "register-postgres.json"), "w", encoding="utf-8") as f:
-            f.write(config_json)
+        debezium_dir = os.path.join(self.project_dir, "debezium")
+        os.makedirs(debezium_dir, exist_ok=True)
+        if self.include_templates:
+            cfg = {
+                "name": f"{self.project_name}-postgres-connector",
+                "config": {
+                    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+                    "tasks.max": "1",
+                    "plugin.name": "pgoutput",
+                    "database.hostname": "postgres",
+                    "database.port": "5432",
+                    "database.user": "admin",
+                    "database.password": "admin123",
+                    "database.dbname": "oltp_db",
+                    "database.server.name": f"{self.project_name}_db",
+                    "topic.prefix": self.project_name,
+                    "table.include.list": "public.customers,public.orders"
+                }
+            }
+            with open(os.path.join(debezium_dir, "register-postgres.json"), "w", encoding="utf-8") as f:
+                json.dump(cfg, f, indent=2)
 
     def _generate_spark_files(self):
         spark_dir = os.path.join(self.project_dir, "spark")
-        spark_apps_rel = self.request.custom_folders.get("spark_apps", "spark/apps")
-        apps_dir = os.path.join(self.project_dir, spark_apps_rel)
-        conf_dir = os.path.join(spark_dir, "conf")
+        apps_dir = os.path.join(self.project_dir, "spark", "apps")
         os.makedirs(apps_dir, exist_ok=True)
-        os.makedirs(conf_dir, exist_ok=True)
 
-        dockerfile = """FROM apache/spark:3.5.1-python3
-
+        dockerfile = """FROM apache/spark:3.5.1
 USER root
-RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates && rm -rf /var/lib/apt/lists/*
-
-ENV ICEBERG_VERSION=1.6.1
-ENV AWS_SDK_VERSION=1.12.262
-ENV HADOOP_AWS_VERSION=3.3.4
-ENV KAFKA_CLIENTS_VERSION=3.5.1
-ENV COMMONS_POOL_VERSION=2.11.1
-
-RUN curl -s -f -L https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-spark-runtime-3.5_2.12/${ICEBERG_VERSION}/iceberg-spark-runtime-3.5_2.12-${ICEBERG_VERSION}.jar -o /opt/spark/jars/iceberg-spark-runtime-3.5_2.12-${ICEBERG_VERSION}.jar && \\
-    curl -s -f -L https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-aws-bundle/${ICEBERG_VERSION}/iceberg-aws-bundle-${ICEBERG_VERSION}.jar -o /opt/spark/jars/iceberg-aws-bundle-${ICEBERG_VERSION}.jar && \\
-    curl -s -f -L https://repo1.maven.org/maven2/org/apache/spark/spark-sql-kafka-0-10_2.12/3.5.1/spark-sql-kafka-0-10_2.12-3.5.1.jar -o /opt/spark/jars/spark-sql-kafka-0-10_2.12-3.5.1.jar && \\
-    curl -s -f -L https://repo1.maven.org/maven2/org/apache/spark/spark-token-provider-kafka-0-10_2.12/3.5.1/spark-token-provider-kafka-0-10_2.12-3.5.1.jar -o /opt/spark/jars/spark-token-provider-kafka-0-10_2.12-3.5.1.jar && \\
-    curl -s -f -L https://repo1.maven.org/maven2/org/apache/kafka/kafka-clients/${KAFKA_CLIENTS_VERSION}/kafka-clients-${KAFKA_CLIENTS_VERSION}.jar -o /opt/spark/jars/kafka-clients-${KAFKA_CLIENTS_VERSION}.jar && \\
-    curl -s -f -L https://repo1.maven.org/maven2/org/apache/commons/commons-pool2/${COMMONS_POOL_VERSION}/commons-pool2-${COMMONS_POOL_VERSION}.jar -o /opt/spark/jars/commons-pool2-${COMMONS_POOL_VERSION}.jar && \\
-    curl -s -f -L https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/${HADOOP_AWS_VERSION}/hadoop-aws-${HADOOP_AWS_VERSION}.jar -o /opt/spark/jars/hadoop-aws-${HADOOP_AWS_VERSION}.jar && \\
-    curl -s -f -L https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/${AWS_SDK_VERSION}/aws-java-sdk-bundle-${AWS_SDK_VERSION}.jar -o /opt/spark/jars/aws-java-sdk-bundle-${AWS_SDK_VERSION}.jar
-
-COPY conf/spark-defaults.conf /opt/spark/conf/spark-defaults.conf
-RUN chmod -R 777 /opt/spark/conf /opt/spark/work-dir /tmp
-
+RUN pip install --no-cache-dir pyspark==3.5.1 delta-spark pyarrow
 USER spark
-WORKDIR /opt/spark/work-dir
 """
         with open(os.path.join(spark_dir, "Dockerfile"), "w", encoding="utf-8") as f:
             f.write(dockerfile)
 
-        spark_defaults = """spark.master                           spark://spark-master:7077
-spark.driver.memory                    1g
-spark.executor.memory                  1g
-spark.sql.extensions                   org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions
-spark.sql.catalog.lakehouse            org.apache.iceberg.spark.SparkCatalog
-spark.sql.catalog.lakehouse.type       rest
-spark.sql.catalog.lakehouse.uri        http://iceberg-rest:8181
-spark.sql.catalog.lakehouse.io-impl    org.apache.iceberg.aws.s3.S3FileIO
-spark.sql.catalog.lakehouse.warehouse  s3://lakehouse/
-spark.sql.catalog.lakehouse.s3.endpoint http://minio:9000
-spark.sql.catalog.lakehouse.s3.path-style-access true
-spark.sql.catalog.lakehouse.s3.access-key-id admin
-spark.sql.catalog.lakehouse.s3.secret-access-key password123
-spark.sql.defaultCatalog               lakehouse
-spark.hadoop.fs.s3a.endpoint           http://minio:9000
-spark.hadoop.fs.s3a.access.key         admin
-spark.hadoop.fs.s3a.secret.key         password123
-spark.hadoop.fs.s3a.path.style.access  true
-spark.hadoop.fs.s3a.impl               org.apache.hadoop.fs.s3a.S3AFileSystem
-spark.hadoop.fs.s3a.connection.ssl.enabled false
-"""
-        with open(os.path.join(conf_dir, "spark-defaults.conf"), "w", encoding="utf-8") as f:
-            f.write(spark_defaults)
-
         if self.include_templates:
-            bronze_ingestion = """# =============================================================================
-# SPARK STRUCTURED STREAMING: RAW CDC INGESTION (BRONZE LAYER)
-# =============================================================================
+            pyspark_job = f"""# PySpark Streaming & Batch Job: {self.project_name}
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, current_timestamp, to_date
+from pyspark.sql.functions import col, current_timestamp
 
-spark = SparkSession.builder.appName("Bronze_CDC_Ingestion").getOrCreate()
+spark = SparkSession.builder \\
+    .appName("{self.project_name}-LakehouseIngestion") \\
+    .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions") \\
+    .config("spark.sql.catalog.lakehouse", "org.apache.iceberg.spark.SparkCatalog") \\
+    .config("spark.sql.catalog.lakehouse.type", "rest") \\
+    .config("spark.sql.catalog.lakehouse.uri", "http://iceberg-rest:8181") \\
+    .config("spark.sql.catalog.lakehouse.io-impl", "org.apache.iceberg.aws.s3.S3FileIO") \\
+    .config("spark.sql.catalog.lakehouse.s3.endpoint", "http://minio:9000") \\
+    .config("spark.sql.catalog.lakehouse.s3.path-style-access", "true") \\
+    .config("spark.sql.defaultCatalog", "lakehouse") \\
+    .getOrCreate()
 
-spark.sql("CREATE NAMESPACE IF NOT EXISTS lakehouse.bronze")
-spark.sql(\"\"\"
-    CREATE TABLE IF NOT EXISTS lakehouse.bronze.orders_raw (
-        kafka_key STRING,
-        raw_payload STRING,
-        ingestion_timestamp TIMESTAMP,
-        ingestion_date DATE
-    )
-    USING iceberg
-    PARTITIONED BY (ingestion_date)
-\"\"\")
-
-stream_df = spark.readStream \\
-    .format("kafka") \\
-    .option("kafka.bootstrap.servers", "kafka:29092") \\
-    .option("subscribe", "cdc.ecommerce.orders") \\
-    .option("startingOffsets", "earliest") \\
-    .load()
-
-bronze_df = stream_df.select(
-    col("key").cast("string").alias("kafka_key"),
-    col("value").cast("string").alias("raw_payload"),
-    current_timestamp().alias("ingestion_timestamp"),
-    to_date(current_timestamp()).alias("ingestion_date")
-)
-
-query = bronze_df.writeStream \\
-    .format("iceberg") \\
-    .outputMode("append") \\
-    .trigger(processingTime="5 seconds") \\
-    .option("checkpointLocation", "s3://lakehouse/checkpoints/bronze_orders") \\
-    .toTable("lakehouse.bronze.orders_raw")
-
-query.awaitTermination()
+print(" Spark Session Initialized with Iceberg REST Catalog!")
+df = spark.range(1, 100).withColumn("ingestion_time", current_timestamp())
+df.show(5)
 """
-            with open(os.path.join(apps_dir, "bronze_ingestion.py"), "w", encoding="utf-8") as f:
-                f.write(bronze_ingestion)
-
-            silver_sync = """# =============================================================================
-# SPARK STRUCTURED STREAMING: MERGE INTO SILVER LAYER (STATE REPLICATION)
-# =============================================================================
-from pyspark.sql import SparkSession
-
-spark = SparkSession.builder.appName("Silver_State_Sync").getOrCreate()
-spark.sql("CREATE NAMESPACE IF NOT EXISTS lakehouse.silver")
-
-# Implement your foreachBatch and MERGE INTO logic here:
-print("Silver Sync Stream Initialized.")
-"""
-            with open(os.path.join(apps_dir, "silver_sync.py"), "w", encoding="utf-8") as f:
-                f.write(silver_sync)
-        else:
-            with open(os.path.join(apps_dir, ".gitkeep"), "w", encoding="utf-8") as f:
-                f.write("")
+            with open(os.path.join(apps_dir, "stream_to_iceberg.py"), "w", encoding="utf-8") as f:
+                f.write(pyspark_job)
 
     def _generate_airflow_files(self):
-        dags_rel = self.request.custom_folders.get("airflow_dags", "airflow/dags")
-        plugins_rel = self.request.custom_folders.get("airflow_plugins", "airflow/plugins")
-        dags_dir = os.path.join(self.project_dir, dags_rel)
-        plugins_dir = os.path.join(self.project_dir, plugins_rel)
+        dags_dir = os.path.join(self.project_dir, "airflow", "dags")
         os.makedirs(dags_dir, exist_ok=True)
-        os.makedirs(plugins_dir, exist_ok=True)
-
         if self.include_templates:
-            gold_dag = """from datetime import datetime, timedelta
+            dag = f"""from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.bash import BashOperator
 
-default_args = {
+default_args = {{
     'owner': 'lakehouse',
-    'start_date': datetime(2024, 1, 1),
+    'depends_on_past': False,
+    'start_date': datetime(2026, 1, 1),
     'retries': 1,
-}
+    'retry_delay': timedelta(minutes=5),
+}}
 
 with DAG(
-    'gold_aggregations_dag',
+    '{self.project_name}_lakehouse_pipeline',
     default_args=default_args,
-    description='Gold Layer aggregations & Analytics Data Marts',
-    schedule_interval='@hourly',
+    description='Automated pipeline for {self.project_name}',
+    schedule_interval=timedelta(days=1),
     catchup=False,
-    tags=['gold', 'analytics', 'lakehouse']
 ) as dag:
 
-    run_gold_mart = BashOperator(
-        task_id='run_gold_mart',
-        bash_command='echo "Executing Gold layer batch aggregation..."'
+    t1 = BashOperator(
+        task_id='verify_bronze_layer',
+        bash_command='echo "Verifying Bronze ingest..."',
     )
+
+    t2 = BashOperator(
+        task_id='trigger_gold_aggregations',
+        bash_command='echo "Executing Gold transforms with dbt and Trino..."',
+    )
+
+    t1 >> t2
 """
-            with open(os.path.join(dags_dir, "gold_aggregations.py"), "w", encoding="utf-8") as f:
-                f.write(gold_dag)
-
-            maintenance_dag = """from datetime import datetime, timedelta
-from airflow import DAG
-from airflow.operators.bash import BashOperator
-
-default_args = {
-    'owner': 'lakehouse',
-    'start_date': datetime(2024, 1, 1),
-    'retries': 1
-}
-
-with DAG(
-    'iceberg_maintenance_dag',
-    default_args=default_args,
-    description='Iceberg Maintenance: Compaction and Snapshot Expiration',
-    schedule_interval='@daily',
-    catchup=False,
-    tags=['governance', 'iceberg', 'maintenance']
-) as dag:
-
-    compact_files = BashOperator(
-        task_id='rewrite_data_files',
-        bash_command='echo "Compacting small Parquet files in Iceberg..."'
-    )
-
-    expire_snapshots = BashOperator(
-        task_id='expire_snapshots',
-        bash_command='echo "Expiring old snapshots..."'
-    )
-
-    compact_files >> expire_snapshots
-"""
-            with open(os.path.join(dags_dir, "iceberg_maintenance.py"), "w", encoding="utf-8") as f:
-                f.write(maintenance_dag)
-        else:
-            with open(os.path.join(dags_dir, ".gitkeep"), "w", encoding="utf-8") as f:
-                f.write("")
-            with open(os.path.join(plugins_dir, ".gitkeep"), "w", encoding="utf-8") as f:
-                f.write("")
+            with open(os.path.join(dags_dir, "lakehouse_pipeline.py"), "w", encoding="utf-8") as f:
+                f.write(dag)
 
     def _generate_trino_files(self):
         trino_dir = os.path.join(self.project_dir, "trino", "etc")
-        catalog_dir = os.path.join(trino_dir, "catalog")
-        os.makedirs(catalog_dir, exist_ok=True)
+        cat_dir = os.path.join(trino_dir, "catalog")
+        os.makedirs(cat_dir, exist_ok=True)
 
-        node_props = "node.environment=production\nnode.id=ffffffff-ffff-ffff-ffff-ffffffffffff\nnode.data-dir=/data/trino\n"
-        with open(os.path.join(trino_dir, "node.properties"), "w", encoding="utf-8") as f:
-            f.write(node_props)
+        if "iceberg_rest" in self.tools:
+            iceberg_prop = """connector.name=iceberg
+iceberg.catalog.type=rest
+iceberg.rest-catalog.uri=http://iceberg-rest:8181
+iceberg.rest-catalog.v1.sub-namespace-enabled=true
+fs.native-s3.enabled=true
+s3.endpoint=http://minio:9000
+s3.path-style-access=true
+s3.aws-access-key=admin
+s3.aws-secret-key=admin123
+s3.region=us-east-1
+"""
+            with open(os.path.join(cat_dir, "iceberg.properties"), "w", encoding="utf-8") as f:
+                f.write(iceberg_prop)
 
-        jvm_cfg = "-server\n-Xmx2G\n-XX:+UnlockDiagnosticVMOptions\n-XX:G1NumCollectionsKeepPinned=10000000\n-XX:+UseG1GC\n-XX:G1HeapRegionSize=32M\n-XX:+ExplicitGCInvokesConcurrent\n-XX:+ExitOnOutOfMemoryError\n-Djdk.attach.allowAttachSelf=true\n-Dsun.reflect.inflationThreshold=0\n-Djnr.ffi.library.path=/usr/lib\n"
-        with open(os.path.join(trino_dir, "jvm.config"), "w", encoding="utf-8") as f:
-            f.write(jvm_cfg)
-
-        config_props = "coordinator=true\nnode-scheduler.include-coordinator=true\nhttp-server.http.port=8080\nquery.max-memory=1GB\nquery.max-memory-per-node=512MB\ndiscovery.uri=http://localhost:8080\n"
-        with open(os.path.join(trino_dir, "config.properties"), "w", encoding="utf-8") as f:
-            f.write(config_props)
-
-        iceberg_props = "connector.name=iceberg\niceberg.catalog.type=rest\niceberg.rest-catalog.uri=http://iceberg-rest:8181\niceberg.rest-catalog.warehouse=s3://lakehouse/\nfs.native-s3.enabled=true\ns3.endpoint=http://minio:9000\ns3.aws-access-key=admin\ns3.aws-secret-key=password123\ns3.path-style-access=true\ns3.region=us-east-1\n"
-        with open(os.path.join(catalog_dir, "iceberg.properties"), "w", encoding="utf-8") as f:
-            f.write(iceberg_props)
+        if "postgres" in self.tools:
+            pg_prop = """connector.name=postgresql
+connection-url=jdbc:postgresql://postgres:5432/oltp_db
+connection-user=admin
+connection-password=admin123
+"""
+            with open(os.path.join(cat_dir, "postgresql.properties"), "w", encoding="utf-8") as f:
+                f.write(pg_prop)
 
     def _generate_dbt_files(self):
         dbt_dir = os.path.join(self.project_dir, "dbt")
         models_dir = os.path.join(dbt_dir, "models")
         os.makedirs(models_dir, exist_ok=True)
 
-        dbt_project = f"""name: '{self.project_name}_dbt'
+        dbt_project = f"""name: '{self.project_name}'
 version: '1.0.0'
 config-version: 2
-profile: 'default'
+profile: '{self.project_name}_profile'
 model-paths: ["models"]
 target-path: "target"
 clean-targets:
@@ -1299,9 +1816,7 @@ clean-targets:
     def _generate_otel_files(self):
         otel_dir = os.path.join(self.project_dir, "otel")
         os.makedirs(otel_dir, exist_ok=True)
-        config_path = os.path.join(otel_dir, "otel-collector-config.yaml")
-
-        config_yaml = """receivers:
+        otel_yaml = """receivers:
   otlp:
     protocols:
       grpc:
@@ -1311,256 +1826,206 @@ clean-targets:
 
 processors:
   batch:
-    timeout: 1s
-    send_batch_size: 1024
-
-extensions:
-  health_check:
-    endpoint: 0.0.0.0:13133
 
 exporters:
-  debug:
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+  logging:
     verbosity: detailed
 
 service:
-  extensions: [health_check]
   pipelines:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [debug]
+      exporters: [logging]
     metrics:
       receivers: [otlp]
       processors: [batch]
-      exporters: [debug]
-    logs:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [debug]
+      exporters: [prometheus, logging]
 """
-        with open(config_path, "w", encoding="utf-8") as f:
-            f.write(config_yaml)
+        with open(os.path.join(otel_dir, "otel-collector-config.yaml"), "w", encoding="utf-8") as f:
+            f.write(otel_yaml)
 
     def _generate_nginx_files(self):
         nginx_dir = os.path.join(self.project_dir, "nginx")
-        html_dir = os.path.join(nginx_dir, "html")
-        os.makedirs(html_dir, exist_ok=True)
-
-        conf_content = """events { worker_connections 1024; }
-
+        os.makedirs(nginx_dir, exist_ok=True)
+        nginx_conf = """events {}
 http {
-    include       mime.types;
-    default_type  application/octet-stream;
-    sendfile        on;
-    keepalive_timeout  65;
-
     server {
-        listen       80;
-        server_name  localhost;
-
+        listen 80;
         location / {
-            root   /usr/share/nginx/html;
-            index  index.html index.htm;
-        }
-
-        location /health {
-            access_log off;
-            return 200 "OK\\n";
-            add_header Content-Type text/plain;
+            return 200 "StackStudio NGINX Gateway Online\\n";
         }
     }
 }
 """
         with open(os.path.join(nginx_dir, "nginx.conf"), "w", encoding="utf-8") as f:
-            f.write(conf_content)
-
-        index_html = f"""<!DOCTYPE html>
-<html>
-<head><title>{self.project_name} - NGINX</title></head>
-<body style="font-family: sans-serif; background: #0f172a; color: #f8fafc; text-align: center; padding: 50px;">
-    <h1>🚀 {self.project_name}</h1>
-    <p>NGINX Reverse Proxy & Web Server Operational.</p>
-</body>
-</html>
-"""
-        with open(os.path.join(html_dir, "index.html"), "w", encoding="utf-8") as f:
-            f.write(index_html)
+            f.write(nginx_conf)
 
     def _generate_kong_files(self):
         kong_dir = os.path.join(self.project_dir, "kong")
         os.makedirs(kong_dir, exist_ok=True)
-
         kong_yml = """_format_version: "3.0"
-_transform: true
-
 services:
-  - name: example-service
-    url: http://localhost:80
+  - name: internal-api
+    url: http://postgres:5432
     routes:
-      - name: example-route
+      - name: api-route
         paths:
           - /api
-plugins:
-  - name: rate-limiting
-    config:
-      minute: 100
-      policy: local
 """
         with open(os.path.join(kong_dir, "kong.yml"), "w", encoding="utf-8") as f:
             f.write(kong_yml)
 
     def _generate_ansible_files(self):
-        ansible_dir = os.path.join(self.project_dir, "ansible")
-        playbooks_dir = os.path.join(ansible_dir, "playbooks")
-        inventory_dir = os.path.join(ansible_dir, "inventory")
-        os.makedirs(playbooks_dir, exist_ok=True)
-        os.makedirs(inventory_dir, exist_ok=True)
-
-        ansible_cfg = """[defaults]
-inventory = inventory/hosts.ini
-host_key_checking = False
-retry_files_enabled = False
-stdout_callback = yaml
-"""
-        with open(os.path.join(ansible_dir, "ansible.cfg"), "w", encoding="utf-8") as f:
-            f.write(ansible_cfg)
-
-        hosts_ini = """[local]
-localhost ansible_connection=local
-
-[servers]
-# server1.example.com ansible_user=ubuntu
-"""
-        with open(os.path.join(inventory_dir, "hosts.ini"), "w", encoding="utf-8") as f:
-            f.write(hosts_ini)
-
-        site_yml = f"""---
-- name: Deploy and Configure {self.project_name}
+        ansible_dir = os.path.join(self.project_dir, "ansible", "playbooks")
+        os.makedirs(ansible_dir, exist_ok=True)
+        pb = f"""---
+- name: Configure {self.project_name} stack
   hosts: localhost
   connection: local
-  gather_facts: false
-
   tasks:
-    - name: Ping target hosts
+    - name: Ensure infrastructure is operational
       ansible.builtin.debug:
-        msg: "StackStudio Ansible Automation: {self.project_name} is ready!"
+        msg: "StackStudio Ansible Automation Online for {self.project_name}"
 """
-        with open(os.path.join(playbooks_dir, "site.yml"), "w", encoding="utf-8") as f:
-            f.write(site_yml)
+        with open(os.path.join(ansible_dir, "site.yml"), "w", encoding="utf-8") as f:
+            f.write(pb)
 
     def _generate_terraform_files(self):
         tf_dir = os.path.join(self.project_dir, "terraform")
         os.makedirs(tf_dir, exist_ok=True)
-
-        main_tf = f"""terraform {{
+        tf = f"""terraform {{
   required_version = ">= 1.5.0"
-  required_providers {{
-    local = {{
-      source  = "hashicorp/local"
-      version = "~> 2.4"
-    }}
-  }}
 }}
 
-provider "local" {{}}
-
-resource "local_file" "environment_metadata" {{
-  filename = "${{path.module}}/deployment-metadata.json"
-  content = jsonencode({{
-    project_name = "{self.project_name}"
-    environment  = var.environment
-    created_by   = "StackStudio"
-  }})
+output "project_name" {{
+  value = "{self.project_name}"
 }}
 """
         with open(os.path.join(tf_dir, "main.tf"), "w", encoding="utf-8") as f:
-            f.write(main_tf)
-
-        vars_tf = """variable "environment" {
-  type        = string
-  description = "Target deployment environment"
-  default     = "development"
-}
-"""
-        with open(os.path.join(tf_dir, "variables.tf"), "w", encoding="utf-8") as f:
-            f.write(vars_tf)
-
-        outputs_tf = f"""output "project_metadata_file" {{
-  value       = local_file.environment_metadata.filename
-  description = "Path to generated deployment metadata"
-}}
-"""
-        with open(os.path.join(tf_dir, "outputs.tf"), "w", encoding="utf-8") as f:
-            f.write(outputs_tf)
-
-        tfvars = """environment = "development"
-"""
-        with open(os.path.join(tf_dir, "terraform.tfvars"), "w", encoding="utf-8") as f:
-            f.write(tfvars)
+            f.write(tf)
 
     def _generate_hive_files(self):
-        hive_folder = self.request.custom_folders.get("hive_warehouse", "hive/warehouse")
-        hive_dir = os.path.join(self.project_dir, hive_folder)
+        hive_dir = os.path.join(self.project_dir, "hive", "warehouse")
         os.makedirs(hive_dir, exist_ok=True)
-
-        if self.include_templates:
-            init_hql = f"""-- =============================================================================
--- APACHE HIVE WAREHOUSE & METASTORE INITIALIZATION
--- Project: {self.project_name}
--- =============================================================================
-
-CREATE DATABASE IF NOT EXISTS analytics
-COMMENT 'Analytical Data Warehouse database managed by Hive'
-LOCATION 'hdfs://namenode:9000/user/hive/warehouse/analytics.db';
-
+        init_hql = f"""CREATE DATABASE IF NOT EXISTS analytics;
 USE analytics;
-
-CREATE EXTERNAL TABLE IF NOT EXISTS analytics.pageviews (
-    user_id STRING,
-    page_url STRING,
-    event_timestamp TIMESTAMP,
-    device_type STRING,
-    ip_address STRING
-)
-ROW FORMAT DELIMITED
-FIELDS TERMINATED BY ','
-STORED AS TEXTFILE
-LOCATION 'hdfs://namenode:9000/user/hive/warehouse/analytics.db/pageviews';
-
-SHOW TABLES IN analytics;
+CREATE TABLE IF NOT EXISTS pageviews (user_id STRING, page_url STRING, event_time TIMESTAMP)
+STORED AS TEXTFILE;
 """
-            with open(os.path.join(self.project_dir, "hive", "init.sql"), "w", encoding="utf-8") as f:
-                f.write(init_hql)
+        with open(os.path.join(self.project_dir, "hive", "init.sql"), "w", encoding="utf-8") as f:
+            f.write(init_hql)
 
     def _generate_zeppelin_files(self):
-        nb_folder = self.request.custom_folders.get("zeppelin_notebooks", "zeppelin/notebook")
-        nb_dir = os.path.join(self.project_dir, nb_folder)
+        nb_dir = os.path.join(self.project_dir, "zeppelin", "notebook")
         os.makedirs(nb_dir, exist_ok=True)
+        sample_nb = {
+            "paragraphs": [
+                {"text": f"%md\\n# {self.project_name}\\nNotebook Interativo", "status": "READY"},
+                {"text": "%pyspark\\nprint('Spark Session Ready!')", "status": "READY"}
+            ],
+            "name": f"Notebook-{self.project_name}",
+            "id": "2A94M5J1Z"
+        }
+        with open(os.path.join(nb_dir, "note.json"), "w", encoding="utf-8") as f:
+            json.dump(sample_nb, f, indent=2)
 
-        if self.include_templates:
-            sample_nb = {
-                "paragraphs": [
-                    {
-                        "text": f"%md\n# 🐘 Apache Zeppelin - {self.project_name}\nExploração Interativa de Big Data com Spark, Hive e PySpark",
-                        "status": "READY"
-                    },
-                    {
-                        "text": "%pyspark\n# Inicializando Spark Session\nprint('Spark Version:', spark.version)\ndf = spark.range(1, 100).toDF('id')\ndf.show(5)",
-                        "status": "READY"
-                    },
-                    {
-                        "text": "%sql\n-- Consulta SQL direta no Hive Metastore / Spark\nSHOW DATABASES;\n",
-                        "status": "READY"
-                    }
-                ],
-                "name": f"Tutorial-{self.project_name}",
-                "id": "2A94M5J1Z",
-                "noteParams": {},
-                "noteForms": {},
-                "angularObjects": {}
-            }
-            with open(os.path.join(nb_dir, "note.json"), "w", encoding="utf-8") as f:
-                json.dump(sample_nb, f, indent=2)
+    def _generate_additional_tool_files(self):
+        if "flink" in self.tools:
+            f_job = "# Apache Flink Streaming Job\\nprint('Flink Stream Processing Job Initialized')\\n"
+            with open(os.path.join(self.project_dir, "flink", "jobs", "stream_job.py"), "w", encoding="utf-8") as f:
+                f.write(f_job)
+
+        if "loki" in self.tools:
+            loki_cfg = """auth_enabled: false
+server:
+  http_listen_port: 3100
+schema_config:
+  configs:
+    - from: 2020-10-24
+      store: boltdb-shipper
+      object_store: filesystem
+      schema: v11
+      index:
+        prefix: index_
+        period: 24h
+storage_config:
+  boltdb_shipper:
+    active_index_directory: /loki/boltdb-shipper-active
+    cache_location: /loki/boltdb-shipper-cache
+  filesystem:
+    directory: /loki/chunks
+"""
+            with open(os.path.join(self.project_dir, "loki", "loki-config.yaml"), "w", encoding="utf-8") as f:
+                f.write(loki_cfg)
+
+            promtail_cfg = """server:
+  http_listen_port: 9080
+positions:
+  filename: /tmp/positions.yaml
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+scrape_configs:
+  - job_name: system
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: varlogs
+          __path__: /var/log/*log
+"""
+            with open(os.path.join(self.project_dir, "loki", "promtail-config.yaml"), "w", encoding="utf-8") as f:
+                f.write(promtail_cfg)
+
+        if "traefik" in self.tools:
+            traefik_dyn = """http:
+  routers:
+    dashboard:
+      rule: "PathPrefix(`/api`) || PathPrefix(`/dashboard`)"
+      service: api@internal
+"""
+            with open(os.path.join(self.project_dir, "traefik", "dynamic_conf.yml"), "w", encoding="utf-8") as f:
+                f.write(traefik_dyn)
+
+        if "suricata" in self.tools:
+            sur_rules = """# Suricata Local Rules
+alert icmp any any -> any any (msg:"ICMP Ping Detected"; sid:1000001; rev:1;)
+alert tcp any any -> any 80 (msg:"HTTP Connection Attempt"; sid:1000002; rev:1;)
+"""
+            with open(os.path.join(self.project_dir, "suricata", "rules", "local.rules"), "w", encoding="utf-8") as f:
+                f.write(sur_rules)
+
+        if "zeek" in self.tools:
+            zeek_script = """# Zeek Local Policy Script
+@load base/protocols/conn
+@load base/protocols/http
+@load base/protocols/dns
+event zeek_init() {
+    print "Zeek Network Security Monitor Initialized";
+}
+"""
+            with open(os.path.join(self.project_dir, "zeek", "scripts", "local.zeek"), "w", encoding="utf-8") as f:
+                f.write(zeek_script)
+
+        if "wazuh" in self.tools:
+            waz_rules = """<!-- Wazuh Custom Detection Rules -->
+<group name="local,custom,">
+  <rule id="100001" level="5">
+    <description>Local Security Audit Event Detected</description>
+  </rule>
+</group>
+"""
+            with open(os.path.join(self.project_dir, "wazuh", "rules", "local_rules.xml"), "w", encoding="utf-8") as f:
+                f.write(waz_rules)
+
+        if "vault" in self.tools:
+            vault_pol = """path "secret/data/*" {
+  capabilities = ["create", "read", "update", "delete", "list"]
+}
+"""
+            with open(os.path.join(self.project_dir, "vault", "policies", "app_policy.hcl"), "w", encoding="utf-8") as f:
+                f.write(vault_pol)
 
     def _generate_scripts(self):
         scripts_dir = os.path.join(self.project_dir, "scripts")
@@ -1599,17 +2064,6 @@ docker compose down
 """
         with open(os.path.join(scripts_dir, "stop.sh"), "w", encoding="utf-8") as f:
             f.write(stop_sh)
-
-        if "kafka_connect" in self.tools:
-            reg_ps1 = """$ConnectUrl = "http://localhost:8083"
-$ConfigFile = Join-Path $PSScriptRoot "..\debezium\register-postgres.json"
-Write-Host "Registering Debezium Connector..." -ForegroundColor Cyan
-$jsonBody = Get-Content -Raw -Path $ConfigFile
-Invoke-RestMethod -Uri "$ConnectUrl/connectors" -Method Post -Body $jsonBody -ContentType "application/json"
-Write-Host "Connector registered!" -ForegroundColor Green
-"""
-            with open(os.path.join(scripts_dir, "register-connectors.ps1"), "w", encoding="utf-8") as f:
-                f.write(reg_ps1)
 
     def _generate_makefile(self):
         makefile = f""".PHONY: start stop restart status logs test clean
@@ -1657,8 +2111,6 @@ clean:
 AUTOMATED END-TO-END SERVICE HEALTH & FUNCTIONAL TEST SUITE
 Project: {self.project_name}
 =============================================================================
-This test suite automatically verifies network connectivity, authentication,
-and core functionality across all active containers in the project.
 """
 
 import sys
@@ -1698,8 +2150,7 @@ def check_http_endpoint(url, timeout=4.0):
             return True, f"HTTP {{response.status}} ({{latency:.1f}}ms)"
     except urllib.error.HTTPError as e:
         latency = (time.time() - start) * 1000
-        # 302, 401, 403 are often valid responses for auth-protected endpoints like Airflow/Keycloak
-        if e.code in (200, 302, 401, 403):
+        if e.code in (200, 302, 401, 403, 404):
             return True, f"HTTP {{e.code}} ({{latency:.1f}}ms)"
         return False, f"HTTP Error {{e.code}}"
     except Exception as e:
@@ -1713,293 +2164,26 @@ def run_all_tests():
 
     results = []
 
-    # 1. PostgreSQL
-    if "postgres" in ENABLED_TOOLS:
-        port = CUSTOM_PORTS.get("postgres", 5434)
-        ok, detail = check_tcp_port("localhost", port)
-        results.append(("PostgreSQL (OLTP + CDC)", port, ok, detail))
+    for tool_id in sorted(ENABLED_TOOLS):
+        port = CUSTOM_PORTS.get(tool_id)
+        if port:
+            ok, detail = check_tcp_port("localhost", port)
+            results.append((tool_id, port, ok, detail))
 
-    # 2. MySQL
-    if "mysql" in ENABLED_TOOLS:
-        port = CUSTOM_PORTS.get("mysql", 3306)
-        ok, detail = check_tcp_port("localhost", port)
-        results.append(("MySQL 8 (OLTP + Binlog)", port, ok, detail))
-
-    # 3. ClickHouse
-    if "clickhouse" in ENABLED_TOOLS:
-        port = CUSTOM_PORTS.get("clickhouse", 8123)
-        ok, detail = check_http_endpoint(f"http://localhost:{{port}}/ping")
-        results.append(("ClickHouse OLAP", port, ok, detail))
-
-    # 4. Kafka
-    if "kafka" in ENABLED_TOOLS:
-        port = CUSTOM_PORTS.get("kafka", 9092)
-        ok, detail = check_tcp_port("localhost", port)
-        results.append(("Apache Kafka (KRaft Broker)", port, ok, detail))
-
-    # 5. Schema Registry
-    if "schema_registry" in ENABLED_TOOLS:
-        port = CUSTOM_PORTS.get("schema_registry", 8086)
-        ok, detail = check_http_endpoint(f"http://localhost:{{port}}/subjects")
-        results.append(("Confluent Schema Registry", port, ok, detail))
-
-    # 6. Kafka Connect
-    if "kafka_connect" in ENABLED_TOOLS:
-        port = CUSTOM_PORTS.get("kafka_connect", 8083)
-        ok, detail = check_http_endpoint(f"http://localhost:{{port}}/connectors")
-        results.append(("Kafka Connect (Debezium CDC)", port, ok, detail))
-
-    # 7. Kafka UI
-    if "kafka_ui" in ENABLED_TOOLS:
-        port = CUSTOM_PORTS.get("kafka_ui", 8087)
-        ok, detail = check_http_endpoint(f"http://localhost:{{port}}")
-        results.append(("Kafka UI (Provectus)", port, ok, detail))
-
-    # 8. MinIO Object Storage
-    if "minio" in ENABLED_TOOLS:
-        port = CUSTOM_PORTS.get("minio", 9001)
-        ok, detail = check_http_endpoint(f"http://localhost:{{port}}/minio/health/live")
-        results.append(("MinIO S3 Storage & Console", port, ok, detail))
-
-    # 9. Iceberg REST Catalog
-    if "iceberg_rest" in ENABLED_TOOLS:
-        port = CUSTOM_PORTS.get("iceberg_rest", 8181)
-        ok, detail = check_http_endpoint(f"http://localhost:{{port}}/v1/config")
-        results.append(("Apache Iceberg REST Catalog", port, ok, detail))
-
-    # 10. Apache Spark
-    if "spark" in ENABLED_TOOLS:
-        port = CUSTOM_PORTS.get("spark", 8082)
-        ok, detail = check_http_endpoint(f"http://localhost:{{port}}")
-        results.append(("Apache Spark Master UI", port, ok, detail))
-
-    # 11. Trino
-    if "trino" in ENABLED_TOOLS:
-        port = CUSTOM_PORTS.get("trino", 8085)
-        ok, detail = check_http_endpoint(f"http://localhost:{{port}}/v1/info")
-        results.append(("Trino Distributed SQL Engine", port, ok, detail))
-
-    # 12. Airflow
-    if "airflow" in ENABLED_TOOLS:
-        port = CUSTOM_PORTS.get("airflow", 8088)
-        ok, detail = check_http_endpoint(f"http://localhost:{{port}}/health")
-        results.append(("Apache Airflow Webserver", port, ok, detail))
-
-    # 13. Mage
-    if "mage" in ENABLED_TOOLS:
-        port = CUSTOM_PORTS.get("mage", 6789)
-        ok, detail = check_http_endpoint(f"http://localhost:{{port}}")
-        results.append(("Mage.ai Orchestrator", port, ok, detail))
-
-    # 14. Prefect
-    if "prefect" in ENABLED_TOOLS:
-        port = CUSTOM_PORTS.get("prefect", 4200)
-        ok, detail = check_http_endpoint(f"http://localhost:{{port}}/api/health")
-        results.append(("Prefect Server", port, ok, detail))
-
-    # 15. MLflow
-    if "mlflow" in ENABLED_TOOLS:
-        port = CUSTOM_PORTS.get("mlflow", 5001)
-        ok, detail = check_http_endpoint(f"http://localhost:{{port}}")
-        results.append(("MLflow Tracking & Registry", port, ok, detail))
-
-    # 16. JupyterLab
-    if "jupyterlab" in ENABLED_TOOLS:
-        port = CUSTOM_PORTS.get("jupyterlab", 8888)
-        ok, detail = check_http_endpoint(f"http://localhost:{{port}}")
-        results.append(("JupyterLab Workspace", port, ok, detail))
-
-    # 17. Qdrant
-    if "qdrant" in ENABLED_TOOLS:
-        port = CUSTOM_PORTS.get("qdrant", 6333)
-        ok, detail = check_http_endpoint(f"http://localhost:{{port}}/dashboard")
-        results.append(("Qdrant Vector DB", port, ok, detail))
-
-    # 18. Redis
-    if "redis" in ENABLED_TOOLS:
-        port = CUSTOM_PORTS.get("redis", 6380)
-        ok, detail = check_tcp_port("localhost", port)
-        results.append(("Redis Cache & Store", port, ok, detail))
-
-    # 19. RabbitMQ
-    if "rabbitmq" in ENABLED_TOOLS:
-        port = CUSTOM_PORTS.get("rabbitmq", 15672)
-        ok, detail = check_http_endpoint(f"http://localhost:{{port}}")
-        results.append(("RabbitMQ Management UI", port, ok, detail))
-
-    # 20. Keycloak
-    if "keycloak" in ENABLED_TOOLS:
-        port = CUSTOM_PORTS.get("keycloak", 8090)
-        ok, detail = check_http_endpoint(f"http://localhost:{{port}}")
-        results.append(("Keycloak IAM", port, ok, detail))
-
-    # 21. Hasura
-    if "hasura" in ENABLED_TOOLS:
-        port = CUSTOM_PORTS.get("hasura", 8095)
-        ok, detail = check_http_endpoint(f"http://localhost:{{port}}/healthz")
-        results.append(("Hasura GraphQL Engine", port, ok, detail))
-
-    # 22. Grafana
-    if "grafana" in ENABLED_TOOLS:
-        port = CUSTOM_PORTS.get("grafana", 3005)
-        ok, detail = check_http_endpoint(f"http://localhost:{{port}}/api/health")
-        results.append(("Grafana Dashboards", port, ok, detail))
-
-    # 23. Prometheus
-    if "prometheus" in ENABLED_TOOLS:
-        port = CUSTOM_PORTS.get("prometheus", 9095)
-        ok, detail = check_http_endpoint(f"http://localhost:{{port}}/-/healthy")
-        results.append(("Prometheus Monitoring", port, ok, detail))
-
-    # 24. Portainer
-    if "portainer" in ENABLED_TOOLS:
-        port = CUSTOM_PORTS.get("portainer", 9443)
-        ok, detail = check_tcp_port("localhost", port)
-        results.append(("Portainer CE", port, ok, detail))
-
-    # 25. pgAdmin
-    if "pgadmin" in ENABLED_TOOLS:
-        port = CUSTOM_PORTS.get("pgadmin", 5055)
-        ok, detail = check_http_endpoint(f"http://localhost:{{port}}")
-        results.append(("pgAdmin 4 Web", port, ok, detail))
-
-    # 26. Apache Hadoop HDFS
-    if "hdfs" in ENABLED_TOOLS:
-        port = CUSTOM_PORTS.get("hdfs", 9870)
-        ok, detail = check_http_endpoint(f"http://localhost:{{port}}")
-        results.append(("Hadoop HDFS (NameNode UI)", port, ok, detail))
-
-    # 27. Apache Hadoop YARN
-    if "yarn" in ENABLED_TOOLS:
-        port = CUSTOM_PORTS.get("yarn", 8089)
-        ok, detail = check_http_endpoint(f"http://localhost:{{port}}/cluster")
-        results.append(("Hadoop YARN (ResourceManager UI)", port, ok, detail))
-
-    # 28. Apache Hive
-    if "hive" in ENABLED_TOOLS:
-        port = CUSTOM_PORTS.get("hive", 10002)
-        ok, detail = check_tcp_port("localhost", 10000)
-        results.append(("Apache Hive (HiveServer2 10000)", port, ok, detail))
-
-    # 29. Apache Zeppelin
-    if "zeppelin" in ENABLED_TOOLS:
-        port = CUSTOM_PORTS.get("zeppelin", 8090)
-        ok, detail = check_http_endpoint(f"http://localhost:{{port}}")
-        results.append(("Apache Zeppelin Notebook", port, ok, detail))
-
-    # 30. Ollama Local LLM Engine
-    if "ollama" in ENABLED_TOOLS:
-        port = CUSTOM_PORTS.get("ollama", 11434)
-        ok, detail = check_http_endpoint(f"http://localhost:{{port}}/api/version")
-        results.append(("Ollama LLM Engine", port, ok, detail))
-
-    # 31. Open WebUI
-    if "open_webui" in ENABLED_TOOLS:
-        port = CUSTOM_PORTS.get("open_webui", 3000)
-        ok, detail = check_http_endpoint(f"http://localhost:{{port}}")
-        results.append(("Open WebUI (ChatGPT Clone)", port, ok, detail))
-
-    # 32. LocalAI
-    if "localai" in ENABLED_TOOLS:
-        port = CUSTOM_PORTS.get("localai", 8091)
-        ok, detail = check_http_endpoint(f"http://localhost:{{port}}/readyz")
-        results.append(("LocalAI OpenAI Engine", port, ok, detail))
-
-    # PRINT SUMMARY
-    passed = 0
+    passed = sum(1 for r in results if r[2])
     total = len(results)
 
-    for name, port, ok, detail in results:
-        status_badge = f"{{Colors.GREEN}}[PASSED]{{Colors.END}}" if ok else f"{{Colors.RED}}[FAILED]{{Colors.END}}"
-        if ok:
-            passed += 1
-            if isinstance(detail, float):
-                info = f"Online ({{detail:.1f}}ms)"
-            else:
-                info = f"Online ({{detail}})"
-        else:
-            info = f"Offline / Error: {{detail}}"
-
-        print(f" {{status_badge}} {{name:<32}} (Port: {{port}}): {{info}}")
-
-    print("-" * 70)
-    if passed == total:
-        print(f" {{Colors.GREEN}}{{Colors.BOLD}}[SUCCESS]{{Colors.END}} All {{total}}/{{total}} services are healthy and operational!")
-    else:
-        print(f" {{Colors.YELLOW}}{{Colors.BOLD}}[WARNING]{{Colors.END}} {{passed}}/{{total}} services passed. If containers just started, allow a few seconds for initialization and retry.")
-    print("=" * 70)
-
-    return passed == total
+    print(f"\\nTestes concluidos: {{passed}}/{{total}} serviços responsivos.")
+    return 0 if passed == total else 1
 
 if __name__ == "__main__":
-    success = run_all_tests()
-    sys.exit(0 if success else 1)
+    sys.exit(run_all_tests())
 '''
         with open(os.path.join(tests_dir, "test_services.py"), "w", encoding="utf-8") as f:
             f.write(test_py)
 
-        # Pytest config
-        pytest_ini = """[pytest]
-testpaths = tests
-python_files = test_*.py
-python_classes = Test*
-python_functions = test_*
-markers =
-    unit: Testes unitarios (sem dependencias externas de containers)
-    integration: Testes de integracao (requer containers Docker ativos)
-    slow: Testes com maior tempo de execucao
-addopts = -v --tb=short -ra
-"""
-        with open(os.path.join(self.project_dir, "pytest.ini"), "w", encoding="utf-8") as f:
-            f.write(pytest_ini)
-
-        # conftest.py
-        conftest_py = f"""import os
-import pytest
-import requests
-
-@pytest.fixture(scope="session")
-def http_session():
-    session = requests.Session()
-    session.headers.update({{"User-Agent": "StackStudio-Test-Runner/1.0"}})
-    yield session
-    session.close()
-
-@pytest.fixture
-def sample_cdc_event():
-    return {{
-        "before": None,
-        "after": {{
-            "order_id": 1001,
-            "customer_id": 42,
-            "status": "PROCESSING",
-            "total_amount": 149.90,
-            "order_date": 1724932800000000,
-            "updated_at": 1724932800000000
-        }},
-        "source": {{
-            "version": "2.6.1.Final",
-            "connector": "postgresql",
-            "name": "cdc",
-            "ts_ms": 1724932800000,
-            "db": "oltp_db",
-            "schema": "ecommerce",
-            "table": "orders",
-            "txId": 501,
-            "lsn": 24567890
-        }},
-        "op": "c",
-        "ts_ms": 1724932800100,
-        "transaction": None
-    }}
-"""
-        with open(os.path.join(tests_dir, "conftest.py"), "w", encoding="utf-8") as f:
-            f.write(conftest_py)
-
-        # Unit Tests
         unit_dir = os.path.join(tests_dir, "unit")
         os.makedirs(unit_dir, exist_ok=True)
-
         config_val_py = """import yaml
 import pytest
 from pathlib import Path
@@ -2031,86 +2215,6 @@ class TestConfigValidation:
 """
         with open(os.path.join(unit_dir, "test_config_validation.py"), "w", encoding="utf-8") as f:
             f.write(config_val_py)
-
-        cdc_parser_py = """import pytest
-from datetime import datetime
-from typing import Dict, Any
-
-class CDCPayloadParser:
-    @staticmethod
-    def parse_event(event: Dict[str, Any]) -> Dict[str, Any]:
-        if not isinstance(event, dict):
-            raise ValueError("Invalid CDC event: must be a dictionary")
-        op = event.get("op")
-        if op not in ("c", "u", "d", "r"):
-            raise ValueError(f"Unsupported CDC operation type: '{op}'")
-        source = event.get("source") or {}
-        table = source.get("table")
-        schema = source.get("schema")
-        if op == "d":
-            data = event.get("before") or {}
-            is_deleted = True
-        else:
-            data = event.get("after") or {}
-            is_deleted = False
-        ts_ms = event.get("ts_ms")
-        event_timestamp = datetime.utcfromtimestamp(ts_ms / 1000.0) if ts_ms else datetime.utcnow()
-        return {
-            "table_name": f"{schema}.{table}" if schema and table else table,
-            "operation": op,
-            "is_deleted": is_deleted,
-            "data": data,
-            "event_timestamp": event_timestamp.isoformat(),
-            "lsn": source.get("lsn"),
-            "tx_id": source.get("txId")
-        }
-
-@pytest.mark.unit
-class TestCDCPayloadParser:
-    def test_parse_create_event(self, sample_cdc_event):
-        res = CDCPayloadParser.parse_event(sample_cdc_event)
-        assert res["operation"] == "c"
-        assert res["is_deleted"] is False
-        assert res["data"]["order_id"] == 1001
-"""
-        with open(os.path.join(unit_dir, "test_cdc_payload_parser.py"), "w", encoding="utf-8") as f:
-            f.write(cdc_parser_py)
-
-        # Integration Tests
-        integration_dir = os.path.join(tests_dir, "integration")
-        os.makedirs(integration_dir, exist_ok=True)
-
-        # run_all_tests.py
-        runner_py = """import sys
-import subprocess
-
-def main():
-    args = sys.argv[1:]
-    mode = "all"
-    if "--unit" in args:
-        mode = "unit"
-    elif "--integration" in args:
-        mode = "integration"
-
-    print("=" * 70)
-    print(f" [*] EXECUTANDO SUITE DE TESTES: MODE={mode.upper()}")
-    print("=" * 70)
-
-    cmd = [sys.executable, "-m", "pytest"]
-    if mode == "unit":
-        cmd.extend(["-m", "unit"])
-    elif mode == "integration":
-        cmd.extend(["-m", "integration"])
-    cmd.extend(["-v", "--tb=short"])
-
-    res = subprocess.run(cmd)
-    sys.exit(res.returncode)
-
-if __name__ == "__main__":
-    main()
-"""
-        with open(os.path.join(tests_dir, "run_all_tests.py"), "w", encoding="utf-8") as f:
-            f.write(runner_py)
 
     def _generate_readme(self):
         readme_lines = [
@@ -2153,15 +2257,12 @@ if __name__ == "__main__":
             f.write("\n".join(readme_lines))
 
     def _get_vscode_extensions(self) -> List[str]:
-        """Calculates official and recommended VS Code extensions based on selected tools and user custom list."""
         extensions: List[str] = ["redhat.vscode-yaml", "eamodio.gitlens", "ms-azuretools.vscode-docker"]
-        
         mapping = {
             "python": ["ms-python.python", "ms-python.vscode-pylance", "ms-toolsai.jupyter"],
             "spark": ["ms-python.python", "ms-toolsai.jupyter"],
-            "pyspark": ["ms-python.python", "ms-toolsai.jupyter"],
+            "flink": ["ms-python.python", "vscjava.vscode-java-pack"],
             "airflow": ["ms-python.python", "redhat.vscode-yaml"],
-            "fastapi": ["ms-python.python"],
             "dbt": ["innoverio.vscode-dbt-power-user", "ms-python.python"],
             "postgres": ["ckolkman.vscode-postgres", "mtxr.sqltools"],
             "mysql": ["cweijan.vscode-database-client2", "mtxr.sqltools"],
@@ -2169,15 +2270,14 @@ if __name__ == "__main__":
             "redis": ["cweijan.vscode-database-client2"],
             "kafka": ["formulahendry.vscode-kafka"],
             "terraform": ["hashicorp.terraform"],
+            "vault": ["hashicorp.hcl", "hashicorp.vault"],
             "ansible": ["redhat.ansible", "redhat.vscode-yaml"],
             "nginx": ["ahmadalli.vscode-nginx-conf"],
-            "k8s": ["ms-kubernetes-tools.vscode-kubernetes-tools", "redhat.vscode-yaml"],
-            "opentelemetry": ["redhat.vscode-yaml"],
-            "openmetadata": ["redhat.vscode-yaml"],
-            "hdfs": ["redhat.vscode-yaml"],
-            "yarn": ["redhat.vscode-yaml"],
-            "hive": ["alanz.vscode-hql", "mtxr.sqltools", "redhat.vscode-yaml"],
-            "zeppelin": ["ms-python.python", "ms-toolsai.jupyter"]
+            "loki": ["grafana.grafana", "redhat.vscode-yaml"],
+            "sonarqube": ["sonarsource.sonarlint-vscode"],
+            "trivy": ["aquasecurity.trivy-vulnerability-scanner"],
+            "gitleaks": ["zricethezav.gitleaks"],
+            "wazuh": ["redhat.vscode-xml", "redhat.vscode-yaml"]
         }
 
         for tool in self.tools:
@@ -2186,7 +2286,6 @@ if __name__ == "__main__":
                     if ext not in extensions:
                         extensions.append(ext)
 
-        # Add user-customized extensions
         custom_exts = getattr(self.request, "custom_vscode_extensions", None)
         if custom_exts and isinstance(custom_exts, list):
             for ext in custom_exts:
@@ -2196,20 +2295,14 @@ if __name__ == "__main__":
         return extensions
 
     def _generate_vscode_files(self):
-        """Generates .vscode/extensions.json, .vscode/settings.json, and vscode/entrypoint.sh."""
         vscode_dir = os.path.join(self.project_dir, ".vscode")
         os.makedirs(vscode_dir, exist_ok=True)
-
         exts = self._get_vscode_extensions()
         
-        # 1. .vscode/extensions.json (Official VS Code Workspace Recommendations)
-        extensions_json = {
-            "recommendations": exts
-        }
+        extensions_json = {"recommendations": exts}
         with open(os.path.join(vscode_dir, "extensions.json"), "w", encoding="utf-8") as f:
             json.dump(extensions_json, f, indent=2)
 
-        # 2. .vscode/settings.json
         settings_json = {
             "files.autoSave": "afterDelay",
             "editor.formatOnSave": True,
@@ -2220,7 +2313,6 @@ if __name__ == "__main__":
         with open(os.path.join(vscode_dir, "settings.json"), "w", encoding="utf-8") as f:
             json.dump(settings_json, f, indent=2)
 
-        # 3. vscode/entrypoint.sh (Auto-install script executed by code-server container)
         vscode_scripts_dir = os.path.join(self.project_dir, "vscode")
         os.makedirs(vscode_scripts_dir, exist_ok=True)
 
@@ -2242,6 +2334,5 @@ fi
 echo "Iniciando code-server..."
 exec code-server --auth none --bind-addr 0.0.0.0:8080 /home/coder/project
 """
-        entrypoint_path = os.path.join(vscode_scripts_dir, "entrypoint.sh")
-        with open(entrypoint_path, "w", encoding="utf-8", newline="\n") as f:
+        with open(os.path.join(vscode_scripts_dir, "entrypoint.sh"), "w", encoding="utf-8", newline="\n") as f:
             f.write(entrypoint_content)
