@@ -9,3 +9,4 @@ resources:
 - redis.yaml
 - nginx.yaml
 - apigateway.yaml
+- vscode.yaml

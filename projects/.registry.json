@@ -108,15 +108,16 @@
     "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\devops-edge-stack",
     "description": "Projeto devops-edge-stack criado via CLI",
     "tools": [
-      "terraform",
+      "redis",
+      "nginx",
       "apigateway",
       "ansible",
-      "nginx",
+      "terraform",
       "postgres",
-      "redis"
+      "vscode"
     ],
     "include_templates": true,
-    "created_at": "2026-08-29 12:56:21"
+    "created_at": "2026-08-29 13:14:45"
   },
   "velosec-log": {
     "id": "velosec-log",

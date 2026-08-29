@@ -423,6 +423,17 @@ CATEGORIES: List[ToolCategory] = [
                 icon="layers",
                 badge="Infrastructure as Code",
                 default_folders={"root": "terraform"}
+            ),
+            ToolOption(
+                id="vscode",
+                name="VS Code Web (IDE)",
+                category="devops",
+                description="Ambiente de desenvolvimento completo do Visual Studio Code no navegador para editar códigos e scripts diretamente no browser.",
+                icon="code",
+                badge="Web IDE",
+                default_port=8443,
+                ui_url="http://localhost:8443/?folder=/home/coder/project",
+                env_vars={"PASSWORD": "admin"}
             )
         ]
     )

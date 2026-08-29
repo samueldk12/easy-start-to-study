@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vscode
+  namespace: stack-devops-edge-stack
+  labels:
+    app: vscode
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vscode
+  template:
+    metadata:
+      labels:
+        app: vscode
+    spec:
+      containers:
+      - name: vscode
+        image: codercom/code-server:latest
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: PASSWORD
+          value: "admin"
+        - name: DEFAULT_WORKSPACE
+          value: "/home/coder/project"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vscode
+  namespace: stack-devops-edge-stack
+  labels:
+    app: vscode
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: http
+  selector:
+    app: vscode

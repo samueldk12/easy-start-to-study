@@ -12,6 +12,7 @@
 | **PostgreSQL (OLTP + CDC)** | `data_engineering` | `5434` | - |
 | **Redis & Redis Commander** | `backend` | `6380` | http://localhost:8089 |
 | **Terraform (IaC)** | `devops` | `-` | - |
+| **VS Code Web (IDE)** | `devops` | `8443` | http://localhost:8443/?folder=/home/coder/project |
 
 ## ⚡ Como Iniciar o Projeto e Rodar os Testes
 

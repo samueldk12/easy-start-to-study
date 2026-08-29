@@ -88,6 +88,10 @@ class K8sScaffolder:
             self._generate_apigateway_manifest()
             resources.append("apigateway.yaml")
 
+        if "vscode" in self.tools:
+            self._generate_vscode_manifest()
+            resources.append("vscode.yaml")
+
         # 4. Kustomization
         self._generate_kustomization(resources)
 
@@ -870,6 +874,55 @@ spec:
     app: kong
 """
         with open(os.path.join(self.k8s_dir, "apigateway.yaml"), "w", encoding="utf-8") as f:
+            f.write(manifest)
+
+    def _generate_vscode_manifest(self):
+        manifest = f"""apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vscode
+  namespace: {self.namespace}
+  labels:
+    app: vscode
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vscode
+  template:
+    metadata:
+      labels:
+        app: vscode
+    spec:
+      containers:
+      - name: vscode
+        image: codercom/code-server:latest
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: PASSWORD
+          value: "admin"
+        - name: DEFAULT_WORKSPACE
+          value: "/home/coder/project"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vscode
+  namespace: {self.namespace}
+  labels:
+    app: vscode
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: http
+  selector:
+    app: vscode
+"""
+        with open(os.path.join(self.k8s_dir, "vscode.yaml"), "w", encoding="utf-8") as f:
             f.write(manifest)
 
     def _generate_kustomization(self, resources: List[str]):

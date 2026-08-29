@@ -73,9 +73,23 @@ services:
     - ./kong/kong.yml:/etc/kong/kong.yml:ro
     networks:
     - devops-edge-stack-net
+  vscode:
+    image: codercom/code-server:latest
+    container_name: devops-edge-stack-vscode
+    environment:
+      PASSWORD: ${VSCODE_PASSWORD:-admin123}
+      DEFAULT_WORKSPACE: /home/coder/project
+    ports:
+    - 8443:8080
+    volumes:
+    - ./:/home/coder/project
+    - vscode_config:/home/coder/.config
+    networks:
+    - devops-edge-stack-net
 networks:
   devops-edge-stack-net:
     driver: bridge
 volumes:
   pg_data: {}
   redis_data: {}
+  vscode_config: {}

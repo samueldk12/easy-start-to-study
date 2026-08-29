@@ -196,6 +196,10 @@
                 </div>
 
                 <div class="flex items-center space-x-1">
+                  <!-- VS Code Web Button -->
+                  <button @click="openVsCode(project)" title="Abrir Código no VS Code Web (Navegador)" class="p-2 text-blue-400 hover:text-white bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition">
+                    <i data-lucide="code-2" class="w-4 h-4"></i>
+                  </button>
                   <!-- Topology Graph Button -->
                   <button @click="openGraphModal(project)" title="Ver Topologia & Grafo da Arquitetura" class="p-2 text-brand-400 hover:text-white bg-brand-500/10 hover:bg-brand-500/20 rounded-lg transition">
                     <i data-lucide="share-2" class="w-4 h-4"></i>
@@ -1179,6 +1183,18 @@
             console.error('Error fetching graph:', e);
           }
           this.$nextTick(() => lucide.createIcons());
+        },
+
+        openVsCode(project) {
+          let port = (project.custom_ports && project.custom_ports.vscode) || 8443;
+          if (project.containers) {
+            const vsContainer = project.containers.find(c => c.service === 'vscode' || c.name.includes('vscode'));
+            if (vsContainer && vsContainer.ports) {
+              const match = vsContainer.ports.match(/(\d+)->8080/);
+              if (match) port = match[1];
+            }
+          }
+          window.open(`http://localhost:${port}/?folder=/home/coder/project`, '_blank');
         },
 
         openPluginsModal() {

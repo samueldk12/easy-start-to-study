@@ -14,7 +14,7 @@ import urllib.request
 import urllib.error
 import json
 
-ENABLED_TOOLS = set(['terraform', 'apigateway', 'ansible', 'nginx', 'postgres', 'redis'])
+ENABLED_TOOLS = set(['redis', 'nginx', 'apigateway', 'ansible', 'terraform', 'postgres', 'vscode'])
 CUSTOM_PORTS = {}
 
 class Colors:

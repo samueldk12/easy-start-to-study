@@ -66,6 +66,12 @@ RELATIONSHIPS = [
     {"source": "portainer", "target": "docker", "label": "Container Socket Management", "type": "devops"},
     {"source": "ansible", "target": "postgres", "label": "Automates Host & DDL Configuration", "type": "iac"},
     {"source": "terraform", "target": "minio", "label": "Provisions Buckets & S3 Policies", "type": "iac"},
+    {"source": "vscode", "target": "spark", "label": "Develops & Edits PySpark Jobs", "type": "ide"},
+    {"source": "vscode", "target": "airflow", "label": "Authors Python DAG Pipelines", "type": "ide"},
+    {"source": "vscode", "target": "dbt", "label": "Authors SQL Models & Macros", "type": "ide"},
+    {"source": "vscode", "target": "postgres", "label": "Direct Database SQL Editing", "type": "ide"},
+    {"source": "vscode", "target": "ansible", "label": "Authors Playbooks & Tasks", "type": "ide"},
+    {"source": "vscode", "target": "terraform", "label": "Authors HCL Modules & Plans", "type": "ide"},
 ]
 
 # Category colors for UI styling

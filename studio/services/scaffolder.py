@@ -674,6 +674,25 @@ class ProjectScaffolder:
                 "networks": [network_name]
             }
 
+        # --- VS CODE WEB (CODE-SERVER) ---
+        if "vscode" in self.tools:
+            port = self.request.custom_ports.get("vscode", 8443)
+            services["vscode"] = {
+                "image": "codercom/code-server:latest",
+                "container_name": f"{self.project_name}-vscode",
+                "environment": {
+                    "PASSWORD": "${VSCODE_PASSWORD:-admin123}",
+                    "DEFAULT_WORKSPACE": "/home/coder/project"
+                },
+                "ports": [f"{port}:8080"],
+                "volumes": [
+                    "./:/home/coder/project",
+                    "vscode_config:/home/coder/.config"
+                ],
+                "networks": [network_name]
+            }
+            volumes["vscode_config"] = None
+
         # --- CUSTOM PLUGINS ---
         from studio.services.plugin_manager import PluginManager
         for tool_id in self.tools:
