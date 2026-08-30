@@ -236,7 +236,9 @@ class ProjectStore:
                                     if ":" in p_str:
                                         host_port = p_str.split(":")[0].strip().replace('"', '').replace("'", "")
                                         # Match service types
-                                        if svc_name.lower() in ("web", "frontend", "app", "ui", "client") or host_port == "3000":
+                                        if "vscode" in svc_name.lower() or "code-server" in svc_name.lower():
+                                            add_link("VS Code Web (IDE)", f"http://localhost:{host_port}/?folder=/home/coder/project", "code")
+                                        elif svc_name.lower() in ("web", "frontend", "app", "ui", "client") or host_port in ("3000", "3001", "3002", "3003", "5173", "5174"):
                                             name = "Next.js Web App" if has_next or "next" in str(svc_conf) else f"Web App ({svc_name})"
                                             add_link(name, f"http://localhost:{host_port}", "globe")
                                         elif svc_name.lower() in ("mailpit", "mailhog") and host_port in ("8025", "8026"):
@@ -263,7 +265,7 @@ class ProjectStore:
                                             add_link("MLflow UI", f"http://localhost:{host_port}", "activity")
                                         elif "metabase" in svc_name.lower() or host_port == "3006":
                                             add_link("Metabase BI", f"http://localhost:{host_port}", "pie-chart")
-                                        elif "wazuh" in svc_name.lower() or host_port == "8444":
+                                        elif "wazuh" in svc_name.lower():
                                             add_link("Wazuh Dashboard", f"https://localhost:{host_port}", "shield")
                                         elif "splunk" in svc_name.lower() or host_port == "8001":
                                             add_link("Splunk Enterprise", f"http://localhost:{host_port}", "search")

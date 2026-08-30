@@ -1,13 +1,31 @@
-"""
-Docker Compose Lifecycle Manager
-"""
-
 import asyncio
 import os
 import json
 import time
+import socket
+import re
 from typing import List, Dict, Any, AsyncGenerator, Optional, Tuple
 from studio.models import ContainerInfo
+
+
+def is_port_in_use(port: int) -> bool:
+    """Checks if a TCP port is currently bound on localhost."""
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(0.4)
+            return s.connect_ex(('127.0.0.1', port)) == 0
+    except Exception:
+        return False
+
+
+def find_next_free_port(start_port: int, max_attempts: int = 100) -> int:
+    """Finds the next available free TCP port on localhost."""
+    port = start_port
+    for _ in range(max_attempts):
+        if not is_port_in_use(port):
+            return port
+        port += 1
+    return start_port
 
 
 class DockerManager:
@@ -15,6 +33,27 @@ class DockerManager:
     _MAX_RETRIES: int = 5
     _LAST_KNOWN_STATE: Dict[str, Tuple[str, str, str]] = {}
     _STATUS_CHANGE_TIMES: Dict[str, float] = {}
+
+    @staticmethod
+    def _replace_port_in_compose(project_dir: str, old_port: int, new_port: int) -> bool:
+        """Safely updates a conflicting host port mapping in the project compose file."""
+        candidates = ["docker-compose.yml", "docker-compose.yaml", "compose.yaml"]
+        replaced = False
+        for fname in candidates:
+            cpath = os.path.join(project_dir, fname)
+            if os.path.exists(cpath):
+                try:
+                    with open(cpath, "r", encoding="utf-8", errors="replace") as f:
+                        content = f.read()
+                    # Replace patterns like "8443:8080", "8443:8443", "- 8443:8080", "- '8443:8080'"
+                    new_content = re.sub(rf'(["\']?){old_port}(:[\d]+["\']?)', rf'\g<1>{new_port}\g<2>', content)
+                    if new_content != content:
+                        with open(cpath, "w", encoding="utf-8") as f:
+                            f.write(new_content)
+                        replaced = True
+                except Exception:
+                    pass
+        return replaced
 
     @staticmethod
     async def run_command(project_dir: str, cmd: List[str], timeout: float = 30.0) -> Dict[str, Any]:
@@ -50,7 +89,24 @@ class DockerManager:
 
     @staticmethod
     async def start_project(project_dir: str) -> Dict[str, Any]:
-        return await DockerManager.run_command(project_dir, ["up", "-d", "--build"])
+        res = await DockerManager.run_command(project_dir, ["up", "-d", "--build"])
+        
+        # Automatic Port Conflict Detection and Auto-Recovery
+        if not res.get("success", False):
+            err_text = (res.get("stderr", "") + " " + res.get("stdout", "") + " " + str(res.get("error", ""))).lower()
+            if "port is already allocated" in err_text or "address already in use" in err_text:
+                raw_err = res.get("stderr", "") + " " + res.get("stdout", "")
+                # Find conflicting port, e.g. "Bind for 0.0.0.0:8443 failed: port is already allocated"
+                match = re.search(r"Bind for [^:]+:(\d+) failed", raw_err) or re.search(r":(\d+) failed: port is already allocated", raw_err)
+                if match:
+                    clash_port = int(match.group(1))
+                    free_port = find_next_free_port(clash_port + 1)
+                    if DockerManager._replace_port_in_compose(project_dir, clash_port, free_port):
+                        # Retry starting the project with the reassigned free port
+                        retry_res = await DockerManager.run_command(project_dir, ["up", "-d", "--build"])
+                        if retry_res.get("success", False):
+                            return retry_res
+        return res
 
     @staticmethod
     async def pause_project(project_dir: str) -> Dict[str, Any]:
