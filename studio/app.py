@@ -109,6 +109,26 @@ async def list_projects(cached_only: bool = False, refresh: bool = False):
     return cached
 
 
+@app.get("/api/stats")
+async def get_system_stats():
+    projects = ProjectStore.load_cache() or ProjectStore.list_projects()
+    total = len(projects)
+    running = sum(1 for p in projects if p.status == "running")
+    stopped = sum(1 for p in projects if p.status == "stopped")
+    degraded = sum(1 for p in projects if p.status == "degraded")
+    catalog = fetch_catalog()
+    total_tools = sum(len(c.tools) for c in catalog)
+    return {
+        "total_projects": total,
+        "running_projects": running,
+        "stopped_projects": stopped,
+        "degraded_projects": degraded,
+        "total_catalog_tools": total_tools,
+        "total_categories": len(catalog),
+        "total_presets": len(PRESETS)
+    }
+
+
 @app.post("/api/projects/sync", response_model=List[ProjectInfo])
 async def sync_projects_now():
     return await enrich_and_cache_projects()

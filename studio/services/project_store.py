@@ -154,15 +154,18 @@ class ProjectStore:
         return None
 
     @staticmethod
-    def delete_project(project_id: str):
+    def delete_project(project_id: str) -> bool:
         registry = ProjectStore._load_registry()
+        found = False
         if project_id in registry:
             del registry[project_id]
             ProjectStore._save_registry(registry)
+            found = True
 
         cached = ProjectStore.load_cache()
         updated_cache = [p for p in cached if p.id != project_id]
         ProjectStore.save_cache(updated_cache)
+        return found
 
     @staticmethod
     def _dict_to_project_info(data: Dict) -> ProjectInfo:

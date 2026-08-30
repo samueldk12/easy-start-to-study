@@ -2020,19 +2020,33 @@ service:
 
     def _generate_nginx_files(self):
         nginx_dir = os.path.join(self.project_dir, "nginx")
-        os.makedirs(nginx_dir, exist_ok=True)
+        html_dir = os.path.join(nginx_dir, "html")
+        os.makedirs(html_dir, exist_ok=True)
         nginx_conf = """events {}
 http {
     server {
         listen 80;
         location / {
-            return 200 "StackStudio NGINX Gateway Online\\n";
+            root /usr/share/nginx/html;
+            index index.html;
+            try_files $uri $uri/ =200;
         }
     }
 }
 """
         with open(os.path.join(nginx_dir, "nginx.conf"), "w", encoding="utf-8") as f:
             f.write(nginx_conf)
+
+        index_html = f"""<!DOCTYPE html>
+<html>
+<head><title>{self.project_name} - StackStudio Gateway</title></head>
+<body style="font-family: system-ui; text-align: center; padding: 40px; background: #0f172a; color: #f8fafc;">
+  <h1>🚀 StackStudio Web Gateway</h1>
+  <p>Project <strong>{self.project_name}</strong> is live and operational.</p>
+</body>
+</html>"""
+        with open(os.path.join(html_dir, "index.html"), "w", encoding="utf-8") as f:
+            f.write(index_html)
 
     def _generate_kong_files(self):
         kong_dir = os.path.join(self.project_dir, "kong")
