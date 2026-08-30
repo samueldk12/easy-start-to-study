@@ -1,5 +1,537 @@
 [
   {
+    "id": "workspace-api-merged-stack-demo",
+    "name": "API Merged Stack Demo",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-api-merged-stack-demo",
+    "description": "API-triggered multi-root workspace",
+    "tools": [
+      "vscode"
+    ],
+    "include_templates": false,
+    "created_at": "2026-08-30 15:16:42",
+    "status": "stopped",
+    "visual_status": "orange",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [
+      "ms-python.python",
+      "eamodio.gitlens",
+      "mtxr.sqltools",
+      "mtxr.sqltools-driver-pg",
+      "ms-toolsai.jupyter",
+      "ms-python.vscode-pylance",
+      "ms-azuretools.vscode-docker",
+      "cweijan.vscode-database-client2",
+      "redhat.vscode-yaml",
+      "ckolkman.vscode-postgres"
+    ],
+    "containers": [],
+    "ui_links": [
+      {
+        "name": "Next.js Web App",
+        "url": "http://localhost:3003",
+        "icon": "globe"
+      },
+      {
+        "name": "VS Code Multi-Root Workspace",
+        "url": "http://localhost:8445/?workspace=/home/coder/project/workspace.code-workspace",
+        "icon": "code"
+      },
+      {
+        "name": "VS Code Web (IDE)",
+        "url": "http://localhost:8443/?folder=/home/coder/project",
+        "icon": "code"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "is_merged_workspace": true,
+    "merged_projects": [
+      "workspace-ondecompro-e-venda-workspace",
+      "ondecompro-platform"
+    ],
+    "last_cached": "2026-08-30 15:16:42"
+  },
+  {
+    "id": "workspace-test-workspace-ondecompro-e-venda-workspace-and-ondecompro-platform",
+    "name": "Test Workspace Ondecompro e Venda Workspace and Ondecompro Platform",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-test-workspace-ondecompro-e-venda-workspace-and-ondecompro-platform",
+    "description": "Merged multi-root workspace test suite",
+    "tools": [
+      "vscode"
+    ],
+    "include_templates": false,
+    "created_at": "2026-08-30 15:16:41",
+    "status": "stopped",
+    "visual_status": "orange",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [
+      "ms-python.python",
+      "eamodio.gitlens",
+      "mtxr.sqltools",
+      "mtxr.sqltools-driver-pg",
+      "ms-toolsai.jupyter",
+      "ms-python.vscode-pylance",
+      "ms-azuretools.vscode-docker",
+      "cweijan.vscode-database-client2",
+      "redhat.vscode-yaml",
+      "ckolkman.vscode-postgres"
+    ],
+    "containers": [],
+    "ui_links": [
+      {
+        "name": "Next.js Web App",
+        "url": "http://localhost:3003",
+        "icon": "globe"
+      },
+      {
+        "name": "VS Code Multi-Root Workspace",
+        "url": "http://localhost:8445/?workspace=/home/coder/project/workspace.code-workspace",
+        "icon": "code"
+      },
+      {
+        "name": "VS Code Web (IDE)",
+        "url": "http://localhost:8443/?folder=/home/coder/project",
+        "icon": "code"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "is_merged_workspace": true,
+    "merged_projects": [
+      "workspace-ondecompro-e-venda-workspace",
+      "ondecompro-platform"
+    ],
+    "last_cached": "2026-08-30 15:16:42"
+  },
+  {
+    "id": "workspace-ondecompro-e-venda-workspace",
+    "name": "Ondecompro e Venda Workspace",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-ondecompro-e-venda-workspace",
+    "description": "Workspace Multi-Root unificando Frontend e Venda",
+    "tools": [
+      "vscode"
+    ],
+    "include_templates": false,
+    "created_at": "2026-08-30 15:13:53",
+    "status": "stopped",
+    "visual_status": "orange",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [
+      "redhat.vscode-yaml",
+      "ms-azuretools.vscode-docker",
+      "ms-python.python",
+      "eamodio.gitlens",
+      "mtxr.sqltools-driver-pg",
+      "ms-python.vscode-pylance",
+      "mtxr.sqltools",
+      "ms-toolsai.jupyter",
+      "cweijan.vscode-database-client2",
+      "ckolkman.vscode-postgres"
+    ],
+    "containers": [],
+    "ui_links": [
+      {
+        "name": "Next.js Web App",
+        "url": "http://localhost:3003",
+        "icon": "globe"
+      },
+      {
+        "name": "VS Code Web (IDE)",
+        "url": "http://localhost:8443/?folder=/home/coder/project",
+        "icon": "code"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "is_merged_workspace": false,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 15:16:42"
+  },
+  {
+    "id": "ondecompro-platform",
+    "name": "Ondecompro Platform",
+    "path": "C:\\Users\\samue\\projects\\ondecompro-platform",
+    "description": "Projeto auto-detectado: ondecompro-platform",
+    "tools": [
+      "vscode"
+    ],
+    "include_templates": true,
+    "created_at": "2026-08-30 15:07:17",
+    "status": "starting",
+    "visual_status": "yellow",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "containers": [
+      {
+        "name": "ondecompro-platform-vscode",
+        "service": "vscode",
+        "state": "created",
+        "status": "Created",
+        "health": null,
+        "exit_code": 0,
+        "ports": "",
+        "retry_count": 0,
+        "visual_status": "yellow",
+        "last_changed": 1788113239.637365
+      },
+      {
+        "name": "ondecompro-platform-airflow-scheduler-1",
+        "service": "airflow-scheduler",
+        "state": "running",
+        "status": "Up 7 hours",
+        "health": null,
+        "exit_code": 0,
+        "ports": "8080/tcp",
+        "retry_count": 0,
+        "visual_status": "green",
+        "last_changed": 1788112958.0931466
+      },
+      {
+        "name": "ondecompro-platform-airflow-webserver-1",
+        "service": "airflow-webserver",
+        "state": "running",
+        "status": "Up 7 hours",
+        "health": null,
+        "exit_code": 0,
+        "ports": "8080->8080/tcp, 8080->8080/tcp",
+        "retry_count": 0,
+        "visual_status": "green",
+        "last_changed": 1788112958.0931466
+      },
+      {
+        "name": "ondecompro-platform-alertmanager-1",
+        "service": "alertmanager",
+        "state": "running",
+        "status": "Up 7 hours",
+        "health": null,
+        "exit_code": 0,
+        "ports": "9093->9093/tcp, 9093->9093/tcp",
+        "retry_count": 0,
+        "visual_status": "green",
+        "last_changed": 1788112958.0931466
+      },
+      {
+        "name": "ondecompro-platform-alloy-1",
+        "service": "alloy",
+        "state": "running",
+        "status": "Up 7 hours",
+        "health": null,
+        "exit_code": 0,
+        "ports": "",
+        "retry_count": 0,
+        "visual_status": "green",
+        "last_changed": 1788112958.0931466
+      },
+      {
+        "name": "ondecompro-platform-crawler-runner-1",
+        "service": "crawler-runner",
+        "state": "running",
+        "status": "Up 7 hours",
+        "health": null,
+        "exit_code": 0,
+        "ports": "8000/tcp",
+        "retry_count": 0,
+        "visual_status": "green",
+        "last_changed": 1788112958.0931466
+      },
+      {
+        "name": "ondecompro-platform-elasticsearch-1",
+        "service": "elasticsearch",
+        "state": "running",
+        "status": "Up 7 hours",
+        "health": null,
+        "exit_code": 0,
+        "ports": "9200->9200/tcp, 9200->9200/tcp",
+        "retry_count": 0,
+        "visual_status": "green",
+        "last_changed": 1788112958.0931466
+      },
+      {
+        "name": "ondecompro-platform-elasticsearch-exporter-1",
+        "service": "elasticsearch-exporter",
+        "state": "running",
+        "status": "Up 7 hours",
+        "health": null,
+        "exit_code": 0,
+        "ports": "9114->9114/tcp, 9114->9114/tcp",
+        "retry_count": 0,
+        "visual_status": "green",
+        "last_changed": 1788112958.0931466
+      },
+      {
+        "name": "ondecompro-platform-grafana-1",
+        "service": "grafana",
+        "state": "running",
+        "status": "Up 7 hours",
+        "health": null,
+        "exit_code": 0,
+        "ports": "3001->3000/tcp, 3001->3000/tcp",
+        "retry_count": 0,
+        "visual_status": "green",
+        "last_changed": 1788112958.0931466
+      },
+      {
+        "name": "ondecompro-platform-loki-1",
+        "service": "loki",
+        "state": "running",
+        "status": "Up 7 hours",
+        "health": null,
+        "exit_code": 0,
+        "ports": "3100->3100/tcp, 3100->3100/tcp",
+        "retry_count": 0,
+        "visual_status": "green",
+        "last_changed": 1788112958.0931466
+      },
+      {
+        "name": "ondecompro-platform-ollama-1",
+        "service": "ollama",
+        "state": "running",
+        "status": "Up 7 hours (healthy)",
+        "health": "healthy",
+        "exit_code": 0,
+        "ports": "11434->11434/tcp, 11434->11434/tcp",
+        "retry_count": 0,
+        "visual_status": "green",
+        "last_changed": 1788112958.0931466
+      },
+      {
+        "name": "ondecompro-platform-postgres-1",
+        "service": "postgres",
+        "state": "running",
+        "status": "Up 7 hours (healthy)",
+        "health": "healthy",
+        "exit_code": 0,
+        "ports": "5432->5432/tcp, 5432->5432/tcp",
+        "retry_count": 0,
+        "visual_status": "green",
+        "last_changed": 1788112958.0931466
+      },
+      {
+        "name": "ondecompro-platform-prometheus-1",
+        "service": "prometheus",
+        "state": "running",
+        "status": "Up 7 hours",
+        "health": null,
+        "exit_code": 0,
+        "ports": "9090->9090/tcp, 9090->9090/tcp",
+        "retry_count": 0,
+        "visual_status": "green",
+        "last_changed": 1788112958.0931466
+      },
+      {
+        "name": "ondecompro-platform-pushgateway-1",
+        "service": "pushgateway",
+        "state": "running",
+        "status": "Up 7 hours",
+        "health": null,
+        "exit_code": 0,
+        "ports": "9091->9091/tcp, 9091->9091/tcp",
+        "retry_count": 0,
+        "visual_status": "green",
+        "last_changed": 1788112958.0931466
+      },
+      {
+        "name": "ondecompro-platform-redis-1",
+        "service": "redis",
+        "state": "running",
+        "status": "Up 7 hours (healthy)",
+        "health": "healthy",
+        "exit_code": 0,
+        "ports": "6379->6379/tcp, 6379->6379/tcp",
+        "retry_count": 0,
+        "visual_status": "green",
+        "last_changed": 1788112958.0931466
+      },
+      {
+        "name": "ondecompro-platform-selenium-1",
+        "service": "selenium",
+        "state": "running",
+        "status": "Up 7 hours",
+        "health": null,
+        "exit_code": 0,
+        "ports": "4444->4444/tcp, 4444->4444/tcp, 7900->7900/tcp, 7900->7900/tcp",
+        "retry_count": 0,
+        "visual_status": "green",
+        "last_changed": 1788112958.0931466
+      }
+    ],
+    "ui_links": [
+      {
+        "name": "VS Code Web (IDE)",
+        "url": "http://localhost:8443/?folder=/home/coder/project",
+        "icon": "code"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "is_merged_workspace": false,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 15:16:42"
+  },
+  {
+    "id": "ondecompro-frontend",
+    "name": "Ondecompro Frontend",
+    "path": "C:\\Users\\samue\\projects\\ondecompro-frontend",
+    "description": "Projeto auto-detectado: ondecompro-frontend",
+    "tools": [
+      "vscode"
+    ],
+    "include_templates": true,
+    "created_at": "2026-08-30 15:03:37",
+    "status": "running",
+    "visual_status": "green",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "containers": [
+      {
+        "name": "ondecompro-frontend-vscode",
+        "service": "vscode",
+        "state": "running",
+        "status": "Up 10 minutes",
+        "health": null,
+        "exit_code": 0,
+        "ports": "8444->8080/tcp, 8444->8080/tcp",
+        "retry_count": 0,
+        "visual_status": "green",
+        "last_changed": 1788113773.493827
+      },
+      {
+        "name": "ondecompro-frontend-web",
+        "service": "web",
+        "state": "running",
+        "status": "Up 10 minutes",
+        "health": null,
+        "exit_code": 0,
+        "ports": "3002->3000/tcp, 3002->3000/tcp",
+        "retry_count": 0,
+        "visual_status": "green",
+        "last_changed": 1788113773.493827
+      }
+    ],
+    "ui_links": [
+      {
+        "name": "Next.js Web App",
+        "url": "http://localhost:3000",
+        "icon": "globe"
+      },
+      {
+        "name": "Wazuh Dashboard",
+        "url": "https://localhost:8444",
+        "icon": "shield"
+      },
+      {
+        "name": "VS Code Web (IDE)",
+        "url": "http://localhost:8443/?folder=/home/coder/project",
+        "icon": "code"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "is_merged_workspace": false,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 15:16:42"
+  },
+  {
+    "id": "venda",
+    "name": "Venda",
+    "path": "C:\\Users\\samue\\projects\\venda",
+    "description": "Projeto auto-detectado: venda",
+    "tools": [
+      "vscode"
+    ],
+    "include_templates": true,
+    "created_at": "2026-08-30 15:03:24",
+    "status": "running",
+    "visual_status": "green",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "containers": [
+      {
+        "name": "venda-vscode",
+        "service": "vscode",
+        "state": "running",
+        "status": "Up 12 minutes",
+        "health": null,
+        "exit_code": 0,
+        "ports": "8443->8080/tcp, 8443->8080/tcp",
+        "retry_count": 0,
+        "visual_status": "green",
+        "last_changed": 1788113773.2861512
+      },
+      {
+        "name": "venda-web",
+        "service": "web",
+        "state": "running",
+        "status": "Up 6 hours",
+        "health": null,
+        "exit_code": 0,
+        "ports": "3000->3000/tcp, 3000->3000/tcp",
+        "retry_count": 0,
+        "visual_status": "green",
+        "last_changed": 1788113238.7644603
+      },
+      {
+        "name": "venda-airflow",
+        "service": "airflow",
+        "state": "running",
+        "status": "Up 6 hours",
+        "health": null,
+        "exit_code": 0,
+        "ports": "8081->8080/tcp, 8081->8080/tcp",
+        "retry_count": 0,
+        "visual_status": "green",
+        "last_changed": 1788113173.4481869
+      },
+      {
+        "name": "venda-mailpit",
+        "service": "mailpit",
+        "state": "running",
+        "status": "Up 6 hours (healthy)",
+        "health": "healthy",
+        "exit_code": 0,
+        "ports": "1025->1025/tcp, 1025->1025/tcp, 8025->8025/tcp, 8025->8025/tcp",
+        "retry_count": 0,
+        "visual_status": "green",
+        "last_changed": 1788113173.4481869
+      },
+      {
+        "name": "venda-postgres",
+        "service": "postgres",
+        "state": "running",
+        "status": "Up 6 hours (healthy)",
+        "health": "healthy",
+        "exit_code": 0,
+        "ports": "5433->5432/tcp, 5433->5432/tcp",
+        "retry_count": 0,
+        "visual_status": "green",
+        "last_changed": 1788113173.4481869
+      }
+    ],
+    "ui_links": [
+      {
+        "name": "Next.js Web App",
+        "url": "http://localhost:3000",
+        "icon": "globe"
+      },
+      {
+        "name": "VS Code Web (IDE)",
+        "url": "http://localhost:8443/?folder=/home/coder/project",
+        "icon": "code"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "is_merged_workspace": false,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 15:16:42"
+  },
+  {
     "id": "cleanarch",
     "name": "Cleanarch",
     "path": "C:\\Users\\samue\\projects\\cleanarch",
@@ -16,7 +548,9 @@
     "ui_links": [],
     "launch_strategy": "docker-compose",
     "start_command": "docker compose up -d",
-    "last_cached": "2026-08-30 09:42:10"
+    "is_merged_workspace": false,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 15:16:42"
   },
   {
     "id": "cutchulo-sheet",
@@ -41,7 +575,9 @@
     ],
     "launch_strategy": "docker-compose",
     "start_command": "docker compose up -d",
-    "last_cached": "2026-08-30 09:42:10"
+    "is_merged_workspace": false,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 15:16:42"
   },
   {
     "id": "ondecompro",
@@ -66,32 +602,9 @@
     ],
     "launch_strategy": "docker-compose",
     "start_command": "docker compose up -d",
-    "last_cached": "2026-08-30 09:42:10"
-  },
-  {
-    "id": "ondecompro-frontend",
-    "name": "Ondecompro Frontend",
-    "path": "C:\\Users\\samue\\projects\\ondecompro-frontend",
-    "description": "Projeto auto-detectado: ondecompro-frontend",
-    "tools": [],
-    "include_templates": true,
-    "created_at": "2026-08-30 09:42:03",
-    "status": "stopped",
-    "visual_status": "orange",
-    "retry_count": 0,
-    "auto_install_extensions": true,
-    "custom_vscode_extensions": [],
-    "containers": [],
-    "ui_links": [
-      {
-        "name": "Next.js Web App",
-        "url": "http://localhost:3000",
-        "icon": "globe"
-      }
-    ],
-    "launch_strategy": "docker-compose",
-    "start_command": "docker compose up -d",
-    "last_cached": "2026-08-30 09:42:10"
+    "is_merged_workspace": false,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 15:16:42"
   },
   {
     "id": "ondecompro-monorepo",
@@ -126,72 +639,9 @@
     ],
     "launch_strategy": "docker-compose",
     "start_command": "docker compose up -d",
-    "last_cached": "2026-08-30 09:42:10"
-  },
-  {
-    "id": "ondecompro-platform",
-    "name": "Ondecompro Platform",
-    "path": "C:\\Users\\samue\\projects\\ondecompro-platform",
-    "description": "Projeto auto-detectado: ondecompro-platform",
-    "tools": [],
-    "include_templates": true,
-    "created_at": "2026-08-30 09:42:03",
-    "status": "stopped",
-    "visual_status": "orange",
-    "retry_count": 0,
-    "auto_install_extensions": true,
-    "custom_vscode_extensions": [],
-    "containers": [],
-    "ui_links": [
-      {
-        "name": "Prometheus",
-        "url": "http://localhost:${PROMETHEUS_PORT",
-        "icon": "activity"
-      },
-      {
-        "name": "Grafana Dashboards",
-        "url": "http://localhost:${GRAFANA_PORT",
-        "icon": "layout-dashboard"
-      }
-    ],
-    "launch_strategy": "docker-compose",
-    "start_command": "docker compose up -d",
-    "last_cached": "2026-08-30 09:42:10"
-  },
-  {
-    "id": "venda",
-    "name": "Venda",
-    "path": "C:\\Users\\samue\\projects\\venda",
-    "description": "Projeto auto-detectado: venda",
-    "tools": [],
-    "include_templates": true,
-    "created_at": "2026-08-30 09:42:03",
-    "status": "stopped",
-    "visual_status": "orange",
-    "retry_count": 0,
-    "auto_install_extensions": true,
-    "custom_vscode_extensions": [],
-    "containers": [],
-    "ui_links": [
-      {
-        "name": "Next.js Web App",
-        "url": "http://localhost:3000",
-        "icon": "globe"
-      },
-      {
-        "name": "Mailpit Email UI",
-        "url": "http://localhost:8025",
-        "icon": "mail"
-      },
-      {
-        "name": "Airflow Webserver",
-        "url": "http://localhost:8081",
-        "icon": "git-merge"
-      }
-    ],
-    "launch_strategy": "docker-compose",
-    "start_command": "docker compose up -d",
-    "last_cached": "2026-08-30 09:42:10"
+    "is_merged_workspace": false,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 15:16:42"
   },
   {
     "id": "web250",
@@ -216,7 +666,9 @@
     ],
     "launch_strategy": "docker-compose",
     "start_command": "docker compose up -d",
-    "last_cached": "2026-08-30 09:42:10"
+    "is_merged_workspace": false,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 15:16:42"
   },
   {
     "id": "clean-lakehouse",
@@ -256,7 +708,9 @@
     ],
     "launch_strategy": "docker-compose",
     "start_command": "docker compose up -d",
-    "last_cached": "2026-08-30 09:42:10"
+    "is_merged_workspace": false,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 15:16:42"
   },
   {
     "id": "crypto-trading-stream",
@@ -281,7 +735,9 @@
     ],
     "launch_strategy": "docker-compose",
     "start_command": "docker compose up -d",
-    "last_cached": "2026-08-30 09:42:10"
+    "is_merged_workspace": false,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 15:16:42"
   },
   {
     "id": "devops-edge-stack",
@@ -311,7 +767,9 @@
     ],
     "launch_strategy": "docker-compose",
     "start_command": "docker compose up -d",
-    "last_cached": "2026-08-30 09:42:10"
+    "is_merged_workspace": false,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 15:16:42"
   },
   {
     "id": "ecommerce-mlops",
@@ -346,7 +804,9 @@
     ],
     "launch_strategy": "docker-compose",
     "start_command": "docker compose up -d",
-    "last_cached": "2026-08-30 09:42:10"
+    "is_merged_workspace": false,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 15:16:42"
   },
   {
     "id": "fintech-backend-queue",
@@ -376,7 +836,9 @@
     ],
     "launch_strategy": "docker-compose",
     "start_command": "docker compose up -d",
-    "last_cached": "2026-08-30 09:42:10"
+    "is_merged_workspace": false,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 15:16:42"
   },
   {
     "id": "graph-nosql-study",
@@ -395,7 +857,9 @@
     "ui_links": [],
     "launch_strategy": "docker-compose",
     "start_command": "docker compose up -d",
-    "last_cached": "2026-08-30 09:42:10"
+    "is_merged_workspace": false,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 15:16:42"
   },
   {
     "id": "observability-devops-stack",
@@ -430,7 +894,9 @@
     ],
     "launch_strategy": "docker-compose",
     "start_command": "docker compose up -d",
-    "last_cached": "2026-08-30 09:42:10"
+    "is_merged_workspace": false,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 15:16:42"
   },
   {
     "id": "telemetry-governance-stack",
@@ -465,7 +931,9 @@
     ],
     "launch_strategy": "docker-compose",
     "start_command": "docker compose up -d",
-    "last_cached": "2026-08-30 09:42:10"
+    "is_merged_workspace": false,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 15:16:42"
   },
   {
     "id": "veloceg-teste",
@@ -505,7 +973,9 @@
     ],
     "launch_strategy": "docker-compose",
     "start_command": "docker compose up -d",
-    "last_cached": "2026-08-30 09:42:10"
+    "is_merged_workspace": false,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 15:16:42"
   },
   {
     "id": "velocelog",
@@ -515,12 +985,205 @@
     "tools": [],
     "include_templates": true,
     "created_at": "2026-08-30 09:39:56",
-    "status": "stopped",
-    "visual_status": "orange",
+    "status": "starting",
+    "visual_status": "yellow",
     "retry_count": 0,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [],
-    "containers": [],
+    "containers": [
+      {
+        "name": "velocelog-airflow-db",
+        "service": "airflow-db",
+        "state": "running",
+        "status": "Up 7 minutes (healthy)",
+        "health": "healthy",
+        "exit_code": 0,
+        "ports": "5432/tcp",
+        "retry_count": 0,
+        "visual_status": "green",
+        "last_changed": 1788113773.6512017
+      },
+      {
+        "name": "velocelog-kafka",
+        "service": "kafka",
+        "state": "running",
+        "status": "Up 7 minutes",
+        "health": null,
+        "exit_code": 0,
+        "ports": "9092->9092/tcp, 9092->9092/tcp",
+        "retry_count": 0,
+        "visual_status": "green",
+        "last_changed": 1788113773.6512017
+      },
+      {
+        "name": "velocelog-kafka-ui",
+        "service": "kafka-ui",
+        "state": "running",
+        "status": "Up 7 minutes",
+        "health": null,
+        "exit_code": 0,
+        "ports": "8087->8080/tcp, 8087->8080/tcp",
+        "retry_count": 0,
+        "visual_status": "green",
+        "last_changed": 1788113773.6512017
+      },
+      {
+        "name": "velocelog-minio",
+        "service": "minio",
+        "state": "running",
+        "status": "Up 7 minutes (healthy)",
+        "health": "healthy",
+        "exit_code": 0,
+        "ports": "9000->9000/tcp, 9000->9000/tcp, 9001->9001/tcp, 9001->9001/tcp",
+        "retry_count": 0,
+        "visual_status": "green",
+        "last_changed": 1788113773.6512017
+      },
+      {
+        "name": "velocelog-postgres",
+        "service": "postgres",
+        "state": "running",
+        "status": "Up 7 minutes (healthy)",
+        "health": "healthy",
+        "exit_code": 0,
+        "ports": "5434->5432/tcp, 5434->5432/tcp",
+        "retry_count": 0,
+        "visual_status": "green",
+        "last_changed": 1788113773.6512017
+      },
+      {
+        "name": "velocelog-schema-registry",
+        "service": "schema-registry",
+        "state": "running",
+        "status": "Up 7 minutes",
+        "health": null,
+        "exit_code": 0,
+        "ports": "8086->8081/tcp, 8086->8081/tcp",
+        "retry_count": 0,
+        "visual_status": "green",
+        "last_changed": 1788113773.6512017
+      },
+      {
+        "name": "velocelog-spark-master",
+        "service": "spark-master",
+        "state": "running",
+        "status": "Up 7 minutes",
+        "health": null,
+        "exit_code": 0,
+        "ports": "7077->7077/tcp, 7077->7077/tcp, 8082->8080/tcp, 8082->8080/tcp",
+        "retry_count": 0,
+        "visual_status": "green",
+        "last_changed": 1788113773.6512017
+      },
+      {
+        "name": "velocelog-airflow-init",
+        "service": "airflow-init",
+        "state": "exited",
+        "status": "Exited (0) 7 minutes ago",
+        "health": null,
+        "exit_code": 0,
+        "ports": "",
+        "retry_count": 0,
+        "visual_status": "orange",
+        "last_changed": 1788113773.6512017
+      },
+      {
+        "name": "velocelog-minio-init",
+        "service": "minio-init",
+        "state": "exited",
+        "status": "Exited (0) 7 minutes ago",
+        "health": null,
+        "exit_code": 0,
+        "ports": "",
+        "retry_count": 0,
+        "visual_status": "orange",
+        "last_changed": 1788113773.6512017
+      },
+      {
+        "name": "velocelog-vscode",
+        "service": "vscode",
+        "state": "created",
+        "status": "Created",
+        "health": null,
+        "exit_code": 0,
+        "ports": "",
+        "retry_count": 0,
+        "visual_status": "yellow",
+        "last_changed": 1788113322.5700636
+      },
+      {
+        "name": "velocelog-airflow-scheduler",
+        "service": "airflow-scheduler",
+        "state": "created",
+        "status": "Created",
+        "health": null,
+        "exit_code": 0,
+        "ports": "",
+        "retry_count": 0,
+        "visual_status": "yellow",
+        "last_changed": 1788113322.569554
+      },
+      {
+        "name": "velocelog-airflow-webserver",
+        "service": "airflow-webserver",
+        "state": "created",
+        "status": "Created",
+        "health": null,
+        "exit_code": 0,
+        "ports": "",
+        "retry_count": 0,
+        "visual_status": "yellow",
+        "last_changed": 1788113322.569554
+      },
+      {
+        "name": "velocelog-iceberg-rest",
+        "service": "iceberg-rest",
+        "state": "created",
+        "status": "Created",
+        "health": null,
+        "exit_code": 0,
+        "ports": "",
+        "retry_count": 0,
+        "visual_status": "yellow",
+        "last_changed": 1788113322.569554
+      },
+      {
+        "name": "velocelog-kafka-connect",
+        "service": "kafka-connect",
+        "state": "created",
+        "status": "Created",
+        "health": null,
+        "exit_code": 0,
+        "ports": "",
+        "retry_count": 0,
+        "visual_status": "yellow",
+        "last_changed": 1788113322.569554
+      },
+      {
+        "name": "velocelog-spark-worker",
+        "service": "spark-worker",
+        "state": "created",
+        "status": "Created",
+        "health": null,
+        "exit_code": 0,
+        "ports": "",
+        "retry_count": 0,
+        "visual_status": "yellow",
+        "last_changed": 1788113322.569554
+      },
+      {
+        "name": "velocelog-trino",
+        "service": "trino",
+        "state": "created",
+        "status": "Created",
+        "health": null,
+        "exit_code": 0,
+        "ports": "",
+        "retry_count": 0,
+        "visual_status": "yellow",
+        "last_changed": 1788113322.569554
+      }
+    ],
     "ui_links": [
       {
         "name": "MinIO Console",
@@ -545,7 +1208,9 @@
     ],
     "launch_strategy": "docker-compose",
     "start_command": "docker compose up -d",
-    "last_cached": "2026-08-30 09:42:10"
+    "is_merged_workspace": false,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 15:16:42"
   },
   {
     "id": "velocelog-lakehouse",
@@ -595,7 +1260,9 @@
     ],
     "launch_strategy": "docker-compose",
     "start_command": "docker compose up -d",
-    "last_cached": "2026-08-30 09:42:10"
+    "is_merged_workspace": false,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 15:16:42"
   },
   {
     "id": "velosec-log",
@@ -635,6 +1302,8 @@
     ],
     "launch_strategy": "docker-compose",
     "start_command": "docker compose up -d",
-    "last_cached": "2026-08-30 09:42:10"
+    "is_merged_workspace": false,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 15:16:42"
   }
 ]

@@ -169,11 +169,13 @@
     "name": "Ondecompro Frontend",
     "path": "C:\\Users\\samue\\projects\\ondecompro-frontend",
     "description": "Projeto auto-detectado: ondecompro-frontend",
-    "tools": [],
+    "tools": [
+      "vscode"
+    ],
     "include_templates": true,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [],
-    "created_at": "2026-08-30 09:42:03"
+    "created_at": "2026-08-30 15:03:37"
   },
   "ondecompro-monorepo": {
     "id": "ondecompro-monorepo",
@@ -191,22 +193,26 @@
     "name": "Ondecompro Platform",
     "path": "C:\\Users\\samue\\projects\\ondecompro-platform",
     "description": "Projeto auto-detectado: ondecompro-platform",
-    "tools": [],
+    "tools": [
+      "vscode"
+    ],
     "include_templates": true,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [],
-    "created_at": "2026-08-30 09:42:03"
+    "created_at": "2026-08-30 15:07:17"
   },
   "venda": {
     "id": "venda",
     "name": "Venda",
     "path": "C:\\Users\\samue\\projects\\venda",
     "description": "Projeto auto-detectado: venda",
-    "tools": [],
+    "tools": [
+      "vscode"
+    ],
     "include_templates": true,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [],
-    "created_at": "2026-08-30 09:42:03"
+    "created_at": "2026-08-30 15:03:24"
   },
   "web250": {
     "id": "web250",
@@ -218,5 +224,104 @@
     "auto_install_extensions": true,
     "custom_vscode_extensions": [],
     "created_at": "2026-08-30 09:42:03"
+  },
+  "workspace-ondecompro-e-venda-workspace": {
+    "id": "workspace-ondecompro-e-venda-workspace",
+    "name": "Ondecompro e Venda Workspace",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-ondecompro-e-venda-workspace",
+    "description": "Workspace Multi-Root unificando Frontend e Venda",
+    "tools": [
+      "vscode"
+    ],
+    "include_templates": false,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [
+      "redhat.vscode-yaml",
+      "ms-azuretools.vscode-docker",
+      "ms-python.python",
+      "eamodio.gitlens",
+      "mtxr.sqltools-driver-pg",
+      "ms-python.vscode-pylance",
+      "mtxr.sqltools",
+      "ms-toolsai.jupyter",
+      "cweijan.vscode-database-client2",
+      "ckolkman.vscode-postgres"
+    ],
+    "is_merged_workspace": true,
+    "merged_projects": [
+      "ondecompro-frontend",
+      "venda"
+    ],
+    "created_at": "2026-08-30 15:13:53",
+    "custom_ports": {
+      "vscode": 8445
+    },
+    "launch_strategy": "docker-compose"
+  },
+  "workspace-test-workspace-ondecompro-e-venda-workspace-and-ondecompro-platform": {
+    "id": "workspace-test-workspace-ondecompro-e-venda-workspace-and-ondecompro-platform",
+    "name": "Test Workspace Ondecompro e Venda Workspace and Ondecompro Platform",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-test-workspace-ondecompro-e-venda-workspace-and-ondecompro-platform",
+    "description": "Merged multi-root workspace test suite",
+    "tools": [
+      "vscode"
+    ],
+    "include_templates": false,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [
+      "ms-python.python",
+      "eamodio.gitlens",
+      "mtxr.sqltools",
+      "mtxr.sqltools-driver-pg",
+      "ms-toolsai.jupyter",
+      "ms-python.vscode-pylance",
+      "ms-azuretools.vscode-docker",
+      "cweijan.vscode-database-client2",
+      "redhat.vscode-yaml",
+      "ckolkman.vscode-postgres"
+    ],
+    "is_merged_workspace": true,
+    "merged_projects": [
+      "workspace-ondecompro-e-venda-workspace",
+      "ondecompro-platform"
+    ],
+    "created_at": "2026-08-30 15:16:41",
+    "custom_ports": {
+      "vscode": 8445
+    },
+    "launch_strategy": "docker-compose"
+  },
+  "workspace-api-merged-stack-demo": {
+    "id": "workspace-api-merged-stack-demo",
+    "name": "API Merged Stack Demo",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-api-merged-stack-demo",
+    "description": "API-triggered multi-root workspace",
+    "tools": [
+      "vscode"
+    ],
+    "include_templates": false,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [
+      "ms-python.python",
+      "eamodio.gitlens",
+      "mtxr.sqltools",
+      "mtxr.sqltools-driver-pg",
+      "ms-toolsai.jupyter",
+      "ms-python.vscode-pylance",
+      "ms-azuretools.vscode-docker",
+      "cweijan.vscode-database-client2",
+      "redhat.vscode-yaml",
+      "ckolkman.vscode-postgres"
+    ],
+    "is_merged_workspace": true,
+    "merged_projects": [
+      "workspace-ondecompro-e-venda-workspace",
+      "ondecompro-platform"
+    ],
+    "created_at": "2026-08-30 15:16:42",
+    "custom_ports": {
+      "vscode": 8445
+    },
+    "launch_strategy": "docker-compose"
   }
 }

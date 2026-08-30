@@ -98,6 +98,12 @@
           <span>Importar Pasta</span>
         </button>
 
+        <!-- Unify / Merge Projects Button -->
+        <button @click="openMergeModal()" class="px-3.5 py-1.5 text-xs font-semibold text-purple-300 hover:text-white bg-purple-950/40 hover:bg-purple-900/60 rounded-xl border border-purple-800/60 flex items-center gap-1.5 transition cursor-pointer" title="Mesclar 2 ou mais projetos em um Workspace Multi-Root com abertura de múltiplas pastas no VS Code">
+          <svg class="w-4 h-4 text-purple-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+          <span>Unificar Projetos</span>
+        </button>
+
         <button @click="openPluginsModal()" class="px-3.5 py-1.5 text-xs font-semibold text-cyan-300 hover:text-white bg-cyan-950/40 hover:bg-cyan-900/60 rounded-xl border border-cyan-800/60 flex items-center gap-1.5 transition">
           <i data-lucide="puzzle" class="w-4 h-4 text-cyan-400 pointer-events-none"></i>
           <span>Plugins</span>
@@ -347,6 +353,14 @@
                       x-text="project.include_templates ? 'Com Templates' : 'Estrutura Limpa'">
                     </span>
 
+                    <!-- Multi-Root Workspace Tag if Merged -->
+                    <template x-if="project.is_merged_workspace">
+                      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40 shrink-0 shadow-sm" title="Workspace Unificado Multi-Root (Pastas Múltiplas no VS Code)">
+                        <svg class="w-3 h-3 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                        <span>Multi-Root</span>
+                      </span>
+                    </template>
+
                     <!-- Status Badge (Green / Yellow / Orange / Red) -->
                     <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold shrink-0"
                       :class="{
@@ -371,10 +385,14 @@
                 <!-- Action Toolbar Pill (Compact, Never Overflows) -->
                 <div class="flex items-center gap-1 shrink-0 bg-dark-950/80 p-1 rounded-xl border border-slate-800 shadow-inner">
                   <!-- VS Code Web Button -->
-                  <button @click.stop="openVsCode(project)" title="Abrir Código no VS Code Web (Navegador)" class="p-1.5 text-blue-400 hover:text-white bg-blue-500/10 hover:bg-blue-600 rounded-lg transition cursor-pointer flex items-center justify-center">
+                  <button @click.stop="openVsCode(project)" :title="project.is_merged_workspace ? 'Abrir Multi-Root Workspace no VS Code (Todas as Pastas)' : 'Abrir Código no VS Code Web (Navegador)'" class="p-1.5 text-blue-400 hover:text-white bg-blue-500/10 hover:bg-blue-600 rounded-lg transition cursor-pointer flex items-center justify-center">
                     <svg class="w-4 h-4 pointer-events-none fill-current" viewBox="0 0 24 24">
                       <path d="M23.15 2.587L18.21.21a1.494 1.494 0 0 0-1.705.29l-9.46 8.63-4.12-3.128a.999.999 0 0 0-1.276.057L.327 7.261A1 1 0 0 0 .326 8.74L3.899 12 .326 15.26a1 1 0 0 0 .001 1.479L1.65 17.94a.999.999 0 0 0 1.276.057l4.12-3.128 9.46 8.63a1.492 1.492 0 0 0 1.704.29l4.94-2.377A1.5 1.5 0 0 0 24 20.06V3.939a1.5 1.5 0 0 0-.85-1.352zm-5.146 14.861L10.826 12l7.178-5.448v10.896z"/>
                     </svg>
+                  </button>
+                  <!-- Merge Button -->
+                  <button @click.stop="openMergeModal(project)" title="Mesclar este projeto com outro em um Workspace Multi-Root" class="p-1.5 text-purple-400 hover:text-white bg-purple-500/10 hover:bg-purple-600 rounded-lg transition cursor-pointer flex items-center justify-center">
+                    <svg class="w-4 h-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
                   </button>
                   <!-- Topology Graph Button -->
                   <button @click.stop="openGraphModal(project)" title="Ver Topologia & Grafo da Arquitetura" class="p-1.5 text-brand-400 hover:text-white bg-brand-500/10 hover:bg-brand-500/25 rounded-lg transition cursor-pointer">
@@ -1773,6 +1791,124 @@
     </div>
   </div>
 
+  <!-- MERGE PROJECTS MODAL -->
+  <div x-show="showMergeModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div @click.away="showMergeModal = false" class="bg-dark-900 border border-purple-500/40 rounded-2xl max-w-4xl w-full p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center shadow-lg shadow-purple-500/20">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              Unificar & Mesclar Projetos
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40">Multi-Root Workspace</span>
+            </h2>
+            <p class="text-xs text-slate-400">Junte 2 ou mais projetos em um card único: abre ambas as pastas simultaneamente no VS Code e executa os serviços em rede compartilhada.</p>
+          </div>
+        </div>
+        <button @click="showMergeModal = false" class="text-slate-400 hover:text-white p-1 rounded-lg cursor-pointer">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <!-- Name Input -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+            Nome do Workspace Unificado *
+          </label>
+          <input 
+            type="text" 
+            x-model="mergeForm.name" 
+            placeholder="ex: Ondecompro Frontend + Venda Backend" 
+            class="w-full bg-dark-950 border border-slate-800 focus:border-purple-500 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none transition">
+        </div>
+
+        <!-- Description Input -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+            Descrição do Workspace
+          </label>
+          <input 
+            type="text" 
+            x-model="mergeForm.description" 
+            placeholder="Descrição ou objetivo do workspace unificado..." 
+            class="w-full bg-dark-950 border border-slate-800 focus:border-purple-500 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-600 focus:outline-none transition">
+        </div>
+
+        <!-- Project Selection Checklist -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+              Selecione os Projetos para Unificar (<span class="text-purple-400 font-bold" x-text="mergeForm.project_ids.length"></span> selecionados - mínimo 2)
+            </label>
+            <span class="text-[11px] text-slate-500">Clique para marcar/desmarcar</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto p-1">
+            <template x-for="p in projects" :key="p.id">
+              <div 
+                @click="toggleMergeProject(p.id)"
+                class="p-3 border rounded-xl cursor-pointer transition flex items-center justify-between select-none"
+                :class="mergeForm.project_ids.includes(p.id) ? 'bg-purple-500/15 border-purple-500/80 ring-1 ring-purple-500/50' : 'bg-dark-950/80 border-slate-800 hover:border-slate-700'"
+              >
+                <div class="min-w-0 flex-1 pr-2">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="font-bold text-xs text-white truncate" x-text="p.name"></span>
+                    <span class="px-1.5 py-0.2 rounded text-[9px] font-mono bg-slate-800 text-slate-400" x-text="`${(p.tools || []).length} tools`"></span>
+                  </div>
+                  <p class="text-[10px] text-slate-400 truncate" :title="p.path" x-text="p.path"></p>
+                </div>
+                <input type="checkbox" :checked="mergeForm.project_ids.includes(p.id)" class="rounded text-purple-600 focus:ring-0 shrink-0">
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- Live Multi-Root Preview -->
+        <template x-if="mergeForm.project_ids.length >= 2">
+          <div class="p-4 bg-purple-950/20 border border-purple-500/30 rounded-xl space-y-2">
+            <div class="text-xs font-bold text-purple-300 flex items-center gap-1.5 uppercase tracking-wider">
+              <svg class="w-4 h-4 text-blue-400" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M23.15 2.587L18.21.21a1.494 1.494 0 0 0-1.705.29l-9.46 8.63-4.12-3.128a.999.999 0 0 0-1.276.057L.327 7.261A1 1 0 0 0 .326 8.74L3.899 12 .326 15.26a1 1 0 0 0 .001 1.479L1.65 17.94a.999.999 0 0 0 1.276.057l4.12-3.128 9.46 8.63a1.492 1.492 0 0 0 1.704.29l4.94-2.377A1.5 1.5 0 0 0 24 20.06V3.939a1.5 1.5 0 0 0-.85-1.352zm-5.146 14.861L10.826 12l7.178-5.448v10.896z"/>
+              </svg>
+              <span>Pastas que abrirão juntas no VS Code Explorer (Multi-Root):</span>
+            </div>
+            <div class="space-y-1 pl-2 font-mono text-xs text-purple-200">
+              <template x-for="pid in mergeForm.project_ids" :key="pid">
+                <div class="flex items-center gap-2">
+                  <span class="text-purple-400">📁</span>
+                  <span class="font-bold" x-text="projects.find(x => x.id === pid)?.name || pid"></span>
+                  <span class="text-[10px] text-slate-500" x-text="`-> /home/coder/project/${pid}`"></span>
+                </div>
+              </template>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="flex items-center justify-end space-x-3 border-t border-slate-800 pt-4">
+        <button type="button" @click="showMergeModal = false" class="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition">
+          Cancelar
+        </button>
+        <button 
+          type="button" 
+          @click="mergeProjects()" 
+          :disabled="mergeForm.project_ids.length < 2 || !mergeForm.name.trim() || isMerging" 
+          class="px-5 py-2 text-sm font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 disabled:opacity-50 rounded-xl shadow-lg shadow-purple-600/30 flex items-center gap-2 transition active:scale-95 cursor-pointer">
+          <svg class="w-4 h-4 animate-spin" x-show="isMerging" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          <svg class="w-4 h-4" x-show="!isMerging" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+          <span x-text="isMerging ? 'Unificando Stack...' : 'Gerar Workspace Unificado'"></span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
   <!-- ALPINE APP SCRIPT -->
   <script>
     function stackStudioApp() {
@@ -1800,6 +1936,13 @@
           auto_install_extensions: true
         },
         showEditModal: false,
+        showMergeModal: false,
+        isMerging: false,
+        mergeForm: {
+          name: '',
+          project_ids: [],
+          description: ''
+        },
         showGraphModal: false,
         showLogsModal: false,
         showManifestsModal: false,
@@ -2424,9 +2567,11 @@
 
         async openVsCode(project) {
           let port = (project.custom_ports && project.custom_ports.vscode) || 8443;
+          let ideUrl = '';
           if (project.ui_links) {
-            const vsLink = project.ui_links.find(l => (l.name && l.name.includes('VS Code')) || (l.url && l.url.includes('/?folder=')));
+            const vsLink = project.ui_links.find(l => (l.name && l.name.includes('VS Code')) || (l.url && (l.url.includes('/?folder=') || l.url.includes('/?workspace='))));
             if (vsLink && vsLink.url) {
+              ideUrl = vsLink.url;
               const match = vsLink.url.match(/:(\d+)\//);
               if (match) port = match[1];
             }
@@ -2438,10 +2583,15 @@
               if (match) port = match[1];
             }
           }
-          const ideUrl = `http://localhost:${port}/?folder=/home/coder/project`;
+          if (!ideUrl) {
+            const isWorkspace = project.is_merged_workspace;
+            ideUrl = isWorkspace 
+              ? `http://localhost:${port}/?workspace=/home/coder/project/workspace.code-workspace`
+              : `http://localhost:${port}/?folder=/home/coder/project`;
+          }
 
           // 1. If vscode is NOT yet added to the project
-          if (!project.tools.includes('vscode')) {
+          if (!project.tools.includes('vscode') && !project.is_merged_workspace) {
             if (confirm(`O VS Code Web ainda não está instalado no projeto "${project.name}". Deseja adicioná-lo e iniciar o ambiente agora?`)) {
               this.showToast('Instalando VS Code Web', `Adicionando serviço vscode ao projeto ${project.name}...`, 'info');
               const newTools = [...project.tools, 'vscode'];
@@ -2467,6 +2617,70 @@
 
           // 3. Already running -> open immediately
           window.open(ideUrl, '_blank');
+        },
+
+        openMergeModal(preselectedProject = null) {
+          this.mergeForm = {
+            name: '',
+            project_ids: preselectedProject ? [preselectedProject.id] : [],
+            description: ''
+          };
+          this.showMergeModal = true;
+          this.updateSuggestedMergeName();
+        },
+
+        toggleMergeProject(projectId) {
+          const idx = this.mergeForm.project_ids.indexOf(projectId);
+          if (idx >= 0) {
+            this.mergeForm.project_ids.splice(idx, 1);
+          } else {
+            this.mergeForm.project_ids.push(projectId);
+          }
+          this.updateSuggestedMergeName();
+        },
+
+        updateSuggestedMergeName() {
+          if (this.mergeForm.project_ids.length >= 2) {
+            const names = this.mergeForm.project_ids
+              .map(id => {
+                const p = this.projects.find(x => x.id === id);
+                return p ? p.name : id;
+              });
+            this.mergeForm.name = names.join(' + ') + ' Workspace';
+            this.mergeForm.description = `Workspace Multi-Root unificando ${names.join(', ')} com abertura simultânea no VS Code.`;
+          }
+        },
+
+        async mergeProjects() {
+          if (this.mergeForm.project_ids.length < 2) {
+            this.showToast('Seleção Inválida', 'Selecione pelo menos 2 projetos para unificar.', 'error');
+            return;
+          }
+          if (!this.mergeForm.name.trim()) {
+            this.showToast('Nome Obrigatório', 'Informe um nome para o workspace unificado.', 'error');
+            return;
+          }
+
+          this.isMerging = true;
+          try {
+            const res = await fetch('/api/projects/merge', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(this.mergeForm)
+            });
+            const data = await res.json();
+            if (!res.ok) {
+              throw new Error(data.detail || 'Falha ao mesclar projetos');
+            }
+
+            this.showToast('Workspace Unificado Criado!', `Projetos unificados em "${data.name}". VS Code Multi-Root configurado!`, 'success');
+            this.showMergeModal = false;
+            await this.refreshProjects();
+          } catch (e) {
+            this.showToast('Erro no Merge', e.message, 'error');
+          } finally {
+            this.isMerging = false;
+          }
         },
 
         openTerminalModal(project, serviceName) {

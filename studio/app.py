@@ -11,7 +11,8 @@ from fastapi.templating import Jinja2Templates
 from fastapi.requests import Request
 from studio.models import (
     ProjectCreateRequest, ProjectInfo, ToolCategory, ProjectPreset, ToolPlugin,
-    ContainerExecRequest, FolderAnalyzeRequest, ProjectImportRequest, ProjectUpdateRequest
+    ContainerExecRequest, FolderAnalyzeRequest, ProjectImportRequest, ProjectUpdateRequest,
+    ProjectMergeRequest
 )
 from studio.services.catalog import CATEGORIES, PRESETS
 from studio.services.scaffolder import ProjectScaffolder
@@ -19,6 +20,7 @@ from studio.services.project_store import ProjectStore
 from studio.services.docker_manager import DockerManager
 from studio.services.folder_analyzer import FolderAnalyzer
 from studio.services.topology_graph import TopologyGraphEngine
+from studio.services.project_merger import ProjectMerger
 
 app = FastAPI(title="StackStudio API", description="Data & AI Stack Scaffolder and Orchestrator", version="1.0.0")
 
@@ -233,6 +235,30 @@ async def import_existing_project(req: ProjectImportRequest):
     asyncio.create_task(enrich_and_cache_projects())
 
     return imported_project
+
+
+@app.post("/api/projects/merge", response_model=ProjectInfo)
+async def merge_projects(req: ProjectMergeRequest):
+    """
+    Combines multiple existing projects into a unified multi-root workspace stack.
+    Generates workspace.code-workspace mounting all subproject folders,
+    and a unified docker-compose file with connected bridge networking.
+    """
+    if len(req.project_ids) < 2:
+        raise HTTPException(status_code=400, detail="Selecione pelo menos 2 projetos para unificar.")
+
+    try:
+        merged_info = ProjectMerger.merge_projects(
+            name=req.name,
+            project_ids=req.project_ids,
+            description=req.description
+        )
+        asyncio.create_task(enrich_and_cache_projects())
+        return merged_info
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao mesclar projetos: {str(e)}")
 
 
 @app.put("/api/projects/{project_id}", response_model=ProjectInfo)

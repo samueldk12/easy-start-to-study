@@ -130,6 +130,12 @@ class ProjectImportRequest(BaseModel):
     custom_vscode_extensions: List[str] = Field(default_factory=list)
 
 
+class ProjectMergeRequest(BaseModel):
+    name: str
+    project_ids: List[str]
+    description: Optional[str] = "Workspace unificado gerado via StackStudio"
+
+
 class ProjectInfo(BaseModel):
     id: str
     name: str
@@ -147,3 +153,5 @@ class ProjectInfo(BaseModel):
     ui_links: List[Dict[str, str]] = Field(default_factory=list)
     launch_strategy: Optional[str] = "docker-compose"
     start_command: Optional[str] = "docker compose up -d"
+    is_merged_workspace: bool = False
+    merged_projects: List[str] = Field(default_factory=list)

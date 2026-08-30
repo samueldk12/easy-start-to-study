@@ -395,6 +395,64 @@ async def test_feature_9_api_endpoints_and_sse():
                     assert any("Database is ready" in l for l in lines)
 
 
+async def test_feature_10_multi_project_merge_and_workspaces():
+    print_section("FEATURE 10: Multi-Project Merge & Multi-Root VS Code Workspaces")
+    
+    # 1. Test ProjectMerger directly
+    from studio.services.project_merger import ProjectMerger
+    all_projects = ProjectStore.list_projects()
+    assert len(all_projects) >= 2, "Need at least 2 projects in registry to test merge"
+    
+    p1 = all_projects[0]
+    p2 = all_projects[1]
+    
+    merge_name = f"Test Workspace {p1.name} and {p2.name}"
+    merged_info = ProjectMerger.merge_projects(
+        name=merge_name,
+        project_ids=[p1.id, p2.id],
+        description="Merged multi-root workspace test suite"
+    )
+
+    assert merged_info is not None
+    assert merged_info.is_merged_workspace is True
+    assert p1.id in merged_info.merged_projects
+    assert p2.id in merged_info.merged_projects
+    
+    # Verify workspace.code-workspace file exists and contains multi-root folders
+    ws_file = Path(merged_info.path) / "workspace.code-workspace"
+    assert ws_file.exists(), "workspace.code-workspace must exist"
+    with open(ws_file, "r", encoding="utf-8") as f:
+        ws_data = json.load(f)
+    assert "folders" in ws_data
+    assert len(ws_data["folders"]) == 2
+    print(f"[+] Verified workspace.code-workspace with {len(ws_data['folders'])} root folders:")
+    for folder in ws_data["folders"]:
+        print(f"    - Folder: '{folder['name']}' -> Path: {folder['path']}")
+
+    # Verify docker-compose.yml with unified vscode and shared network
+    compose_file = Path(merged_info.path) / "docker-compose.yml"
+    assert compose_file.exists(), "docker-compose.yml must exist in merged project"
+    with open(compose_file, "r", encoding="utf-8") as f:
+        comp_data = yaml.safe_load(f)
+    assert "services" in comp_data
+    assert "vscode" in comp_data["services"]
+    assert "networks" in comp_data
+    print(f"[+] Verified merged docker-compose.yml with {len(comp_data['services'])} services on shared network.")
+
+    # 2. Test API POST /api/projects/merge
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+        res = await client.post("/api/projects/merge", json={
+            "name": "API Merged Stack Demo",
+            "project_ids": [p1.id, p2.id],
+            "description": "API-triggered multi-root workspace"
+        })
+        assert res.status_code == 200, f"API Merge failed: {res.text}"
+        api_data = res.json()
+        assert api_data["is_merged_workspace"] is True
+        print(f"[+] POST /api/projects/merge created unified project: '{api_data['name']}' (ID: {api_data['id']})")
+
+
 def main():
     print("\n" + "#" * 78)
     print(" === STACKSTUDIO - ALL-FEATURES VERIFICATION & DEMONSTRATION RUNNER ===")
@@ -407,9 +465,10 @@ def main():
     test_feature_6_project_store_and_cache()
     test_feature_7_and_8_k8s_and_topology()
     asyncio.run(test_feature_9_api_endpoints_and_sse())
+    asyncio.run(test_feature_10_multi_project_merge_and_workspaces())
 
     print("\n" + "#" * 78)
-    print(" ALL 9 FEATURE SUITES EXECUTED AND PASSED WITH 100% SUCCESS!")
+    print(" ALL 10 FEATURE SUITES EXECUTED AND PASSED WITH 100% SUCCESS!")
     print("#" * 78 + "\n")
 
 

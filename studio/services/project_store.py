@@ -87,7 +87,10 @@ class ProjectStore:
         tools: List[str],
         include_templates: bool = True,
         auto_install_extensions: bool = True,
-        custom_vscode_extensions: Optional[List[str]] = None
+        custom_vscode_extensions: Optional[List[str]] = None,
+        is_merged_workspace: bool = False,
+        merged_projects: Optional[List[str]] = None,
+        **kwargs
     ) -> ProjectInfo:
         registry = ProjectStore._load_registry()
         data = {
@@ -99,8 +102,11 @@ class ProjectStore:
             "include_templates": include_templates,
             "auto_install_extensions": auto_install_extensions,
             "custom_vscode_extensions": custom_vscode_extensions or [],
+            "is_merged_workspace": is_merged_workspace,
+            "merged_projects": merged_projects or [],
             "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
+        data.update(kwargs)
         registry[project_id] = data
         ProjectStore._save_registry(registry)
 
@@ -237,7 +243,11 @@ class ProjectStore:
                                         host_port = p_str.split(":")[0].strip().replace('"', '').replace("'", "")
                                         # Match service types
                                         if "vscode" in svc_name.lower() or "code-server" in svc_name.lower():
-                                            add_link("VS Code Web (IDE)", f"http://localhost:{host_port}/?folder=/home/coder/project", "code")
+                                            is_workspace = (proj_dir / "workspace.code-workspace").exists() or data.get("is_merged_workspace", False)
+                                            if is_workspace:
+                                                add_link("VS Code Multi-Root Workspace", f"http://localhost:{host_port}/?workspace=/home/coder/project/workspace.code-workspace", "code")
+                                            else:
+                                                add_link("VS Code Web (IDE)", f"http://localhost:{host_port}/?folder=/home/coder/project", "code")
                                         elif svc_name.lower() in ("web", "frontend", "app", "ui", "client") or host_port in ("3000", "3001", "3002", "3003", "5173", "5174"):
                                             name = "Next.js Web App" if has_next or "next" in str(svc_conf) else f"Web App ({svc_name})"
                                             add_link(name, f"http://localhost:{host_port}", "globe")
@@ -300,6 +310,7 @@ class ProjectStore:
                 continue
 
         containers = [ContainerInfo(**c) if isinstance(c, dict) else c for c in data.get("containers", [])]
+        is_merged = data.get("is_merged_workspace", False) or os.path.exists(os.path.join(proj_path_str, "workspace.code-workspace"))
 
         return ProjectInfo(
             id=data["id"],
@@ -315,5 +326,7 @@ class ProjectStore:
             visual_status=data.get("visual_status", "orange"),
             retry_count=data.get("retry_count", 0),
             containers=containers,
-            ui_links=ui_links
+            ui_links=ui_links,
+            is_merged_workspace=is_merged,
+            merged_projects=data.get("merged_projects", [])
         )
