@@ -371,8 +371,10 @@
                 <!-- Action Toolbar Pill (Compact, Never Overflows) -->
                 <div class="flex items-center gap-1 shrink-0 bg-dark-950/80 p-1 rounded-xl border border-slate-800 shadow-inner">
                   <!-- VS Code Web Button -->
-                  <button @click.stop="openVsCode(project)" title="Abrir Código no VS Code Web (Navegador)" class="p-1.5 text-blue-400 hover:text-white bg-blue-500/10 hover:bg-blue-500/25 rounded-lg transition cursor-pointer">
-                    <svg class="w-4 h-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                  <button @click.stop="openVsCode(project)" title="Abrir Código no VS Code Web (Navegador)" class="p-1.5 text-blue-400 hover:text-white bg-blue-500/10 hover:bg-blue-600 rounded-lg transition cursor-pointer flex items-center justify-center">
+                    <svg class="w-4 h-4 pointer-events-none fill-current" viewBox="0 0 24 24">
+                      <path d="M23.15 2.587L18.21.21a1.494 1.494 0 0 0-1.705.29l-9.46 8.63-4.12-3.128a.999.999 0 0 0-1.276.057L.327 7.261A1 1 0 0 0 .326 8.74L3.899 12 .326 15.26a1 1 0 0 0 .001 1.479L1.65 17.94a.999.999 0 0 0 1.276.057l4.12-3.128 9.46 8.63a1.492 1.492 0 0 0 1.704.29l4.94-2.377A1.5 1.5 0 0 0 24 20.06V3.939a1.5 1.5 0 0 0-.85-1.352zm-5.146 14.861L10.826 12l7.178-5.448v10.896z"/>
+                    </svg>
                   </button>
                   <!-- Topology Graph Button -->
                   <button @click.stop="openGraphModal(project)" title="Ver Topologia & Grafo da Arquitetura" class="p-1.5 text-brand-400 hover:text-white bg-brand-500/10 hover:bg-brand-500/25 rounded-lg transition cursor-pointer">
@@ -506,7 +508,14 @@
                   <div class="flex flex-wrap gap-2">
                     <template x-for="link in project.ui_links" :key="link.url">
                       <a :href="link.url" target="_blank" class="px-2.5 py-1.5 bg-brand-500/10 hover:bg-brand-500/20 text-brand-300 hover:text-brand-200 border border-brand-500/30 hover:border-brand-500/60 rounded-xl text-xs font-medium flex items-center gap-2 transition shadow-sm active:scale-95 group" :title="`Abrir ${link.name} em ${link.url}`">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <template x-if="link.icon === 'code' || link.name.includes('VS Code')">
+                          <svg class="w-3.5 h-3.5 fill-current text-blue-400 shrink-0" viewBox="0 0 24 24">
+                            <path d="M23.15 2.587L18.21.21a1.494 1.494 0 0 0-1.705.29l-9.46 8.63-4.12-3.128a.999.999 0 0 0-1.276.057L.327 7.261A1 1 0 0 0 .326 8.74L3.899 12 .326 15.26a1 1 0 0 0 .001 1.479L1.65 17.94a.999.999 0 0 0 1.276.057l4.12-3.128 9.46 8.63a1.492 1.492 0 0 0 1.704.29l4.94-2.377A1.5 1.5 0 0 0 24 20.06V3.939a1.5 1.5 0 0 0-.85-1.352zm-5.146 14.861L10.826 12l7.178-5.448v10.896z"/>
+                          </svg>
+                        </template>
+                        <template x-if="link.icon !== 'code' && !link.name.includes('VS Code')">
+                          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        </template>
                         <span class="font-semibold" x-text="link.name"></span>
                         <span class="px-1.5 py-0.5 bg-slate-900/60 text-brand-400 rounded text-[10px] font-mono border border-brand-500/20" x-text="link.url.replace('http://localhost', ':').replace('https://localhost', ':')"></span>
                         <svg class="w-3 h-3 text-brand-400/70 group-hover:text-brand-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
@@ -524,6 +533,14 @@
               </div>
 
               <div class="flex flex-wrap items-center gap-1.5">
+                <!-- VS Code Web Primary Button -->
+                <button type="button" @click="openVsCode(project)" class="px-3 py-1.5 bg-blue-600/90 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-blue-600/25 transition active:scale-95 cursor-pointer" title="Abrir Código no VS Code Web (Navegador)">
+                  <svg class="w-3.5 h-3.5 fill-current pointer-events-none" viewBox="0 0 24 24">
+                    <path d="M23.15 2.587L18.21.21a1.494 1.494 0 0 0-1.705.29l-9.46 8.63-4.12-3.128a.999.999 0 0 0-1.276.057L.327 7.261A1 1 0 0 0 .326 8.74L3.899 12 .326 15.26a1 1 0 0 0 .001 1.479L1.65 17.94a.999.999 0 0 0 1.276.057l4.12-3.128 9.46 8.63a1.492 1.492 0 0 0 1.704.29l4.94-2.377A1.5 1.5 0 0 0 24 20.06V3.939a1.5 1.5 0 0 0-.85-1.352zm-5.146 14.861L10.826 12l7.178-5.448v10.896z"/>
+                  </svg>
+                  <span>VS Code</span>
+                </button>
+
                 <!-- Start Button -->
                 <button type="button" @click="startProject(project)" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-emerald-600/20 transition active:scale-95 cursor-pointer">
                   <svg class="w-3.5 h-3.5 fill-current pointer-events-none" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
@@ -2407,6 +2424,13 @@
 
         async openVsCode(project) {
           let port = (project.custom_ports && project.custom_ports.vscode) || 8443;
+          if (project.ui_links) {
+            const vsLink = project.ui_links.find(l => (l.name && l.name.includes('VS Code')) || (l.url && l.url.includes('/?folder=')));
+            if (vsLink && vsLink.url) {
+              const match = vsLink.url.match(/:(\d+)\//);
+              if (match) port = match[1];
+            }
+          }
           if (project.containers) {
             const vsContainer = project.containers.find(c => c.service === 'vscode' || c.name.includes('vscode'));
             if (vsContainer && vsContainer.ports) {
