@@ -1,164 +1,113 @@
 {
-  "ecommerce-mlops": {
-    "id": "ecommerce-mlops",
-    "name": "ecommerce-mlops",
-    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\ecommerce-mlops",
-    "description": "Stack Completa de MLOps: Rastreamento com MLflow, Vector DB Qdrant, JupyterLab e Feature Store Redis",
-    "tools": [
-      "qdrant",
-      "postgres",
-      "minio",
-      "jupyterlab",
-      "redis",
-      "mlflow"
-    ],
-    "include_templates": true,
-    "created_at": "2026-08-29 12:14:08"
-  },
   "clean-lakehouse": {
     "id": "clean-lakehouse",
-    "name": "clean-lakehouse",
+    "name": "Clean Lakehouse",
     "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\clean-lakehouse",
-    "description": "Lakehouse limpo sem templates iniciais",
-    "tools": [
-      "kafka",
-      "spark",
-      "airflow",
-      "minio",
-      "iceberg_rest",
-      "postgres",
-      "trino"
-    ],
-    "created_at": "2026-08-29 12:03:58"
-  },
-  "fintech-backend-queue": {
-    "id": "fintech-backend-queue",
-    "name": "fintech-backend-queue",
-    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\fintech-backend-queue",
-    "description": "Microservicos Financeiros: Postgres + Redis Cache + RabbitMQ Filas + Hasura GraphQL + Keycloak IAM",
-    "tools": [
-      "postgres",
-      "rabbitmq",
-      "keycloak",
-      "redis",
-      "hasura"
-    ],
+    "description": "Projeto auto-detectado: clean-lakehouse",
+    "tools": [],
     "include_templates": true,
-    "created_at": "2026-08-29 12:14:08"
-  },
-  "observability-devops-stack": {
-    "id": "observability-devops-stack",
-    "name": "observability-devops-stack",
-    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\observability-devops-stack",
-    "description": "Monitoramento e Metricas: ClickHouse OLAP + Prometheus + Grafana Dashboards + Portainer + pgAdmin",
-    "tools": [
-      "grafana",
-      "prometheus",
-      "pgadmin",
-      "portainer",
-      "clickhouse",
-      "postgres"
-    ],
-    "include_templates": true,
-    "created_at": "2026-08-29 12:14:08"
-  },
-  "graph-nosql-study": {
-    "id": "graph-nosql-study",
-    "name": "graph-nosql-study",
-    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\graph-nosql-study",
-    "description": "Projeto de Grafos e NoSQL com plugins customizados",
-    "tools": [
-      "mongodb",
-      "neo4j"
-    ],
-    "include_templates": true,
-    "created_at": "2026-08-29 12:18:04"
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "created_at": "2026-08-30 09:39:56"
   },
   "crypto-trading-stream": {
     "id": "crypto-trading-stream",
-    "name": "crypto-trading-stream",
+    "name": "Crypto Trading Stream",
     "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\crypto-trading-stream",
-    "description": "Projeto crypto-trading-stream criado via CLI",
-    "tools": [
-      "postgres",
-      "redis",
-      "rabbitmq"
-    ],
+    "description": "Projeto auto-detectado: crypto-trading-stream",
+    "tools": [],
     "include_templates": true,
-    "created_at": "2026-08-29 12:50:00"
-  },
-  "telemetry-governance-stack": {
-    "id": "telemetry-governance-stack",
-    "name": "telemetry-governance-stack",
-    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\telemetry-governance-stack",
-    "description": "Projeto telemetry-governance-stack criado via CLI",
-    "tools": [
-      "prometheus",
-      "postgres",
-      "openmetadata",
-      "grafana",
-      "opentelemetry"
-    ],
-    "include_templates": true,
-    "created_at": "2026-08-29 12:52:49"
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "created_at": "2026-08-30 09:39:56"
   },
   "devops-edge-stack": {
     "id": "devops-edge-stack",
-    "name": "devops-edge-stack",
+    "name": "Devops Edge Stack",
     "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\devops-edge-stack",
-    "description": "Projeto devops-edge-stack criado via CLI",
-    "tools": [
-      "redis",
-      "nginx",
-      "apigateway",
-      "ansible",
-      "terraform",
-      "postgres",
-      "vscode"
-    ],
+    "description": "Projeto auto-detectado: devops-edge-stack",
+    "tools": [],
     "include_templates": true,
-    "created_at": "2026-08-29 13:14:45"
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "created_at": "2026-08-30 09:39:56"
   },
-  "velosec-log": {
-    "id": "velosec-log",
-    "name": "velosec-log",
-    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\velosec-log",
-    "description": "Projeto gerado via StackStudio",
-    "tools": [
-      "minio",
-      "iceberg_rest",
-      "postgres",
-      "kafka",
-      "trino",
-      "schema_registry",
-      "spark",
-      "kafka_ui",
-      "kafka_connect",
-      "airflow"
-    ],
-    "include_templates": false,
-    "created_at": "2026-08-29 13:01:26"
+  "ecommerce-mlops": {
+    "id": "ecommerce-mlops",
+    "name": "Ecommerce Mlops",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\ecommerce-mlops",
+    "description": "Projeto auto-detectado: ecommerce-mlops",
+    "tools": [],
+    "include_templates": true,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "created_at": "2026-08-30 09:39:56"
+  },
+  "fintech-backend-queue": {
+    "id": "fintech-backend-queue",
+    "name": "Fintech Backend Queue",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\fintech-backend-queue",
+    "description": "Projeto auto-detectado: fintech-backend-queue",
+    "tools": [],
+    "include_templates": true,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "created_at": "2026-08-30 09:39:56"
+  },
+  "graph-nosql-study": {
+    "id": "graph-nosql-study",
+    "name": "Graph Nosql Study",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\graph-nosql-study",
+    "description": "Projeto auto-detectado: graph-nosql-study",
+    "tools": [],
+    "include_templates": true,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "created_at": "2026-08-30 09:39:56"
+  },
+  "observability-devops-stack": {
+    "id": "observability-devops-stack",
+    "name": "Observability Devops Stack",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\observability-devops-stack",
+    "description": "Projeto auto-detectado: observability-devops-stack",
+    "tools": [],
+    "include_templates": true,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "created_at": "2026-08-30 09:39:56"
+  },
+  "telemetry-governance-stack": {
+    "id": "telemetry-governance-stack",
+    "name": "Telemetry Governance Stack",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\telemetry-governance-stack",
+    "description": "Projeto auto-detectado: telemetry-governance-stack",
+    "tools": [],
+    "include_templates": true,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "created_at": "2026-08-30 09:39:56"
+  },
+  "veloceg-teste": {
+    "id": "veloceg-teste",
+    "name": "Veloceg Teste",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\veloceg-teste",
+    "description": "Projeto auto-detectado: veloceg-teste",
+    "tools": [],
+    "include_templates": true,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "created_at": "2026-08-30 09:39:56"
   },
   "velocelog": {
     "id": "velocelog",
-    "name": "velocelog",
+    "name": "Velocelog",
     "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\velocelog",
-    "description": "Projeto gerado via StackStudio",
-    "tools": [
-      "spark",
-      "kafka_connect",
-      "kafka",
-      "kafka_ui",
-      "minio",
-      "postgres",
-      "schema_registry",
-      "trino",
-      "iceberg_rest",
-      "airflow",
-      "vscode"
-    ],
-    "include_templates": false,
-    "created_at": "2026-08-29 13:32:43"
+    "description": "Projeto auto-detectado: velocelog",
+    "tools": [],
+    "include_templates": true,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "created_at": "2026-08-30 09:39:56"
   },
   "velocelog-lakehouse": {
     "id": "velocelog-lakehouse",
@@ -169,43 +118,105 @@
     "include_templates": true,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [],
-    "created_at": "2026-08-29 15:10:06"
+    "created_at": "2026-08-30 09:39:56"
   },
-  "test-llm-os-stack": {
-    "id": "test-llm-os-stack",
-    "name": "Test Llm Os Stack",
-    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\test-llm-os-stack",
-    "description": "Projeto auto-detectado: test-llm-os-stack",
+  "velosec-log": {
+    "id": "velosec-log",
+    "name": "Velosec Log",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\velosec-log",
+    "description": "Projeto auto-detectado: velosec-log",
     "tools": [],
     "include_templates": true,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [],
-    "created_at": "2026-08-29 15:11:08"
+    "created_at": "2026-08-30 09:39:56"
   },
-  "test-os-sandbox": {
-    "id": "test-os-sandbox",
-    "name": "Test Os Sandbox",
-    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\test-os-sandbox",
-    "description": "Projeto auto-detectado: test-os-sandbox",
+  "cleanarch": {
+    "id": "cleanarch",
+    "name": "Cleanarch",
+    "path": "C:\\Users\\samue\\projects\\cleanarch",
+    "description": "Projeto auto-detectado: cleanarch",
     "tools": [],
     "include_templates": true,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [],
-    "created_at": "2026-08-29 15:11:08"
+    "created_at": "2026-08-30 09:42:03"
+  },
+  "cutchulo-sheet": {
+    "id": "cutchulo-sheet",
+    "name": "Cutchulo Sheet",
+    "path": "C:\\Users\\samue\\projects\\cutchulo-sheet",
+    "description": "Projeto auto-detectado: cutchulo-sheet",
+    "tools": [],
+    "include_templates": true,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "created_at": "2026-08-30 09:42:03"
+  },
+  "ondecompro": {
+    "id": "ondecompro",
+    "name": "Ondecompro",
+    "path": "C:\\Users\\samue\\projects\\ondecompro",
+    "description": "Projeto auto-detectado: ondecompro",
+    "tools": [],
+    "include_templates": true,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "created_at": "2026-08-30 09:42:03"
+  },
+  "ondecompro-frontend": {
+    "id": "ondecompro-frontend",
+    "name": "Ondecompro Frontend",
+    "path": "C:\\Users\\samue\\projects\\ondecompro-frontend",
+    "description": "Projeto auto-detectado: ondecompro-frontend",
+    "tools": [],
+    "include_templates": true,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "created_at": "2026-08-30 09:42:03"
+  },
+  "ondecompro-monorepo": {
+    "id": "ondecompro-monorepo",
+    "name": "Ondecompro Monorepo",
+    "path": "C:\\Users\\samue\\projects\\ondecompro-monorepo",
+    "description": "Projeto auto-detectado: ondecompro-monorepo",
+    "tools": [],
+    "include_templates": true,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "created_at": "2026-08-30 09:42:03"
+  },
+  "ondecompro-platform": {
+    "id": "ondecompro-platform",
+    "name": "Ondecompro Platform",
+    "path": "C:\\Users\\samue\\projects\\ondecompro-platform",
+    "description": "Projeto auto-detectado: ondecompro-platform",
+    "tools": [],
+    "include_templates": true,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "created_at": "2026-08-30 09:42:03"
   },
   "venda": {
     "id": "venda",
-    "name": "venda",
+    "name": "Venda",
     "path": "C:\\Users\\samue\\projects\\venda",
-    "description": "Projeto importado de venda com Python, Node.js [app], Airflow, Mailpit",
-    "tools": [
-      "airflow",
-      "mailpit",
-      "postgres"
-    ],
-    "include_templates": false,
+    "description": "Projeto auto-detectado: venda",
+    "tools": [],
+    "include_templates": true,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [],
-    "created_at": "2026-08-29 16:08:09"
+    "created_at": "2026-08-30 09:42:03"
+  },
+  "web250": {
+    "id": "web250",
+    "name": "Web250",
+    "path": "C:\\Users\\samue\\projects\\web250",
+    "description": "Projeto auto-detectado: web250",
+    "tools": [],
+    "include_templates": true,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "created_at": "2026-08-30 09:42:03"
   }
 }
