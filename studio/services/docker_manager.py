@@ -56,7 +56,7 @@ class DockerManager:
         return replaced
 
     @staticmethod
-    async def run_command(project_dir: str, cmd: List[str], timeout: float = 30.0) -> Dict[str, Any]:
+    async def run_command(project_dir: str, cmd: List[str], timeout: float = 180.0) -> Dict[str, Any]:
         """Runs a docker compose command in the project directory with a safety timeout."""
         if not os.path.exists(project_dir):
             return {"success": False, "error": f"Directory not found: {project_dir}"}
@@ -89,7 +89,7 @@ class DockerManager:
 
     @staticmethod
     async def start_project(project_dir: str) -> Dict[str, Any]:
-        res = await DockerManager.run_command(project_dir, ["up", "-d", "--build"])
+        res = await DockerManager.run_command(project_dir, ["up", "-d", "--build"], timeout=180.0)
         
         # Automatic Port Conflict Detection and Auto-Recovery
         if not res.get("success", False):
@@ -103,7 +103,7 @@ class DockerManager:
                     free_port = find_next_free_port(clash_port + 1)
                     if DockerManager._replace_port_in_compose(project_dir, clash_port, free_port):
                         # Retry starting the project with the reassigned free port
-                        retry_res = await DockerManager.run_command(project_dir, ["up", "-d", "--build"])
+                        retry_res = await DockerManager.run_command(project_dir, ["up", "-d", "--build"], timeout=180.0)
                         if retry_res.get("success", False):
                             return retry_res
         return res

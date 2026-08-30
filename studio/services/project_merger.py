@@ -277,12 +277,14 @@ set -e
 echo "=== [StackStudio Multi-Root Workspace] Inicializando VS Code Web ==="
 
 if [ "$AUTO_INSTALL_EXTENSIONS" = "true" ] && [ -f /home/coder/project/.vscode/extensions.json ]; then
-  echo "Instalando extensoes oficiais recomendadas do Workspace Unificado..."
-  for ext in {exts_str}; do
-    echo " -> Instalando extensao: $ext"
-    code-server --install-extension "$ext" --force || echo "  [AVISO] Nao foi possivel instalar $ext, continuando..."
-  done
-  echo "Extensoes oficiais configuradas com sucesso!"
+  (
+    sleep 3
+    echo "[StackStudio] Instalando extensoes recomendadas em background..."
+    for ext in {exts_str}; do
+      code-server --install-extension "$ext" --force 2>/dev/null || true
+    done
+    echo "[StackStudio] Extensoes configuradas!"
+  ) &
 fi
 
 echo "Iniciando code-server com Multi-Root Workspace..."
