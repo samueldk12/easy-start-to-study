@@ -103,6 +103,31 @@ class ProjectMerger:
                             new_conf = dict(s_conf)
                             new_conf["container_name"] = f"{merged_id}-{merged_svc_name}"
 
+                            # Normalize build context
+                            if "build" in new_conf:
+                                build_val = new_conf["build"]
+                                if isinstance(build_val, str):
+                                    if build_val == "." or build_val.startswith("./") or build_val.startswith(".\\"):
+                                        rel = build_val[1:].lstrip("/\\")
+                                        new_conf["build"] = os.path.join(p.path, rel).replace("\\", "/")
+                                elif isinstance(build_val, dict) and "context" in build_val:
+                                    ctx = build_val["context"]
+                                    if ctx == "." or ctx.startswith("./") or ctx.startswith(".\\"):
+                                        rel = ctx[1:].lstrip("/\\")
+                                        new_conf["build"]["context"] = os.path.join(p.path, rel).replace("\\", "/")
+
+                            # Normalize env_file
+                            if "env_file" in new_conf:
+                                ef = new_conf["env_file"]
+                                if isinstance(ef, str):
+                                    if not os.path.isabs(ef):
+                                        new_conf["env_file"] = os.path.join(p.path, ef).replace("\\", "/")
+                                elif isinstance(ef, list):
+                                    new_conf["env_file"] = [
+                                        os.path.join(p.path, item).replace("\\", "/") if not os.path.isabs(item) else item
+                                        for item in ef
+                                    ]
+
                             new_vols = []
                             for v in new_conf.get("volumes", []):
                                 if isinstance(v, str):
@@ -134,13 +159,27 @@ class ProjectMerger:
                             for port_entry in new_conf.get("ports", []):
                                 p_str = str(port_entry).strip().replace('"', '').replace("'", "")
                                 if ":" in p_str:
-                                    parts = p_str.split(":")
-                                    h_port = int(parts[0])
-                                    c_port = parts[1]
-                                    if h_port in allocated_host_ports or is_port_in_use(h_port):
-                                        h_port = find_next_free_port(h_port + 1)
-                                    allocated_host_ports.add(h_port)
-                                    new_ports.append(f"{h_port}:{c_port}")
+                                    h_str, c_port = p_str.rsplit(":", 1)
+                                    h_str = h_str.strip()
+                                    c_port = c_port.strip()
+
+                                    # Handle ${VAR:-5432} or ${VAR}
+                                    if "${" in h_str:
+                                        match = re.search(r':-?(\d+)', h_str)
+                                        if match:
+                                            h_str = match.group(1)
+                                        else:
+                                            digits = re.findall(r'\d+', h_str)
+                                            h_str = digits[-1] if digits else "8000"
+
+                                    try:
+                                        h_port = int(h_str)
+                                        if h_port in allocated_host_ports or is_port_in_use(h_port):
+                                            h_port = find_next_free_port(h_port + 1)
+                                        allocated_host_ports.add(h_port)
+                                        new_ports.append(f"{h_port}:{c_port}")
+                                    except Exception:
+                                        new_ports.append(port_entry)
                                 else:
                                     new_ports.append(port_entry)
                             new_conf["ports"] = new_ports
