@@ -3,7 +3,33 @@ FastAPI Server & REST API for StackStudio
 """
 
 import os
+import sys
 import asyncio
+
+# Fix Windows asyncio proactor pipe close ResourceWarning/ValueError on SSE client disconnect
+if sys.platform == "win32":
+    try:
+        from asyncio.proactor_events import _ProactorBasePipeTransport
+        _orig_del = _ProactorBasePipeTransport.__del__
+        def _safe_del(self):
+            try:
+                _orig_del(self)
+            except Exception:
+                pass
+        _ProactorBasePipeTransport.__del__ = _safe_del
+    except Exception:
+        pass
+    try:
+        from asyncio.base_subprocess import BaseSubprocessTransport
+        _orig_sub_del = BaseSubprocessTransport.__del__
+        def _safe_sub_del(self):
+            try:
+                _orig_sub_del(self)
+            except Exception:
+                pass
+        BaseSubprocessTransport.__del__ = _safe_sub_del
+    except Exception:
+        pass
 from typing import List, Dict, Any, Optional
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse, StreamingResponse

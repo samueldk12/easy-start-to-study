@@ -15,6 +15,32 @@ if sys.stdout.encoding != 'utf-8':
     except Exception:
         pass
 
+# Fix Windows asyncio proactor pipe close ResourceWarning/ValueError on SSE client disconnect
+if sys.platform == "win32":
+    import asyncio
+    try:
+        from asyncio.proactor_events import _ProactorBasePipeTransport
+        _orig_del = _ProactorBasePipeTransport.__del__
+        def _safe_del(self):
+            try:
+                _orig_del(self)
+            except Exception:
+                pass
+        _ProactorBasePipeTransport.__del__ = _safe_del
+    except Exception:
+        pass
+    try:
+        from asyncio.base_subprocess import BaseSubprocessTransport
+        _orig_sub_del = BaseSubprocessTransport.__del__
+        def _safe_sub_del(self):
+            try:
+                _orig_sub_del(self)
+            except Exception:
+                pass
+        BaseSubprocessTransport.__del__ = _safe_sub_del
+    except Exception:
+        pass
+
 def main():
     port = int(os.getenv("STUDIO_PORT", "5050"))
     host = os.getenv("STUDIO_HOST", "0.0.0.0")

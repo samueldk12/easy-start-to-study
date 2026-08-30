@@ -397,8 +397,17 @@ class DockerManager:
                 if not line:
                     break
                 yield line.decode("utf-8", errors="replace")
+        except (asyncio.CancelledError, GeneratorExit):
+            pass
         finally:
             try:
-                process.kill()
+                process.terminate()
             except Exception:
                 pass
+            try:
+                await asyncio.wait_for(process.wait(), timeout=1.0)
+            except Exception:
+                try:
+                    process.kill()
+                except Exception:
+                    pass
