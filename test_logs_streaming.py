@@ -6,10 +6,23 @@ from studio.services.project_store import ProjectStore
 
 
 @pytest.mark.asyncio
-async def test_stream_project_logs_endpoint():
-    projects = ProjectStore.list_projects()
-    assert len(projects) > 0
-    test_proj = projects[0]
+async def test_stream_project_logs_endpoint(tmp_path):
+    # Register a fixture project instead of relying on whatever is already registered
+    # on disk, so this test passes hermetically on a fresh checkout.
+    test_proj = ProjectStore.register_project(
+        project_id="test-logs-stream-proj",
+        name="Test Logs Stream Proj",
+        path=str(tmp_path),
+        description="Fixture project for log streaming test",
+        tools=["postgres"]
+    )
+    try:
+        await _run_logs_streaming_assertions(test_proj)
+    finally:
+        ProjectStore.delete_project("test-logs-stream-proj")
+
+
+async def _run_logs_streaming_assertions(test_proj):
 
     async def mock_logs(project_path, service=None, tail=150):
         yield "Starting container...\n"

@@ -11,7 +11,7 @@ from typing import Dict, List, Any, Set
 from studio.models import ProjectCreateRequest, ProjectInfo
 from studio.services.catalog import get_tool_by_id
 
-PROJECTS_DIR = os.path.join(os.getcwd(), "projects")
+PROJECTS_DIR = os.environ.get("STACKSTUDIO_PROJECTS_DIR") or os.path.join(os.getcwd(), "projects")
 
 
 class ProjectScaffolder:

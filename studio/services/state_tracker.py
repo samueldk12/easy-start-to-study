@@ -7,13 +7,18 @@ Survives server reboots/crashes, detects running containers, tracks uptime and e
 import os
 import json
 import asyncio
+import logging
 import subprocess
 from datetime import datetime
 from typing import Dict, List, Optional, Any
 
+logger = logging.getLogger("stackstudio.state_tracker")
 
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-STATE_FILE = os.path.join(_PROJECT_ROOT, "projects", ".state_history.json")
+# Overridable so the test suite can point state persistence at a scratch directory
+# instead of the real projects/ folder (see conftest.py).
+_PROJECTS_DIR = os.environ.get("STACKSTUDIO_PROJECTS_DIR") or os.path.join(_PROJECT_ROOT, "projects")
+STATE_FILE = os.path.join(_PROJECTS_DIR, ".state_history.json")
 
 
 class StateTracker:
@@ -43,7 +48,7 @@ class StateTracker:
                 cls._state.setdefault("action_history", [])
                 cls._state.setdefault("server_sessions", [])
         except Exception as e:
-            print(f"[StateTracker] Error loading state file: {e}")
+            logger.warning("Error loading state file: %s", e, exc_info=True)
             cls._state = {"managed_projects": {}, "action_history": [], "server_sessions": []}
 
     @classmethod
@@ -58,7 +63,7 @@ class StateTracker:
             else:
                 os.rename(temp_file, STATE_FILE)
         except Exception as e:
-            print(f"[StateTracker] Error saving state to disk: {e}")
+            logger.warning("Error saving state to disk: %s", e, exc_info=True)
 
     @classmethod
     def initialize(cls):
@@ -190,7 +195,7 @@ class StateTracker:
                         running_container_ids.add(cid)
                         running_container_names.add(cname)
         except Exception as e:
-            print(f"[StateTracker] Error querying Docker daemon on reconcile: {e}")
+            logger.warning("Error querying Docker daemon on reconcile: %s", e, exc_info=True)
 
         active_projects = []
         interrupted_projects = []

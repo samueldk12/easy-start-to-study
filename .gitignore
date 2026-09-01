@@ -3,6 +3,10 @@
 .env.local
 .env.*.local
 
+# Encrypted credentials vault (StackStudio) — local-machine only, never commit
+/data/
+**/.secrets/
+
 # Data and storage volumes
 minio_data/
 trino_data/
@@ -41,6 +45,7 @@ logs/
 # IDE & OS
 .idea/
 .vscode/
+.claude/
 .DS_Store
 Thumbs.db
 

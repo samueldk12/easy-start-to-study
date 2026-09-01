@@ -2,9 +2,24 @@
 Pydantic Data Models for StackStudio with Plugin Support, Custom Configuration & Template Choices
 """
 
+import re
 from typing import List, Dict, Optional, Any
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+# Project names become directory names under PROJECTS_DIR (see scaffolder.py). Reject
+# path separators, '..' and leading dots so a crafted name can't escape that directory.
+_SAFE_NAME_RE = re.compile(r'^[A-Za-z0-9](?:[A-Za-z0-9 ._-]{0,62}[A-Za-z0-9])?$')
+
+
+def _validate_safe_name(name: str) -> str:
+    name = name.strip()
+    if not name or not _SAFE_NAME_RE.match(name) or ".." in name:
+        raise ValueError(
+            "name must be 2-64 chars, start/end alphanumeric, and contain only "
+            "letters, numbers, spaces, '.', '_' or '-' (no path separators or '..')"
+        )
+    return name
 
 
 class ToolOption(BaseModel):
@@ -91,6 +106,11 @@ class ProjectCreateRequest(BaseModel):
     airflow_executor: Optional[str] = "LocalExecutor"
     custom_airflow_requirements: List[str] = Field(default_factory=list)
 
+    @field_validator("name")
+    @classmethod
+    def _check_name(cls, v: str) -> str:
+        return _validate_safe_name(v)
+
 
 class ProjectUpdateRequest(BaseModel):
     tools: List[str]
@@ -142,6 +162,11 @@ class ProjectMergeRequest(BaseModel):
     name: str
     project_ids: List[str]
     description: Optional[str] = "Workspace unificado gerado via StackStudio"
+
+    @field_validator("name")
+    @classmethod
+    def _check_name(cls, v: str) -> str:
+        return _validate_safe_name(v)
 
 
 class ProjectGovernanceRequest(BaseModel):

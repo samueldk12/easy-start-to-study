@@ -6,17 +6,22 @@ Supports offline-first JSON cache loading, stale-while-revalidate, and persisten
 import os
 import json
 import yaml
+import logging
 from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Optional, Any, Tuple
 from studio.models import ProjectInfo, ContainerInfo
 from studio.services.catalog import get_tool_by_id
 
+logger = logging.getLogger("stackstudio.project_store")
+
 
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-REGISTRY_FILE = os.path.join(_PROJECT_ROOT, "projects", ".registry.json")
-CACHE_FILE = os.path.join(_PROJECT_ROOT, "projects", "projects_cache.json")
-PROJECTS_DIR = os.path.join(_PROJECT_ROOT, "projects")
+# Overridable so the test suite can point registry/cache reads & writes at a scratch
+# directory instead of the real projects/ folder (see conftest.py).
+PROJECTS_DIR = os.environ.get("STACKSTUDIO_PROJECTS_DIR") or os.path.join(_PROJECT_ROOT, "projects")
+REGISTRY_FILE = os.path.join(PROJECTS_DIR, ".registry.json")
+CACHE_FILE = os.path.join(PROJECTS_DIR, "projects_cache.json")
 
 
 class ProjectStore:
@@ -60,7 +65,7 @@ class ProjectStore:
             else:
                 os.rename(temp_file, REGISTRY_FILE)
         except Exception as e:
-            print(f"[ProjectStore] Error saving registry: {e}")
+            logger.warning("Error saving registry: %s", e, exc_info=True)
 
     @staticmethod
     def load_cache() -> List[ProjectInfo]:
@@ -108,7 +113,7 @@ class ProjectStore:
             else:
                 os.rename(temp_file, CACHE_FILE)
         except Exception as e:
-            print(f"[ProjectStore] Error saving projects cache: {e}")
+            logger.warning("Error saving projects cache: %s", e, exc_info=True)
 
     @staticmethod
     def register_project(

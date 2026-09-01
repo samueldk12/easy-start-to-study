@@ -7,9 +7,11 @@ import os
 import yaml
 import json
 import shutil
+import logging
 from typing import List, Dict, Optional, Any
 from studio.models import ToolPlugin, ToolOption
 
+logger = logging.getLogger("stackstudio.plugin_manager")
 
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 PLUGINS_DIR = os.path.join(_PROJECT_ROOT, "plugins")
@@ -42,7 +44,7 @@ class PluginManager:
                             if data and isinstance(data, dict):
                                 plugins.append(ToolPlugin(**data))
                     except Exception as e:
-                        print(f"Error loading plugin from {yaml_file}: {e}")
+                        logger.warning("Error loading plugin from %s: %s", yaml_file, e, exc_info=True)
                 elif os.path.exists(json_file):
                     try:
                         with open(json_file, "r", encoding="utf-8") as f:
@@ -50,7 +52,7 @@ class PluginManager:
                             if data and isinstance(data, dict):
                                 plugins.append(ToolPlugin(**data))
                     except Exception as e:
-                        print(f"Error loading plugin from {json_file}: {e}")
+                        logger.warning("Error loading plugin from %s: %s", json_file, e, exc_info=True)
 
         return plugins
 

@@ -8,10 +8,13 @@ import os
 import json
 import yaml
 import re
+import logging
 from typing import List, Dict, Any, Optional
 from studio.models import ProjectInfo
 from studio.services.project_store import ProjectStore, PROJECTS_DIR
 from studio.services.docker_manager import find_next_free_port, is_port_in_use
+
+logger = logging.getLogger("stackstudio.project_merger")
 
 
 class ProjectMerger:
@@ -187,7 +190,7 @@ class ProjectMerger:
                             new_conf["networks"] = [merged_net_name]
                             compose_services[merged_svc_name] = new_conf
                 except Exception as e:
-                    print(f"Error merging compose from {p.name}: {e}")
+                    logger.warning("Error merging compose from %s: %s", p.name, e, exc_info=True)
 
             src_vscode_settings = os.path.join(p.path, ".vscode", "settings.json")
             if os.path.exists(src_vscode_settings):

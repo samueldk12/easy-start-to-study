@@ -6,7 +6,14 @@ import os
 import sys
 import asyncio
 import time
+import logging
 from contextlib import asynccontextmanager
+
+logging.basicConfig(
+    level=os.getenv("STUDIO_LOG_LEVEL", "INFO"),
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
+logger = logging.getLogger("stackstudio")
 
 # Fix Windows asyncio proactor pipe close ResourceWarning/ValueError on SSE client disconnect
 if sys.platform == "win32":
@@ -54,14 +61,23 @@ from studio.services.project_merger import ProjectMerger
 from studio.services.state_tracker import StateTracker
 from studio.services.network_inspector import NetworkInspector, is_port_bound
 
+# Subprocess / IO safety limits
+TEST_SUBPROCESS_TIMEOUT_S = float(os.getenv("STUDIO_TEST_TIMEOUT_S", "120"))
+MAX_MANIFEST_FILES = 500
+MAX_MANIFEST_FILE_BYTES = 2 * 1024 * 1024  # 2 MiB
+
 
 async def _run_startup_tasks():
     """Startup tasks: reconcile crash state and warm up project cache."""
     try:
         reconcile_info = await StateTracker.reconcile_on_startup()
-        print(f"[StackStudio] Reconciled managed state: {len(reconcile_info.get('active_projects', []))} active, {len(reconcile_info.get('interrupted_projects', []))} interrupted")
-    except Exception as e:
-        print(f"[StackStudio] Error during startup reconciliation: {e}")
+        logger.info(
+            "Reconciled managed state: %d active, %d interrupted",
+            len(reconcile_info.get('active_projects', [])),
+            len(reconcile_info.get('interrupted_projects', [])),
+        )
+    except Exception:
+        logger.exception("Error during startup reconciliation")
 
     # Warm up cache and perform initial background sync (defined later in module)
     asyncio.create_task(enrich_and_cache_projects())
@@ -79,11 +95,33 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
 
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start = time.monotonic()
+    response = await call_next(request)
+    duration_ms = (time.monotonic() - start) * 1000
+    logger.info("%s %s -> %d (%.1fms)", request.method, request.url.path, response.status_code, duration_ms)
+    return response
+
+
+@app.get("/health")
+async def health_check():
+    return {"status": "ok", "version": app.version}
+
+
+def _read_template_cached(path: str, _cache: dict = {}) -> str:
+    """Reads a template file once per process; templates are static assets bundled with the app."""
+    if path not in _cache:
+        with open(path, "r", encoding="utf-8") as f:
+            _cache[path] = f.read()
+    return _cache[path]
+
+
 @app.get("/", response_class=HTMLResponse)
 async def serve_ui(request: Request):
     index_file = os.path.join(BASE_DIR, "templates", "index.html")
-    with open(index_file, "r", encoding="utf-8") as f:
-        return HTMLResponse(content=f.read())
+    content = _read_template_cached(index_file)
+    return HTMLResponse(content=content, headers={"Cache-Control": "no-cache"})
 
 
 @app.get("/network", response_class=HTMLResponse)
@@ -91,8 +129,8 @@ async def serve_ui(request: Request):
 @app.get("/topology", response_class=HTMLResponse)
 async def serve_network_ui(request: Request):
     network_file = os.path.join(BASE_DIR, "templates", "network.html")
-    with open(network_file, "r", encoding="utf-8") as f:
-        return HTMLResponse(content=f.read())
+    content = _read_template_cached(network_file)
+    return HTMLResponse(content=content, headers={"Cache-Control": "no-cache"})
 
 
 @app.get("/api/network/overview")
@@ -721,14 +759,19 @@ async def get_project_manifests(project_id: str):
     if os.path.exists(k8s_dir) and os.path.isdir(k8s_dir):
         for root, _, files in os.walk(k8s_dir):
             for file in files:
+                if len(k8s_files) >= MAX_MANIFEST_FILES:
+                    break
                 if file.endswith((".yaml", ".yml")):
                     full_path = os.path.join(root, file)
                     rel_path = os.path.relpath(full_path, proj.path).replace("\\", "/")
                     try:
+                        if os.path.getsize(full_path) > MAX_MANIFEST_FILE_BYTES:
+                            k8s_files[rel_path] = f"# skipped: file exceeds {MAX_MANIFEST_FILE_BYTES} bytes"
+                            continue
                         with open(full_path, "r", encoding="utf-8") as f:
                             k8s_files[rel_path] = f.read()
                     except Exception:
-                        pass
+                        logger.warning("Failed to read manifest %s", full_path, exc_info=True)
 
     cli_instructions = {
         "docker_compose_up": "docker compose up -d",
@@ -768,7 +811,16 @@ async def test_project(project_id: str):
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE
     )
-    stdout, stderr = await process.communicate()
+    try:
+        stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=TEST_SUBPROCESS_TIMEOUT_S)
+    except asyncio.TimeoutError:
+        process.kill()
+        await process.communicate()
+        logger.warning("Project test run timed out project_id=%s timeout=%ss", project_id, TEST_SUBPROCESS_TIMEOUT_S)
+        return {
+            "success": False,
+            "output": f"Test run timed out after {TEST_SUBPROCESS_TIMEOUT_S}s and was killed."
+        }
     output = stdout.decode("utf-8", errors="replace") + stderr.decode("utf-8", errors="replace")
     return {
         "success": process.returncode == 0,

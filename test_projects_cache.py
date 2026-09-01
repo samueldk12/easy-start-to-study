@@ -1,6 +1,7 @@
 import os
 import json
 import pytest
+from unittest.mock import patch
 from fastapi.testclient import TestClient
 from studio.app import app
 from studio.models import ProjectInfo, ProjectCreateRequest, ContainerInfo
@@ -53,25 +54,33 @@ def test_project_store_cache_lifecycle(tmp_path):
     ProjectStore.delete_project("test-cache-proj")
 
 
+async def _fake_status_batch(projects):
+    # Mimics DockerManager.get_all_projects_status_batch without needing a real
+    # Docker daemon, so the enrich-and-cache path always writes to CACHE_FILE
+    # instead of taking its "Docker unavailable, don't wipe the cache" bail-out.
+    return {p.id: {"status": "stopped", "visual_status": "orange", "containers": []} for p in projects}
+
+
 def test_api_projects_cached_and_refresh_endpoints():
-    # 1. Test cached_only=true
-    res_cache = client.get("/api/projects?cached_only=true")
-    assert res_cache.status_code == 200
-    data_cache = res_cache.json()
-    assert isinstance(data_cache, list)
+    with patch("studio.app.DockerManager.get_all_projects_status_batch", side_effect=_fake_status_batch):
+        # 1. Test cached_only=true
+        res_cache = client.get("/api/projects?cached_only=true")
+        assert res_cache.status_code == 200
+        data_cache = res_cache.json()
+        assert isinstance(data_cache, list)
 
-    # 2. Test refresh=true
-    res_refresh = client.get("/api/projects?refresh=true")
-    assert res_refresh.status_code == 200
-    data_refresh = res_refresh.json()
-    assert isinstance(data_refresh, list)
+        # 2. Test refresh=true
+        res_refresh = client.get("/api/projects?refresh=true")
+        assert res_refresh.status_code == 200
+        data_refresh = res_refresh.json()
+        assert isinstance(data_refresh, list)
 
-    # Verify that projects_cache.json was written/updated on disk
-    assert os.path.exists(CACHE_FILE)
-    with open(CACHE_FILE, "r", encoding="utf-8") as f:
-        file_data = json.load(f)
-    assert isinstance(file_data, list)
-    assert len(file_data) == len(data_refresh)
+        # Verify that projects_cache.json was written/updated on disk
+        assert os.path.exists(CACHE_FILE)
+        with open(CACHE_FILE, "r", encoding="utf-8") as f:
+            file_data = json.load(f)
+        assert isinstance(file_data, list)
+        assert len(file_data) == len(data_refresh)
 
 
 def test_api_projects_sync_endpoint():

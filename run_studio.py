@@ -43,7 +43,9 @@ if sys.platform == "win32":
 
 def main():
     port = int(os.getenv("STUDIO_PORT", "5050"))
-    host = os.getenv("STUDIO_HOST", "0.0.0.0")
+    # Default to loopback only: the API exposes unauthenticated container/shell exec
+    # endpoints, so binding 0.0.0.0 by default would expose them to the LAN.
+    host = os.getenv("STUDIO_HOST", "127.0.0.1")
 
     print("=" * 65)
     print(" [*] StackStudio: Data Engineering, MLOps, Backend & DevOps")
