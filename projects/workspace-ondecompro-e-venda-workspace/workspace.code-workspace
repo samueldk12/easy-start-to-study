@@ -1,0 +1,23 @@
+{
+  "folders": [
+    {
+      "name": "\ud83d\udce6 Ondecompro Frontend",
+      "path": "/home/coder/project/ondecompro-frontend"
+    },
+    {
+      "name": "\ud83d\udce6 Venda",
+      "path": "/home/coder/project/venda"
+    }
+  ],
+  "settings": {
+    "files.autoSave": "afterDelay",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2,
+    "terminal.integrated.defaultProfile.linux": "bash",
+    "docker.showStartPage": false,
+    "sqltools.useNodeRuntime": true,
+    "sqltools.connections": [],
+    "database.connections": [],
+    "database-client.connections": []
+  }
+}

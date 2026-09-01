@@ -5,6 +5,8 @@ FastAPI Server & REST API for StackStudio
 import os
 import sys
 import asyncio
+import time
+from contextlib import asynccontextmanager
 
 # Fix Windows asyncio proactor pipe close ResourceWarning/ValueError on SSE client disconnect
 if sys.platform == "win32":
@@ -31,6 +33,7 @@ if sys.platform == "win32":
     except Exception:
         pass
 from typing import List, Dict, Any, Optional
+from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
@@ -38,8 +41,9 @@ from fastapi.requests import Request
 from studio.models import (
     ProjectCreateRequest, ProjectInfo, ToolCategory, ProjectPreset, ToolPlugin,
     ContainerExecRequest, FolderAnalyzeRequest, ProjectImportRequest, ProjectUpdateRequest,
-    ProjectMergeRequest
+    ProjectMergeRequest, ProjectGovernanceRequest
 )
+from studio.services.project_governance import ProjectGovernance
 from studio.services.catalog import CATEGORIES, PRESETS
 from studio.services.scaffolder import ProjectScaffolder
 from studio.services.project_store import ProjectStore
@@ -47,8 +51,29 @@ from studio.services.docker_manager import DockerManager
 from studio.services.folder_analyzer import FolderAnalyzer
 from studio.services.topology_graph import TopologyGraphEngine
 from studio.services.project_merger import ProjectMerger
+from studio.services.state_tracker import StateTracker
+from studio.services.network_inspector import NetworkInspector, is_port_bound
 
-app = FastAPI(title="StackStudio API", description="Data & AI Stack Scaffolder and Orchestrator", version="1.0.0")
+
+async def _run_startup_tasks():
+    """Startup tasks: reconcile crash state and warm up project cache."""
+    try:
+        reconcile_info = await StateTracker.reconcile_on_startup()
+        print(f"[StackStudio] Reconciled managed state: {len(reconcile_info.get('active_projects', []))} active, {len(reconcile_info.get('interrupted_projects', []))} interrupted")
+    except Exception as e:
+        print(f"[StackStudio] Error during startup reconciliation: {e}")
+
+    # Warm up cache and perform initial background sync (defined later in module)
+    asyncio.create_task(enrich_and_cache_projects())
+
+
+@asynccontextmanager
+async def lifespan(app):
+    await _run_startup_tasks()
+    yield
+
+
+app = FastAPI(title="StackStudio API", description="Data & AI Stack Scaffolder and Orchestrator", version="1.0.0", lifespan=lifespan)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
@@ -59,6 +84,79 @@ async def serve_ui(request: Request):
     index_file = os.path.join(BASE_DIR, "templates", "index.html")
     with open(index_file, "r", encoding="utf-8") as f:
         return HTMLResponse(content=f.read())
+
+
+@app.get("/network", response_class=HTMLResponse)
+@app.get("/containers", response_class=HTMLResponse)
+@app.get("/topology", response_class=HTMLResponse)
+async def serve_network_ui(request: Request):
+    network_file = os.path.join(BASE_DIR, "templates", "network.html")
+    with open(network_file, "r", encoding="utf-8") as f:
+        return HTMLResponse(content=f.read())
+
+
+@app.get("/api/network/overview")
+async def get_network_overview():
+    """Returns comprehensive stats, active containers, mapped ports, and inter-service connection topology."""
+    return await NetworkInspector.get_full_overview()
+
+
+@app.get("/api/network/containers")
+async def get_network_containers():
+    """Returns active running containers across all projects."""
+    return await NetworkInspector.get_active_containers()
+
+
+@app.get("/api/network/ports")
+async def get_network_ports():
+    """Returns all mapped host ports and protocols."""
+    return await NetworkInspector.get_all_port_mappings()
+
+
+@app.get("/api/network/topology")
+async def get_network_topology_graph():
+    """Returns global inter-service communication and dependency graph."""
+    return await NetworkInspector.get_network_topology()
+
+
+@app.get("/api/network/check-port/{port}")
+async def check_port_in_use(port: int):
+    """Checks if a given port is currently listening on localhost."""
+    return {"port": port, "in_use": is_port_bound(port)}
+
+
+class DirectExecRequest(BaseModel):
+    container_id: str
+    command: str
+    user: Optional[str] = None
+
+
+@app.post("/api/network/exec")
+async def exec_in_network_container(req: DirectExecRequest):
+    """Executes a command directly inside any active container."""
+    if not req.container_id or not req.command.strip():
+        raise HTTPException(status_code=400, detail="Container ID and command are required.")
+
+    cmd_parts = ["docker", "exec", "-i"]
+    if req.user:
+        cmd_parts.extend(["-u", req.user])
+    cmd_parts.extend([req.container_id, "/bin/sh", "-c", req.command.strip()])
+
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            *cmd_parts,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        stdout, stderr = await proc.communicate()
+        return {
+            "success": proc.returncode == 0,
+            "returncode": proc.returncode,
+            "stdout": stdout.decode("utf-8", errors="replace"),
+            "stderr": stderr.decode("utf-8", errors="replace")
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
 
 
 from studio.services.catalog import get_catalog as fetch_catalog, PRESETS
@@ -95,31 +193,168 @@ async def get_presets():
     return PRESETS
 
 
-async def enrich_and_cache_projects() -> List[ProjectInfo]:
-    projects = ProjectStore.list_projects()
+
+@app.get("/api/state/managed")
+async def get_managed_state():
+    """Returns currently tracked projects, uptimes, and interrupted projects after server restart."""
+    return StateTracker.get_managed_state()
+
+
+@app.get("/api/history")
+async def get_action_history(project_id: Optional[str] = None, limit: int = 50):
+    """Returns persistent chronological audit trail of all project operations."""
+    return StateTracker.get_history(project_id=project_id, limit=limit)
+
+
+@app.post("/api/state/restore-interrupted")
+async def restore_interrupted_projects():
+    """Restarts all projects that were active before server restart or crash."""
+    managed_state = StateTracker.get_managed_state()
+    interrupted = managed_state.get("interrupted_projects", [])
+    restored = []
+    failed = []
+
+    for item in interrupted:
+        pid = item["project_id"]
+        path = item.get("path")
+        if not path or not os.path.exists(path):
+            proj = ProjectStore.get_project(pid)
+            if proj:
+                path = proj.path
+        if path and os.path.exists(path):
+            res = await DockerManager.start_project(path, project_id=pid, project_name=item.get("name"))
+            if res.get("success"):
+                restored.append(pid)
+            else:
+                failed.append({"project_id": pid, "error": res.get("stderr") or res.get("error")})
+
+    # Trigger cache refresh after restoring
+    asyncio.create_task(enrich_and_cache_projects())
+
+    return {
+        "restored": restored,
+        "failed": failed,
+        "total_attempted": len(interrupted)
+    }
+
+
+@app.get("/api/governance/summary")
+async def get_governance_summary():
+    """Returns governance summary with idle days, disk usage, and cleanup recommendations."""
+    return await ProjectGovernance.get_governance_summary()
+
+
+@app.post("/api/governance/{project_id}/cleanup")
+async def cleanup_project_resources(project_id: str, remove_images: bool = True, remove_volumes: bool = False):
+    """Cleans up Docker images and optionally volumes for a specific project."""
+    proj = ProjectStore.get_project(project_id)
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found.")
+    if proj.visual_status in ("green", "yellow"):
+        raise HTTPException(status_code=400, detail="Não é possível limpar um projeto em execução. Pare-o primeiro.")
     
-    # Asynchronously enrich with live Docker status
-    async def enrich_status(proj: ProjectInfo):
-        try:
-            status_data = await DockerManager.get_project_status(proj.path)
-            proj.status = status_data["status"]
-            proj.visual_status = status_data.get("visual_status", "orange")
-            proj.containers = status_data["containers"]
+    res = await ProjectGovernance.cleanup_project(proj.path, remove_images=remove_images, remove_volumes=remove_volumes)
+    if not res.get("success"):
+        raise HTTPException(status_code=500, detail=res.get("error") or res.get("stderr") or "Falha na limpeza")
+    
+    from studio.services.state_tracker import StateTracker
+    StateTracker.record_action(
+        project_id, "cleanup",
+        status="success",
+        details=f"Limpeza manual. Imagens: {'sim' if remove_images else 'não'}, Volumes: {'sim' if remove_volumes else 'não'}",
+        project_name=proj.name,
+        project_path=proj.path
+    )
+    return {"message": "Cleanup realizado com sucesso", "details": res}
 
-            # Auto-retry crashed/unhealthy containers
+
+@app.put("/api/governance/{project_id}/settings")
+async def update_project_governance_settings(project_id: str, req: ProjectGovernanceRequest):
+    """Updates governance settings for a specific project."""
+    success = ProjectStore.update_project_governance(
+        project_id,
+        auto_cleanup_days=req.auto_cleanup_days,
+        clean_images=req.clean_images_on_idle,
+        clean_volumes=req.clean_volumes_on_idle
+    )
+    if not success:
+        raise HTTPException(status_code=404, detail="Project not found.")
+    return {"message": "Governance settings updated", "project_id": project_id}
+
+
+@app.post("/api/governance/auto-cleanup")
+async def run_auto_cleanup():
+    """Runs automatic cleanup on all projects exceeding their idle threshold."""
+    result = await ProjectGovernance.auto_cleanup_check()
+    return result
+
+
+_ENRICH_LOCK = asyncio.Lock()
+_LAST_ENRICH_TIMESTAMP: float = 0.0
+
+
+async def enrich_and_cache_projects() -> List[ProjectInfo]:
+    global _LAST_ENRICH_TIMESTAMP
+    cached_existing = ProjectStore.load_cache()
+
+    # If another enrichment task is already running, avoid queueing duplicate Docker CLI calls
+    if _ENRICH_LOCK.locked():
+        if cached_existing:
+            return cached_existing
+        async with _ENRICH_LOCK:
+            return ProjectStore.load_cache() or ProjectStore.list_projects()
+
+    async with _ENRICH_LOCK:
+        now = time.time()
+        # Throttle: if updated less than 1.5s ago, reuse memory/JSON cache
+        if cached_existing and (now - _LAST_ENRICH_TIMESTAMP) < 1.5:
+            return cached_existing
+
+        projects = ProjectStore.list_projects()
+        
+        # 1. Ultra-fast single docker call batch inspection (< 1-2s for all projects)
+        batch_status = await DockerManager.get_all_projects_status_batch(projects)
+        
+        # If Docker CLI timed out or had a transient glitch, NEVER wipe out existing online status!
+        if batch_status is None:
+            return cached_existing if cached_existing else projects
+
+        from studio.services.project_governance import ProjectGovernance
+
+        for proj in projects:
+            st = batch_status.get(proj.id) or {"status": "stopped", "visual_status": "orange", "containers": []}
+            proj.status = st["status"]
+            proj.visual_status = st.get("visual_status", "orange")
+            proj.containers = st["containers"]
+            
+            # Recalculate dynamic UI links with current compose & live ports
+            proj.ui_links = ProjectStore.extract_ui_links(
+                proj.path,
+                tools=proj.tools,
+                containers=proj.containers,
+                is_merged=proj.is_merged_workspace
+            )
+
+            # Calculate idle days for governance
+            try:
+                proj.idle_days = ProjectGovernance.calculate_idle_days(proj.id)
+                if proj.visual_status in ("green", "yellow"):
+                    ProjectStore.touch_last_used(proj.id)
+                    proj.idle_days = 0
+            except Exception:
+                proj.idle_days = 0
+
+            # Detached auto-retry for crashed/unhealthy containers
             if proj.visual_status == "red":
-                restarted = await DockerManager.auto_retry_crashed_containers(proj.path)
-                if restarted:
-                    proj.retry_count += 1
-        except Exception:
-            proj.status = "stopped"
-            proj.visual_status = "orange"
-        return proj
+                try:
+                    asyncio.create_task(DockerManager.auto_retry_crashed_containers(proj.path))
+                except Exception:
+                    pass
 
-    enriched = await asyncio.gather(*[enrich_status(p) for p in projects])
-    # Persist the full project list with live status to projects_cache.json
-    ProjectStore.save_cache(enriched)
-    return enriched
+        # Persist the full project list with live status to projects_cache.json
+        ProjectStore.save_cache(projects)
+        _LAST_ENRICH_TIMESTAMP = time.time()
+        return projects
 
 
 @app.get("/api/projects", response_model=List[ProjectInfo])
@@ -162,11 +397,6 @@ async def sync_projects_now():
     return await enrich_and_cache_projects()
 
 
-@app.on_event("startup")
-async def startup_cache_and_sync():
-    # Warm up cache and perform initial background sync
-    asyncio.create_task(enrich_and_cache_projects())
-
 
 @app.post("/api/projects", response_model=ProjectInfo)
 async def create_project(request: ProjectCreateRequest):
@@ -176,7 +406,8 @@ async def create_project(request: ProjectCreateRequest):
         raise HTTPException(status_code=400, detail="At least one tool must be selected.")
 
     scaffolder = ProjectScaffolder(request)
-    project_dir = scaffolder.scaffold()
+    scaffolder.scaffold()
+    project_dir = scaffolder.project_dir
 
     project_id = scaffolder.project_name
     proj = ProjectStore.register_project(
@@ -354,7 +585,7 @@ async def start_project(project_id: str):
     if not proj:
         raise HTTPException(status_code=404, detail="Project not found.")
 
-    res = await DockerManager.start_project(proj.path)
+    res = await DockerManager.start_project(proj.path, project_id=proj.id, project_name=proj.name)
     if not res["success"]:
         raise HTTPException(status_code=500, detail=res.get("stderr") or res.get("error") or "Failed to start project")
     return {"message": "Project started successfully", "details": res}
@@ -366,7 +597,7 @@ async def pause_project(project_id: str):
     if not proj:
         raise HTTPException(status_code=404, detail="Project not found.")
 
-    res = await DockerManager.pause_project(proj.path)
+    res = await DockerManager.pause_project(proj.path, project_id=proj.id)
     if not res["success"]:
         raise HTTPException(status_code=500, detail=res.get("stderr") or res.get("error") or "Failed to pause project")
     return {"message": "Project paused successfully", "details": res}
@@ -378,7 +609,7 @@ async def resume_project(project_id: str):
     if not proj:
         raise HTTPException(status_code=404, detail="Project not found.")
 
-    res = await DockerManager.resume_project(proj.path)
+    res = await DockerManager.resume_project(proj.path, project_id=proj.id)
     if not res["success"]:
         raise HTTPException(status_code=500, detail=res.get("stderr") or res.get("error") or "Failed to resume project")
     return {"message": "Project resumed successfully", "details": res}
@@ -390,7 +621,7 @@ async def stop_project(project_id: str):
     if not proj:
         raise HTTPException(status_code=404, detail="Project not found.")
 
-    res = await DockerManager.stop_project(proj.path)
+    res = await DockerManager.stop_project(proj.path, project_id=proj.id)
     if not res["success"]:
         raise HTTPException(status_code=500, detail=res.get("stderr") or res.get("error") or "Failed to stop project")
     return {"message": "Project stopped successfully", "details": res}
@@ -402,7 +633,7 @@ async def restart_project(project_id: str):
     if not proj:
         raise HTTPException(status_code=404, detail="Project not found.")
 
-    res = await DockerManager.restart_project(proj.path)
+    res = await DockerManager.restart_project(proj.path, project_id=proj.id)
     if not res["success"]:
         raise HTTPException(status_code=500, detail=res.get("stderr") or res.get("error") or "Failed to restart project")
     return {"message": "Project restarted successfully", "details": res}
@@ -413,7 +644,7 @@ async def start_single_service(project_id: str, service_name: str):
     proj = ProjectStore.get_project(project_id)
     if not proj:
         raise HTTPException(status_code=404, detail="Project not found.")
-    res = await DockerManager.start_service(proj.path, service_name)
+    res = await DockerManager.start_service(proj.path, service_name, project_id=proj.id)
     if not res["success"]:
         raise HTTPException(status_code=500, detail=res.get("stderr") or res.get("error") or "Failed to start service")
     return {"message": f"Service {service_name} started successfully", "details": res}
@@ -424,7 +655,7 @@ async def stop_single_service(project_id: str, service_name: str):
     proj = ProjectStore.get_project(project_id)
     if not proj:
         raise HTTPException(status_code=404, detail="Project not found.")
-    res = await DockerManager.stop_service(proj.path, service_name)
+    res = await DockerManager.stop_service(proj.path, service_name, project_id=proj.id)
     if not res["success"]:
         raise HTTPException(status_code=500, detail=res.get("stderr") or res.get("error") or "Failed to stop service")
     return {"message": f"Service {service_name} stopped successfully", "details": res}
@@ -435,7 +666,7 @@ async def restart_single_service(project_id: str, service_name: str):
     proj = ProjectStore.get_project(project_id)
     if not proj:
         raise HTTPException(status_code=404, detail="Project not found.")
-    res = await DockerManager.restart_service(proj.path, service_name)
+    res = await DockerManager.restart_service(proj.path, service_name, project_id=proj.id)
     if not res["success"]:
         raise HTTPException(status_code=500, detail=res.get("stderr") or res.get("error") or "Failed to restart service")
     return {"message": f"Service {service_name} restarted successfully", "details": res}

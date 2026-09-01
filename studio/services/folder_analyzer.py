@@ -192,7 +192,7 @@ class FolderAnalyzer:
                 detected_techs.append({
                     "name": "Docker Compose",
                     "category": "orchestration",
-                    "badge": "🐳 Docker Compose",
+                    "badge": "Docker Compose",
                     "confidence": "high"
                 })
 
@@ -281,7 +281,7 @@ class FolderAnalyzer:
                     except Exception:
                         pass
 
-            badge = "🐍 Python"
+            badge = "Python"
             if tech_names:
                 badge += f" ({', '.join(tech_names[:4])})"
             detected_techs.append({
@@ -312,7 +312,7 @@ class FolderAnalyzer:
 
                             rel_loc = str(pkg_file.relative_to(path).parent)
                             loc_label = f" [{rel_loc}]" if rel_loc != "." else ""
-                            badge = f"⚡ Node.js{loc_label}"
+                            badge = f"Node.js{loc_label}"
                             if frameworks:
                                 badge += f" ({', '.join(frameworks[:4])})"
                             detected_techs.append({
@@ -329,7 +329,7 @@ class FolderAnalyzer:
             detected_techs.append({
                 "name": "Java / JVM",
                 "category": "language",
-                "badge": "☕ Java / Maven / Gradle",
+                "badge": "Java / Maven / Gradle",
                 "confidence": "high"
             })
 
@@ -338,7 +338,7 @@ class FolderAnalyzer:
             detected_techs.append({
                 "name": "Go",
                 "category": "language",
-                "badge": "🔷 Golang",
+                "badge": "Golang",
                 "confidence": "high"
             })
 
@@ -347,7 +347,7 @@ class FolderAnalyzer:
             detected_techs.append({
                 "name": "Rust",
                 "category": "language",
-                "badge": "🦀 Rust / Cargo",
+                "badge": "Rust / Cargo",
                 "confidence": "high"
             })
 
@@ -357,7 +357,7 @@ class FolderAnalyzer:
             detected_techs.append({
                 "name": "dbt",
                 "category": "data_engineering",
-                "badge": "📦 dbt (Data Build Tool)",
+                "badge": "dbt (Data Build Tool)",
                 "confidence": "high"
             })
 
@@ -369,7 +369,7 @@ class FolderAnalyzer:
                 detected_techs.append({
                     "name": "Apache Airflow",
                     "category": "orchestration",
-                    "badge": "🌪️ Apache Airflow (DAGs)",
+                    "badge": "Apache Airflow (DAGs)",
                     "confidence": "high"
                 })
 
@@ -378,7 +378,7 @@ class FolderAnalyzer:
             detected_techs.append({
                 "name": "Kubernetes",
                 "category": "orchestration",
-                "badge": "⚓ Kubernetes (k8s/)",
+                "badge": "Kubernetes (k8s/)",
                 "confidence": "high"
             })
 
@@ -388,7 +388,7 @@ class FolderAnalyzer:
                 detected_techs.append({
                     "name": tool_id.capitalize(),
                     "category": "tool",
-                    "badge": f"📦 {tool_id.capitalize()}",
+                    "badge": f"{tool_id.capitalize()}",
                     "confidence": "high"
                 })
 

@@ -1,0 +1,40 @@
+name: workspace-ondecompro-e-venda-workspace
+services:
+  web:
+    image: node:20-alpine
+    container_name: workspace-ondecompro-e-venda-workspace-web
+    restart: unless-stopped
+    working_dir: /app
+    ports:
+    - 3003:3000
+    volumes:
+    - C:/Users/samue/projects/ondecompro-frontend/:/app:/app
+    environment:
+      NODE_ENV: development
+      NEXT_TELEMETRY_DISABLED: '1'
+      HOSTNAME: 0.0.0.0
+      PORT: '3000'
+    command: sh -c "npx next dev --hostname 0.0.0.0 --port 3000"
+    networks:
+    - workspace-ondecompro-e-venda-workspace-net
+  vscode:
+    image: codercom/code-server:latest
+    container_name: workspace-ondecompro-e-venda-workspace-vscode
+    restart: unless-stopped
+    entrypoint:
+    - /bin/sh
+    - /home/coder/project/vscode/entrypoint.sh
+    environment:
+      AUTO_INSTALL_EXTENSIONS: 'true'
+      WORKSPACE_FILE: /home/coder/project/workspace.code-workspace
+    ports:
+    - 8445:8080
+    volumes:
+    - ./:/home/coder/project
+    - C:/Users/samue/projects/ondecompro-frontend:/home/coder/project/ondecompro-frontend
+    - C:/Users/samue/projects/venda:/home/coder/project/venda
+    networks:
+    - workspace-ondecompro-e-venda-workspace-net
+networks:
+  workspace-ondecompro-e-venda-workspace-net:
+    driver: bridge

@@ -1,0 +1,97 @@
+{
+  "folders": [
+    {
+      "name": "API Merged Stack Demo",
+      "path": "/home/coder/project/workspace-api-merged-stack-demo"
+    },
+    {
+      "name": "Test Workspace API Merged Stack Demo and Test Workspace veloceg-v1 and API Merged Stack Demo",
+      "path": "/home/coder/project/workspace-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-api-merged-stack-demo"
+    }
+  ],
+  "settings": {
+    "files.autoSave": "afterDelay",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2,
+    "terminal.integrated.defaultProfile.linux": "bash",
+    "docker.showStartPage": false,
+    "sqltools.useNodeRuntime": true,
+    "sqltools.connections": [
+      {
+        "name": "PostgreSQL (Veloceg-v1)",
+        "driver": "PostgreSQL",
+        "server": "postgres",
+        "port": 5432,
+        "database": "veloceg_v1",
+        "username": "admin",
+        "password": "admin123",
+        "group": "StackStudio Databases",
+        "dialect": "PostgreSQL"
+      },
+      {
+        "name": "Trino Lakehouse (Veloceg-v1)",
+        "driver": "Trino",
+        "server": "trino",
+        "port": 8080,
+        "database": "iceberg",
+        "username": "admin",
+        "group": "StackStudio Databases"
+      },
+      {
+        "name": "PostgreSQL (Test-creation-verify)",
+        "driver": "PostgreSQL",
+        "server": "postgres",
+        "port": 5432,
+        "database": "test_creation_verify",
+        "username": "admin",
+        "password": "admin123",
+        "group": "StackStudio Databases",
+        "dialect": "PostgreSQL"
+      }
+    ],
+    "database.connections": [
+      {
+        "name": "PostgreSQL (Veloceg-v1)",
+        "dbType": "PostgreSQL",
+        "host": "postgres",
+        "port": 5432,
+        "user": "admin",
+        "password": "admin123",
+        "database": "veloceg_v1",
+        "group": "StackStudio Databases"
+      },
+      {
+        "name": "PostgreSQL (Test-creation-verify)",
+        "dbType": "PostgreSQL",
+        "host": "postgres",
+        "port": 5432,
+        "user": "admin",
+        "password": "admin123",
+        "database": "test_creation_verify",
+        "group": "StackStudio Databases"
+      }
+    ],
+    "database-client.connections": [
+      {
+        "name": "PostgreSQL (Veloceg-v1)",
+        "dbType": "PostgreSQL",
+        "host": "postgres",
+        "port": 5432,
+        "user": "admin",
+        "password": "admin123",
+        "database": "veloceg_v1",
+        "group": "StackStudio Databases"
+      },
+      {
+        "name": "PostgreSQL (Test-creation-verify)",
+        "dbType": "PostgreSQL",
+        "host": "postgres",
+        "port": 5432,
+        "user": "admin",
+        "password": "admin123",
+        "database": "test_creation_verify",
+        "group": "StackStudio Databases"
+      }
+    ]
+  }
+}

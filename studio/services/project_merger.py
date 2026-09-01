@@ -73,7 +73,7 @@ class ProjectMerger:
             folder_clean_name = p.name.strip()
             folder_slug = re.sub(r'[^a-zA-Z0-9_\-]', '-', p.id.lower())
             folders_list.append({
-                "name": f"📦 {folder_clean_name}",
+                "name": folder_clean_name,
                 "path": f"/home/coder/project/{folder_slug}"
             })
 
@@ -299,18 +299,18 @@ fi
 
         # 9. Write README.md for the unified workspace
         proj_lines = "\n".join([f"- **{p.name}** (`{p.path}`)" for p in target_projects])
-        readme_content = f"""# 🔀 Workspace Unificado: {name}
+        readme_content = f"""# Workspace Unificado: {name}
 
 Este workspace unifica os seguintes projetos em uma única stack e ambiente de desenvolvimento:
 {proj_lines}
 
-## 💻 VS Code Multi-Root Workspace
+## VS Code Multi-Root Workspace
 Ao abrir o VS Code Web, todos os projetos acima são carregados simultaneamente na árvore de arquivos lateral.
 
 - Arquivo do Workspace: `workspace.code-workspace`
 - Porta do VS Code Web: `http://localhost:{vscode_port}`
 
-## 🚀 Comandos Rápidos
+## Comandos Rápidos
 - Iniciar Todos os Serviços: `docker compose up -d`
 - Pausar Stack: `docker compose stop`
 - Parar e Limpar: `docker compose down`

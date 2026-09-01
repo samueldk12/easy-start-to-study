@@ -578,7 +578,7 @@ CATEGORIES: List[ToolCategory] = [
     ),
     ToolCategory(
         id="security_siem",
-        name="🛡️ Segurança da Informação, SIEM & SOC",
+        name="Segurança da Informação, SIEM & SOC",
         icon="shield",
         description="Plataformas de SIEM, XDR, detecção de ameaças, resposta a incidentes, inteligência de ameaças e auditoria de rede.",
         tools=[
@@ -701,7 +701,7 @@ CATEGORIES: List[ToolCategory] = [
     ),
     ToolCategory(
         id="devsecops",
-        name="🔒 DevSecOps, AppSec & Gestão de Vulnerabilidades",
+        name="DevSecOps, AppSec & Gestão de Vulnerabilidades",
         icon="lock",
         description="Análise estática (SAST), dinâmica (DAST), escaneamento de containers, vazamento de segredos e acesso Zero Trust.",
         tools=[
@@ -972,7 +972,7 @@ CATEGORIES: List[ToolCategory] = [
     ),
     ToolCategory(
         id="os_sandboxes",
-        name="💻 Sistemas Operacionais & Sandboxes",
+        name="Sistemas Operacionais & Sandboxes",
         icon="terminal",
         description="Ambientes Linux puros e isolados para compilação, testes de rede, scripts shell e experimentação interativa com terminal web.",
         tools=[
@@ -1019,98 +1019,98 @@ CATEGORIES: List[ToolCategory] = [
 PRESETS: List[ProjectPreset] = [
     ProjectPreset(
         id="lakehouse_event_driven",
-        name="🌊 Event-Driven Lakehouse (CDC + Iceberg)",
+        name="Event-Driven Lakehouse (CDC + Iceberg)",
         description="Arquitetura completa com PostgreSQL, Kafka KRaft, Debezium CDC, MinIO, Iceberg REST, Spark 3.5, Trino, Airflow e Kafka UI.",
         icon="waves",
         tools=["postgres", "kafka", "schema_registry", "kafka_connect", "kafka_ui", "minio", "iceberg_rest", "spark", "trino", "airflow"]
     ),
     ProjectPreset(
         id="mlops_platform",
-        name="🤖 MLOps & Vector AI Platform",
+        name="MLOps & Vector AI Platform",
         description="Ambiente para ciência de dados e IA com PostgreSQL, MinIO, MLflow, JupyterLab, Qdrant Vector DB, Redis e Grafana.",
         icon="cpu",
         tools=["postgres", "minio", "mlflow", "jupyterlab", "qdrant", "redis", "grafana"]
     ),
     ProjectPreset(
         id="backend_event_streaming",
-        name="🚀 Microservices & Real-Time Backend",
+        name="Microservices & Real-Time Backend",
         description="Stack para microsserviços modernos com PostgreSQL, Redis, RabbitMQ, Kafka, Keycloak, Hasura GraphQL e Portainer.",
         icon="server",
         tools=["postgres", "redis", "rabbitmq", "kafka", "keycloak", "hasura", "portainer"]
     ),
     ProjectPreset(
         id="modern_data_stack",
-        name="📊 Modern Data Stack (Analytics & BI)",
+        name="Modern Data Stack (Analytics & BI)",
         description="Stack analítica com PostgreSQL, ClickHouse, MinIO, Iceberg, Trino, dbt, Superset, Airflow e Grafana.",
         icon="bar-chart-2",
         tools=["postgres", "clickhouse", "minio", "iceberg_rest", "trino", "dbt", "superset", "airflow", "grafana"]
     ),
     ProjectPreset(
         id="realtime_streaming_analytics",
-        name="⚡ Real-Time Streaming & OLAP Engine",
+        name="Real-Time Streaming & OLAP Engine",
         description="Stack de alta velocidade para processamento de streams em tempo real com Apache Flink, Redpanda, Doris, ClickHouse, Superset e MinIO.",
         icon="zap",
         tools=["flink", "redpanda", "doris", "clickhouse", "superset", "minio"]
     ),
     ProjectPreset(
         id="siem_soc_defense",
-        name="🛡️ SIEM, SOC & Incident Response Lab",
+        name="SIEM, SOC & Incident Response Lab",
         description="Ambiente de Security Operations Center com Wazuh SIEM/XDR, TheHive, Cortex, Shuffle SOAR, Suricata IDS, MISP Threat Intel e Grafana.",
         icon="shield",
         tools=["wazuh", "suricata", "thehive", "shuffle", "misp", "grafana", "postgres"]
     ),
     ProjectPreset(
         id="devsecops_appsec_pipeline",
-        name="🔒 DevSecOps & AppSec Automated Pipeline",
+        name="DevSecOps & AppSec Automated Pipeline",
         description="Pipeline de segurança contínua com SonarQube SAST, Trivy Container Scanner, OWASP DefectDojo, OWASP ZAP DAST, HashiCorp Vault e Gitleaks.",
         icon="lock",
         tools=["sonarqube", "trivy", "defectdojo", "zap", "vault", "gitleaks", "vscode"]
     ),
     ProjectPreset(
         id="network_security_audit",
-        name="🕵️ Network Security & Vulnerability Auditing",
+        name="Network Security & Vulnerability Auditing",
         description="Laboratório de análise e segurança de redes com Zeek Network Monitor, Suricata IDS, OpenVAS, Nmap Sandbox e Metasploit Framework.",
         icon="eye",
         tools=["zeek", "suricata", "openvas", "nmap", "metasploit", "vscode"]
     ),
     ProjectPreset(
         id="cloud_native_gitops_observability",
-        name="☁️ Cloud-Native GitOps & Full Observability",
+        name="Cloud-Native GitOps & Full Observability",
         description="Arquitetura nativa de nuvem com ArgoCD GitOps, Traefik Edge Router, Grafana Loki, Prometheus, Jaeger Tracing e Grafana Dashboards.",
         icon="cloud",
         tools=["argocd", "traefik", "loki", "prometheus", "jaeger", "grafana"]
     ),
     ProjectPreset(
         id="advanced_rag_vector_mlops",
-        name="🧠 Advanced RAG, Vector Search & LLM Studio",
+        name="Advanced RAG, Vector Search & LLM Studio",
         description="Ambiente de IA Generativa corporativo com Milvus, Weaviate, Qdrant, Ollama, Open WebUI, Evidently AI, MLflow e JupyterLab.",
         icon="cpu",
         tools=["milvus", "weaviate", "qdrant", "ollama", "open_webui", "evidently", "mlflow", "jupyterlab", "minio"]
     ),
     ProjectPreset(
         id="workflow_automation_integration",
-        name="🔄 Workflow Automation & API Orchestration",
+        name="Workflow Automation & API Orchestration",
         description="Plataforma de orquestração de microsserviços e integração low-code com Temporal, n8n, RabbitMQ, Redis e PostgreSQL.",
         icon="repeat",
         tools=["temporal", "n8n", "rabbitmq", "redis", "postgres"]
     ),
     ProjectPreset(
         id="hadoop_big_data_ecosystem",
-        name="🐘 Hadoop & Big Data Ecosystem",
+        name="Hadoop & Big Data Ecosystem",
         description="Stack clássica e robusta de Big Data com HDFS NameNode/DataNode, YARN ResourceManager, Hive Metastore, Spark 3.5, Zeppelin Notebook, Ranger e PostgreSQL.",
         icon="server",
         tools=["hdfs", "yarn", "hive", "spark", "zeppelin", "ranger", "postgres", "minio"]
     ),
     ProjectPreset(
         id="local_llm_ai_stack",
-        name="🧠 Local LLMs & GenAI Studio",
+        name="Local LLMs & GenAI Studio",
         description="Ambiente completo de Inteligência Artificial Generativa Local com Ollama (Llama/Mistral/Qwen), Open WebUI, Qdrant Vector DB, JupyterLab e PostgreSQL.",
         icon="cpu",
         tools=["ollama", "open_webui", "qdrant", "jupyterlab", "postgres", "minio"]
     ),
     ProjectPreset(
         id="linux_os_sandbox",
-        name="🐧 Multi-Distro Linux Sandboxes & DevOps Lab",
+        name="Multi-Distro Linux Sandboxes & DevOps Lab",
         description="Ambiente de desenvolvimento e experimentação com contêineres de Ubuntu 24.04, Debian 12, Alpine Linux e Arch Linux com VS Code Web e Portainer.",
         icon="terminal",
         tools=["ubuntu_sandbox", "debian_sandbox", "alpine_sandbox", "arch_sandbox", "vscode", "portainer"]
@@ -1136,7 +1136,7 @@ def get_catalog() -> List[ToolCategory]:
             if not custom_plugins_cat:
                 custom_plugins_cat = ToolCategory(
                     id="plugins",
-                    name="🧩 Plugins & Ferramentas Customizadas",
+                    name="Plugins & Ferramentas Customizadas",
                     icon="puzzle",
                     description="Ferramentas adicionadas dinamicamente via sistema de plugins.",
                     tools=[]

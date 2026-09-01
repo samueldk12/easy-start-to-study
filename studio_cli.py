@@ -52,7 +52,7 @@ RESET = "\033[0m"
 def print_banner():
     print(f"""{CYAN}{BOLD}
 ===================================================================
- 🚀 StackStudio CLI: Data Engineering, MLOps, Backend & DevOps
+ StackStudio CLI: Data Engineering, MLOps, Backend & DevOps
 ==================================================================={RESET}""")
 
 
@@ -73,7 +73,7 @@ async def cmd_list(args):
             status = "stopped"
 
         color = GREEN if status == "running" else (YELLOW if status == "partial" else RESET)
-        tpl_str = "✨ Sim" if p.include_templates else "🧹 Limpo"
+        tpl_str = "Sim (Templates)" if p.include_templates else "Limpo"
         tools_str = ", ".join(p.tools[:4]) + (f" (+{len(p.tools)-4})" if len(p.tools) > 4 else "")
 
         print(f"{BOLD}{p.id:<28}{RESET} {color}{status.upper():<12}{RESET} {tpl_str:<14} {tools_str:<35}")
@@ -221,7 +221,7 @@ async def cmd_k8s(args):
             print(f"{YELLOW}Nenhum pod encontrado no namespace {namespace}.{RESET}")
         else:
             for p in pods:
-                ready_mark = f"{GREEN}✓ Ready{RESET}" if p["ready"] else f"{YELLOW}⏳ Not Ready{RESET}"
+                ready_mark = f"{GREEN}✓ Ready{RESET}" if p["ready"] else f"{YELLOW}Not Ready{RESET}"
                 print(f"Pod: {BOLD}{p['name']:<35}{RESET} | Status: {p['phase']:<10} | {ready_mark} | Restarts: {p['restarts']}")
 
 

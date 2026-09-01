@@ -1,36 +1,127 @@
 [
   {
+    "id": "workspace-test-workspace-veloceg-v1-and-api-merged-stack-demo",
+    "name": "Workspace Test Workspace Veloceg V1 And Api Merged Stack Demo",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-test-workspace-veloceg-v1-and-api-merged-stack-demo",
+    "description": "Projeto auto-detectado: workspace-test-workspace-veloceg-v1-and-api-merged-stack-demo",
+    "tools": [],
+    "include_templates": true,
+    "created_at": "2026-08-30 23:21:28",
+    "last_used_at": null,
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
+    "status": "stopped",
+    "visual_status": "orange",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "containers": [],
+    "ui_links": [
+      {
+        "name": "Prometheus",
+        "url": "http://localhost:9095",
+        "icon": "activity"
+      },
+      {
+        "name": "OWASP ZAP",
+        "url": "http://localhost:8097",
+        "icon": "crosshair"
+      },
+      {
+        "name": "JupyterLab",
+        "url": "http://localhost:8889",
+        "icon": "book-open"
+      },
+      {
+        "name": "SonarQube",
+        "url": "http://localhost:9003",
+        "icon": "check-circle"
+      },
+      {
+        "name": "VS Code Multi-Root Workspace",
+        "url": "http://localhost:8445/?workspace=/home/coder/project/workspace.code-workspace",
+        "icon": "code"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "is_merged_workspace": true,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 23:24:34"
+  },
+  {
     "id": "workspace-api-merged-stack-demo",
     "name": "API Merged Stack Demo",
     "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-api-merged-stack-demo",
     "description": "API-triggered multi-root workspace",
     "tools": [
-      "vscode"
+      "schema_registry",
+      "postgres",
+      "vscode",
+      "kafka_ui",
+      "kafka_connect",
+      "minio",
+      "iceberg_rest",
+      "jupyterlab",
+      "dbt",
+      "kafka",
+      "spark",
+      "trino",
+      "airflow"
     ],
     "include_templates": false,
-    "created_at": "2026-08-30 15:16:42",
+    "created_at": "2026-08-30 22:48:13",
+    "last_used_at": "2026-08-30T22:48:13.848966",
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
     "status": "stopped",
     "visual_status": "orange",
     "retry_count": 0,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [
       "ms-python.python",
-      "eamodio.gitlens",
-      "mtxr.sqltools",
-      "mtxr.sqltools-driver-pg",
-      "ms-toolsai.jupyter",
-      "ms-python.vscode-pylance",
-      "ms-azuretools.vscode-docker",
       "cweijan.vscode-database-client2",
       "redhat.vscode-yaml",
+      "mtxr.sqltools-driver-pg",
+      "ms-azuretools.vscode-docker",
+      "ms-python.vscode-pylance",
+      "ms-toolsai.jupyter",
+      "eamodio.gitlens",
+      "mtxr.sqltools",
       "ckolkman.vscode-postgres"
     ],
     "containers": [],
     "ui_links": [
       {
-        "name": "Next.js Web App",
-        "url": "http://localhost:3003",
-        "icon": "globe"
+        "name": "Prometheus",
+        "url": "http://localhost:9095",
+        "icon": "activity"
+      },
+      {
+        "name": "OWASP ZAP",
+        "url": "http://localhost:8097",
+        "icon": "crosshair"
+      },
+      {
+        "name": "JupyterLab",
+        "url": "http://localhost:8889",
+        "icon": "book-open"
+      },
+      {
+        "name": "Superset BI",
+        "url": "http://localhost:8094",
+        "icon": "pie-chart"
+      },
+      {
+        "name": "SonarQube",
+        "url": "http://localhost:9003",
+        "icon": "check-circle"
       },
       {
         "name": "VS Code Multi-Root Workspace",
@@ -38,52 +129,130 @@
         "icon": "code"
       },
       {
+        "name": "Schema Registry",
+        "url": "http://localhost:8086",
+        "icon": "shield-check"
+      },
+      {
         "name": "VS Code Web (IDE)",
         "url": "http://localhost:8443/?folder=/home/coder/project",
         "icon": "code"
+      },
+      {
+        "name": "Kafka UI (Provectus)",
+        "url": "http://localhost:8087",
+        "icon": "layout"
+      },
+      {
+        "name": "Kafka Connect + Debezium",
+        "url": "http://localhost:8083",
+        "icon": "repeat"
+      },
+      {
+        "name": "MinIO Object Storage",
+        "url": "http://localhost:9001",
+        "icon": "hard-drive"
+      },
+      {
+        "name": "Apache Iceberg REST Catalog",
+        "url": "http://localhost:8181/v1/config",
+        "icon": "layers"
+      },
+      {
+        "name": "JupyterLab Workspace",
+        "url": "http://localhost:8888",
+        "icon": "book-open"
+      },
+      {
+        "name": "Apache Spark 3.5 Cluster",
+        "url": "http://localhost:8082",
+        "icon": "zap"
+      },
+      {
+        "name": "Trino SQL Engine",
+        "url": "http://localhost:8085",
+        "icon": "search"
       }
     ],
     "launch_strategy": "docker-compose",
     "start_command": "docker compose up -d",
     "is_merged_workspace": true,
     "merged_projects": [
-      "workspace-ondecompro-e-venda-workspace",
-      "ondecompro-platform"
+      "workspace-api-merged-stack-demo",
+      "workspace-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-api-merged-stack-demo"
     ],
-    "last_cached": "2026-08-30 15:16:42"
+    "last_cached": "2026-08-30 23:24:34"
   },
   {
-    "id": "workspace-test-workspace-ondecompro-e-venda-workspace-and-ondecompro-platform",
-    "name": "Test Workspace Ondecompro e Venda Workspace and Ondecompro Platform",
-    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-test-workspace-ondecompro-e-venda-workspace-and-ondecompro-platform",
+    "id": "workspace-test-workspace-api-merged-stack-demo-and-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-api-merged-stack-demo",
+    "name": "Test Workspace API Merged Stack Demo and Test Workspace API Merged Stack Demo and Test Workspace veloceg-v1 and API Merged Stack Demo",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-test-workspace-api-merged-stack-demo-and-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-api-merged-stack-demo",
     "description": "Merged multi-root workspace test suite",
     "tools": [
-      "vscode"
+      "schema_registry",
+      "postgres",
+      "vscode",
+      "kafka_ui",
+      "kafka_connect",
+      "minio",
+      "iceberg_rest",
+      "jupyterlab",
+      "dbt",
+      "kafka",
+      "spark",
+      "trino",
+      "airflow"
     ],
     "include_templates": false,
-    "created_at": "2026-08-30 15:16:41",
+    "created_at": "2026-08-30 22:44:38",
+    "last_used_at": "2026-08-30T22:44:38.557733",
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
     "status": "stopped",
     "visual_status": "orange",
     "retry_count": 0,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [
       "ms-python.python",
-      "eamodio.gitlens",
-      "mtxr.sqltools",
-      "mtxr.sqltools-driver-pg",
-      "ms-toolsai.jupyter",
-      "ms-python.vscode-pylance",
-      "ms-azuretools.vscode-docker",
       "cweijan.vscode-database-client2",
       "redhat.vscode-yaml",
+      "mtxr.sqltools-driver-pg",
+      "ms-azuretools.vscode-docker",
+      "ms-python.vscode-pylance",
+      "ms-toolsai.jupyter",
+      "eamodio.gitlens",
+      "mtxr.sqltools",
       "ckolkman.vscode-postgres"
     ],
     "containers": [],
     "ui_links": [
       {
-        "name": "Next.js Web App",
-        "url": "http://localhost:3003",
-        "icon": "globe"
+        "name": "Prometheus",
+        "url": "http://localhost:9095",
+        "icon": "activity"
+      },
+      {
+        "name": "OWASP ZAP",
+        "url": "http://localhost:8097",
+        "icon": "crosshair"
+      },
+      {
+        "name": "JupyterLab",
+        "url": "http://localhost:8889",
+        "icon": "book-open"
+      },
+      {
+        "name": "Superset BI",
+        "url": "http://localhost:8094",
+        "icon": "pie-chart"
+      },
+      {
+        "name": "SonarQube",
+        "url": "http://localhost:9003",
+        "icon": "check-circle"
       },
       {
         "name": "VS Code Multi-Root Workspace",
@@ -91,454 +260,757 @@
         "icon": "code"
       },
       {
+        "name": "Schema Registry",
+        "url": "http://localhost:8086",
+        "icon": "shield-check"
+      },
+      {
         "name": "VS Code Web (IDE)",
         "url": "http://localhost:8443/?folder=/home/coder/project",
         "icon": "code"
+      },
+      {
+        "name": "Kafka UI (Provectus)",
+        "url": "http://localhost:8087",
+        "icon": "layout"
+      },
+      {
+        "name": "Kafka Connect + Debezium",
+        "url": "http://localhost:8083",
+        "icon": "repeat"
+      },
+      {
+        "name": "MinIO Object Storage",
+        "url": "http://localhost:9001",
+        "icon": "hard-drive"
+      },
+      {
+        "name": "Apache Iceberg REST Catalog",
+        "url": "http://localhost:8181/v1/config",
+        "icon": "layers"
+      },
+      {
+        "name": "JupyterLab Workspace",
+        "url": "http://localhost:8888",
+        "icon": "book-open"
+      },
+      {
+        "name": "Apache Spark 3.5 Cluster",
+        "url": "http://localhost:8082",
+        "icon": "zap"
+      },
+      {
+        "name": "Trino SQL Engine",
+        "url": "http://localhost:8085",
+        "icon": "search"
       }
     ],
     "launch_strategy": "docker-compose",
     "start_command": "docker compose up -d",
     "is_merged_workspace": true,
     "merged_projects": [
-      "workspace-ondecompro-e-venda-workspace",
-      "ondecompro-platform"
+      "workspace-api-merged-stack-demo",
+      "workspace-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-api-merged-stack-demo"
     ],
-    "last_cached": "2026-08-30 15:16:42"
+    "last_cached": "2026-08-30 23:24:34"
   },
   {
-    "id": "workspace-ondecompro-e-venda-workspace",
-    "name": "Ondecompro e Venda Workspace",
-    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-ondecompro-e-venda-workspace",
-    "description": "Workspace Multi-Root unificando Frontend e Venda",
+    "id": "workspace-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-api-merged-stack-demo",
+    "name": "Test Workspace API Merged Stack Demo and Test Workspace veloceg-v1 and API Merged Stack Demo",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-api-merged-stack-demo",
+    "description": "Merged multi-root workspace test suite",
     "tools": [
-      "vscode"
+      "schema_registry",
+      "kafka_ui",
+      "iceberg_rest",
+      "dbt",
+      "kafka_connect",
+      "jupyterlab",
+      "trino",
+      "spark",
+      "postgres",
+      "kafka",
+      "vscode",
+      "airflow",
+      "minio"
     ],
     "include_templates": false,
-    "created_at": "2026-08-30 15:13:53",
+    "created_at": "2026-08-30 22:37:16",
+    "last_used_at": "2026-08-30T22:37:16.776184",
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
     "status": "stopped",
     "visual_status": "orange",
     "retry_count": 0,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [
-      "redhat.vscode-yaml",
-      "ms-azuretools.vscode-docker",
-      "ms-python.python",
-      "eamodio.gitlens",
-      "mtxr.sqltools-driver-pg",
       "ms-python.vscode-pylance",
-      "mtxr.sqltools",
+      "redhat.vscode-yaml",
+      "ms-python.python",
+      "mtxr.sqltools-driver-pg",
+      "ckolkman.vscode-postgres",
       "ms-toolsai.jupyter",
-      "cweijan.vscode-database-client2",
-      "ckolkman.vscode-postgres"
+      "mtxr.sqltools",
+      "eamodio.gitlens",
+      "ms-azuretools.vscode-docker",
+      "cweijan.vscode-database-client2"
     ],
     "containers": [],
     "ui_links": [
       {
-        "name": "Next.js Web App",
-        "url": "http://localhost:3003",
-        "icon": "globe"
+        "name": "Prometheus",
+        "url": "http://localhost:9095",
+        "icon": "activity"
+      },
+      {
+        "name": "OWASP ZAP",
+        "url": "http://localhost:8097",
+        "icon": "crosshair"
+      },
+      {
+        "name": "JupyterLab",
+        "url": "http://localhost:8889",
+        "icon": "book-open"
+      },
+      {
+        "name": "Superset BI",
+        "url": "http://localhost:8094",
+        "icon": "pie-chart"
+      },
+      {
+        "name": "SonarQube",
+        "url": "http://localhost:9003",
+        "icon": "check-circle"
+      },
+      {
+        "name": "VS Code Multi-Root Workspace",
+        "url": "http://localhost:8445/?workspace=/home/coder/project/workspace.code-workspace",
+        "icon": "code"
+      },
+      {
+        "name": "Schema Registry",
+        "url": "http://localhost:8086",
+        "icon": "shield-check"
+      },
+      {
+        "name": "Kafka UI (Provectus)",
+        "url": "http://localhost:8087",
+        "icon": "layout"
+      },
+      {
+        "name": "Apache Iceberg REST Catalog",
+        "url": "http://localhost:8181/v1/config",
+        "icon": "layers"
+      },
+      {
+        "name": "Kafka Connect + Debezium",
+        "url": "http://localhost:8083",
+        "icon": "repeat"
+      },
+      {
+        "name": "JupyterLab Workspace",
+        "url": "http://localhost:8888",
+        "icon": "book-open"
+      },
+      {
+        "name": "Trino SQL Engine",
+        "url": "http://localhost:8085",
+        "icon": "search"
+      },
+      {
+        "name": "Apache Spark 3.5 Cluster",
+        "url": "http://localhost:8082",
+        "icon": "zap"
       },
       {
         "name": "VS Code Web (IDE)",
         "url": "http://localhost:8443/?folder=/home/coder/project",
         "icon": "code"
+      },
+      {
+        "name": "MinIO Object Storage",
+        "url": "http://localhost:9001",
+        "icon": "hard-drive"
       }
     ],
     "launch_strategy": "docker-compose",
     "start_command": "docker compose up -d",
-    "is_merged_workspace": false,
-    "merged_projects": [],
-    "last_cached": "2026-08-30 15:16:42"
+    "is_merged_workspace": true,
+    "merged_projects": [
+      "workspace-api-merged-stack-demo",
+      "workspace-test-workspace-veloceg-v1-and-api-merged-stack-demo"
+    ],
+    "last_cached": "2026-08-30 23:24:34"
   },
   {
-    "id": "ondecompro-platform",
-    "name": "Ondecompro Platform",
-    "path": "C:\\Users\\samue\\projects\\ondecompro-platform",
-    "description": "Projeto auto-detectado: ondecompro-platform",
+    "id": "veloceg-v1",
+    "name": "veloceg-v1",
+    "path": "./projects/veloceg-v1",
+    "description": "Projeto gerado via StackStudio",
     "tools": [
-      "vscode"
+      "iceberg_rest",
+      "kafka_ui",
+      "spark",
+      "dbt",
+      "airflow",
+      "minio",
+      "trino",
+      "jupyterlab",
+      "schema_registry",
+      "vscode",
+      "kafka",
+      "kafka_connect",
+      "postgres"
     ],
     "include_templates": true,
-    "created_at": "2026-08-30 15:07:17",
-    "status": "starting",
-    "visual_status": "yellow",
+    "created_at": "2026-08-30 22:18:49",
+    "last_used_at": "2026-08-30T23:23:29.973783",
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
+    "status": "stopped",
+    "visual_status": "orange",
     "retry_count": 0,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [],
-    "containers": [
-      {
-        "name": "ondecompro-platform-vscode",
-        "service": "vscode",
-        "state": "created",
-        "status": "Created",
-        "health": null,
-        "exit_code": 0,
-        "ports": "",
-        "retry_count": 0,
-        "visual_status": "yellow",
-        "last_changed": 1788113239.637365
-      },
-      {
-        "name": "ondecompro-platform-airflow-scheduler-1",
-        "service": "airflow-scheduler",
-        "state": "running",
-        "status": "Up 7 hours",
-        "health": null,
-        "exit_code": 0,
-        "ports": "8080/tcp",
-        "retry_count": 0,
-        "visual_status": "green",
-        "last_changed": 1788112958.0931466
-      },
-      {
-        "name": "ondecompro-platform-airflow-webserver-1",
-        "service": "airflow-webserver",
-        "state": "running",
-        "status": "Up 7 hours",
-        "health": null,
-        "exit_code": 0,
-        "ports": "8080->8080/tcp, 8080->8080/tcp",
-        "retry_count": 0,
-        "visual_status": "green",
-        "last_changed": 1788112958.0931466
-      },
-      {
-        "name": "ondecompro-platform-alertmanager-1",
-        "service": "alertmanager",
-        "state": "running",
-        "status": "Up 7 hours",
-        "health": null,
-        "exit_code": 0,
-        "ports": "9093->9093/tcp, 9093->9093/tcp",
-        "retry_count": 0,
-        "visual_status": "green",
-        "last_changed": 1788112958.0931466
-      },
-      {
-        "name": "ondecompro-platform-alloy-1",
-        "service": "alloy",
-        "state": "running",
-        "status": "Up 7 hours",
-        "health": null,
-        "exit_code": 0,
-        "ports": "",
-        "retry_count": 0,
-        "visual_status": "green",
-        "last_changed": 1788112958.0931466
-      },
-      {
-        "name": "ondecompro-platform-crawler-runner-1",
-        "service": "crawler-runner",
-        "state": "running",
-        "status": "Up 7 hours",
-        "health": null,
-        "exit_code": 0,
-        "ports": "8000/tcp",
-        "retry_count": 0,
-        "visual_status": "green",
-        "last_changed": 1788112958.0931466
-      },
-      {
-        "name": "ondecompro-platform-elasticsearch-1",
-        "service": "elasticsearch",
-        "state": "running",
-        "status": "Up 7 hours",
-        "health": null,
-        "exit_code": 0,
-        "ports": "9200->9200/tcp, 9200->9200/tcp",
-        "retry_count": 0,
-        "visual_status": "green",
-        "last_changed": 1788112958.0931466
-      },
-      {
-        "name": "ondecompro-platform-elasticsearch-exporter-1",
-        "service": "elasticsearch-exporter",
-        "state": "running",
-        "status": "Up 7 hours",
-        "health": null,
-        "exit_code": 0,
-        "ports": "9114->9114/tcp, 9114->9114/tcp",
-        "retry_count": 0,
-        "visual_status": "green",
-        "last_changed": 1788112958.0931466
-      },
-      {
-        "name": "ondecompro-platform-grafana-1",
-        "service": "grafana",
-        "state": "running",
-        "status": "Up 7 hours",
-        "health": null,
-        "exit_code": 0,
-        "ports": "3001->3000/tcp, 3001->3000/tcp",
-        "retry_count": 0,
-        "visual_status": "green",
-        "last_changed": 1788112958.0931466
-      },
-      {
-        "name": "ondecompro-platform-loki-1",
-        "service": "loki",
-        "state": "running",
-        "status": "Up 7 hours",
-        "health": null,
-        "exit_code": 0,
-        "ports": "3100->3100/tcp, 3100->3100/tcp",
-        "retry_count": 0,
-        "visual_status": "green",
-        "last_changed": 1788112958.0931466
-      },
-      {
-        "name": "ondecompro-platform-ollama-1",
-        "service": "ollama",
-        "state": "running",
-        "status": "Up 7 hours (healthy)",
-        "health": "healthy",
-        "exit_code": 0,
-        "ports": "11434->11434/tcp, 11434->11434/tcp",
-        "retry_count": 0,
-        "visual_status": "green",
-        "last_changed": 1788112958.0931466
-      },
-      {
-        "name": "ondecompro-platform-postgres-1",
-        "service": "postgres",
-        "state": "running",
-        "status": "Up 7 hours (healthy)",
-        "health": "healthy",
-        "exit_code": 0,
-        "ports": "5432->5432/tcp, 5432->5432/tcp",
-        "retry_count": 0,
-        "visual_status": "green",
-        "last_changed": 1788112958.0931466
-      },
-      {
-        "name": "ondecompro-platform-prometheus-1",
-        "service": "prometheus",
-        "state": "running",
-        "status": "Up 7 hours",
-        "health": null,
-        "exit_code": 0,
-        "ports": "9090->9090/tcp, 9090->9090/tcp",
-        "retry_count": 0,
-        "visual_status": "green",
-        "last_changed": 1788112958.0931466
-      },
-      {
-        "name": "ondecompro-platform-pushgateway-1",
-        "service": "pushgateway",
-        "state": "running",
-        "status": "Up 7 hours",
-        "health": null,
-        "exit_code": 0,
-        "ports": "9091->9091/tcp, 9091->9091/tcp",
-        "retry_count": 0,
-        "visual_status": "green",
-        "last_changed": 1788112958.0931466
-      },
-      {
-        "name": "ondecompro-platform-redis-1",
-        "service": "redis",
-        "state": "running",
-        "status": "Up 7 hours (healthy)",
-        "health": "healthy",
-        "exit_code": 0,
-        "ports": "6379->6379/tcp, 6379->6379/tcp",
-        "retry_count": 0,
-        "visual_status": "green",
-        "last_changed": 1788112958.0931466
-      },
-      {
-        "name": "ondecompro-platform-selenium-1",
-        "service": "selenium",
-        "state": "running",
-        "status": "Up 7 hours",
-        "health": null,
-        "exit_code": 0,
-        "ports": "4444->4444/tcp, 4444->4444/tcp, 7900->7900/tcp, 7900->7900/tcp",
-        "retry_count": 0,
-        "visual_status": "green",
-        "last_changed": 1788112958.0931466
-      }
-    ],
+    "containers": [],
     "ui_links": [
+      {
+        "name": "Keycloak IAM",
+        "url": "http://localhost:8090",
+        "icon": "key"
+      },
+      {
+        "name": "DefectDojo",
+        "url": "http://localhost:8096",
+        "icon": "layers"
+      },
+      {
+        "name": "JupyterLab",
+        "url": "http://localhost:8888",
+        "icon": "book-open"
+      },
       {
         "name": "VS Code Web (IDE)",
         "url": "http://localhost:8443/?folder=/home/coder/project",
         "icon": "code"
+      },
+      {
+        "name": "Apache Iceberg REST Catalog",
+        "url": "http://localhost:8181/v1/config",
+        "icon": "layers"
+      },
+      {
+        "name": "Kafka UI (Provectus)",
+        "url": "http://localhost:8087",
+        "icon": "layout"
+      },
+      {
+        "name": "Apache Spark 3.5 Cluster",
+        "url": "http://localhost:8082",
+        "icon": "zap"
+      },
+      {
+        "name": "MinIO Object Storage",
+        "url": "http://localhost:9001",
+        "icon": "hard-drive"
+      },
+      {
+        "name": "Trino SQL Engine",
+        "url": "http://localhost:8085",
+        "icon": "search"
+      },
+      {
+        "name": "Schema Registry",
+        "url": "http://localhost:8086",
+        "icon": "shield-check"
+      },
+      {
+        "name": "Kafka Connect + Debezium",
+        "url": "http://localhost:8083",
+        "icon": "repeat"
       }
     ],
     "launch_strategy": "docker-compose",
     "start_command": "docker compose up -d",
     "is_merged_workspace": false,
     "merged_projects": [],
-    "last_cached": "2026-08-30 15:16:42"
+    "last_cached": "2026-08-30 23:24:34"
   },
   {
-    "id": "ondecompro-frontend",
-    "name": "Ondecompro Frontend",
-    "path": "C:\\Users\\samue\\projects\\ondecompro-frontend",
-    "description": "Projeto auto-detectado: ondecompro-frontend",
+    "id": "workspace-test-workspace-api-merged-stack-demo-and-test-workspace-api-merged-stack-demo-and-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-test-creation-verify",
+    "name": "Test Workspace API Merged Stack Demo and Test Workspace API Merged Stack Demo and Test Workspace API Merged Stack Demo and Test Workspace veloceg-v1 and Test Creation Verify",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-test-workspace-api-merged-stack-demo-and-test-workspace-api-merged-stack-demo-and-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-test-creation-verify",
+    "description": "Merged multi-root workspace test suite",
     "tools": [
-      "vscode"
+      "dbt",
+      "airflow",
+      "kafka",
+      "minio",
+      "postgres",
+      "iceberg_rest",
+      "kafka_connect",
+      "jupyterlab",
+      "schema_registry",
+      "kafka_ui",
+      "trino",
+      "spark"
     ],
-    "include_templates": true,
-    "created_at": "2026-08-30 15:03:37",
-    "status": "running",
-    "visual_status": "green",
+    "include_templates": false,
+    "created_at": "2026-08-30 22:14:13",
+    "last_used_at": "2026-08-30T22:14:13.554183",
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
+    "status": "stopped",
+    "visual_status": "orange",
     "retry_count": 0,
     "auto_install_extensions": true,
-    "custom_vscode_extensions": [],
-    "containers": [
-      {
-        "name": "ondecompro-frontend-vscode",
-        "service": "vscode",
-        "state": "running",
-        "status": "Up 10 minutes",
-        "health": null,
-        "exit_code": 0,
-        "ports": "8444->8080/tcp, 8444->8080/tcp",
-        "retry_count": 0,
-        "visual_status": "green",
-        "last_changed": 1788113773.493827
-      },
-      {
-        "name": "ondecompro-frontend-web",
-        "service": "web",
-        "state": "running",
-        "status": "Up 10 minutes",
-        "health": null,
-        "exit_code": 0,
-        "ports": "3002->3000/tcp, 3002->3000/tcp",
-        "retry_count": 0,
-        "visual_status": "green",
-        "last_changed": 1788113773.493827
-      }
+    "custom_vscode_extensions": [
+      "ms-python.python",
+      "ms-azuretools.vscode-docker",
+      "eamodio.gitlens",
+      "mtxr.sqltools-driver-pg",
+      "ms-toolsai.jupyter",
+      "ckolkman.vscode-postgres",
+      "ms-python.vscode-pylance",
+      "cweijan.vscode-database-client2",
+      "redhat.vscode-yaml",
+      "mtxr.sqltools"
     ],
+    "containers": [],
     "ui_links": [
       {
-        "name": "Next.js Web App",
-        "url": "http://localhost:3000",
-        "icon": "globe"
+        "name": "Prometheus",
+        "url": "http://localhost:9095",
+        "icon": "activity"
       },
       {
-        "name": "Wazuh Dashboard",
-        "url": "https://localhost:8444",
-        "icon": "shield"
+        "name": "SonarQube",
+        "url": "http://localhost:9003",
+        "icon": "check-circle"
       },
       {
-        "name": "VS Code Web (IDE)",
-        "url": "http://localhost:8443/?folder=/home/coder/project",
+        "name": "JupyterLab",
+        "url": "http://localhost:8889",
+        "icon": "book-open"
+      },
+      {
+        "name": "VS Code Multi-Root Workspace",
+        "url": "http://localhost:8445/?workspace=/home/coder/project/workspace.code-workspace",
         "icon": "code"
+      },
+      {
+        "name": "Apache Airflow 2.9",
+        "url": "http://localhost:8088",
+        "icon": "git-merge"
+      },
+      {
+        "name": "MinIO Object Storage",
+        "url": "http://localhost:9001",
+        "icon": "hard-drive"
+      },
+      {
+        "name": "Apache Iceberg REST Catalog",
+        "url": "http://localhost:8181/v1/config",
+        "icon": "layers"
+      },
+      {
+        "name": "Kafka Connect + Debezium",
+        "url": "http://localhost:8083",
+        "icon": "repeat"
+      },
+      {
+        "name": "JupyterLab Workspace",
+        "url": "http://localhost:8888",
+        "icon": "book-open"
+      },
+      {
+        "name": "Schema Registry",
+        "url": "http://localhost:8086",
+        "icon": "shield-check"
+      },
+      {
+        "name": "Kafka UI (Provectus)",
+        "url": "http://localhost:8087",
+        "icon": "layout"
+      },
+      {
+        "name": "Trino SQL Engine",
+        "url": "http://localhost:8085",
+        "icon": "search"
+      },
+      {
+        "name": "Apache Spark 3.5 Cluster",
+        "url": "http://localhost:8082",
+        "icon": "zap"
       }
     ],
     "launch_strategy": "docker-compose",
     "start_command": "docker compose up -d",
-    "is_merged_workspace": false,
-    "merged_projects": [],
-    "last_cached": "2026-08-30 15:16:42"
+    "is_merged_workspace": true,
+    "merged_projects": [
+      "workspace-api-merged-stack-demo",
+      "workspace-test-workspace-api-merged-stack-demo-and-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-test-creation-verify"
+    ],
+    "last_cached": "2026-08-30 23:24:34"
   },
   {
-    "id": "venda",
-    "name": "Venda",
-    "path": "C:\\Users\\samue\\projects\\venda",
-    "description": "Projeto auto-detectado: venda",
+    "id": "workspace-test-workspace-api-merged-stack-demo-and-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-test-creation-verify",
+    "name": "Test Workspace API Merged Stack Demo and Test Workspace API Merged Stack Demo and Test Workspace veloceg-v1 and Test Creation Verify",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-test-workspace-api-merged-stack-demo-and-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-test-creation-verify",
+    "description": "Merged multi-root workspace test suite",
     "tools": [
-      "vscode"
+      "minio",
+      "postgres",
+      "spark",
+      "jupyterlab",
+      "kafka",
+      "trino",
+      "kafka_connect",
+      "dbt",
+      "iceberg_rest",
+      "schema_registry",
+      "kafka_ui",
+      "airflow"
     ],
-    "include_templates": true,
-    "created_at": "2026-08-30 15:03:24",
-    "status": "running",
-    "visual_status": "green",
+    "include_templates": false,
+    "created_at": "2026-08-30 22:08:19",
+    "last_used_at": "2026-08-30T22:08:19.659960",
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
+    "status": "stopped",
+    "visual_status": "orange",
     "retry_count": 0,
     "auto_install_extensions": true,
-    "custom_vscode_extensions": [],
-    "containers": [
-      {
-        "name": "venda-vscode",
-        "service": "vscode",
-        "state": "running",
-        "status": "Up 12 minutes",
-        "health": null,
-        "exit_code": 0,
-        "ports": "8443->8080/tcp, 8443->8080/tcp",
-        "retry_count": 0,
-        "visual_status": "green",
-        "last_changed": 1788113773.2861512
-      },
-      {
-        "name": "venda-web",
-        "service": "web",
-        "state": "running",
-        "status": "Up 6 hours",
-        "health": null,
-        "exit_code": 0,
-        "ports": "3000->3000/tcp, 3000->3000/tcp",
-        "retry_count": 0,
-        "visual_status": "green",
-        "last_changed": 1788113238.7644603
-      },
-      {
-        "name": "venda-airflow",
-        "service": "airflow",
-        "state": "running",
-        "status": "Up 6 hours",
-        "health": null,
-        "exit_code": 0,
-        "ports": "8081->8080/tcp, 8081->8080/tcp",
-        "retry_count": 0,
-        "visual_status": "green",
-        "last_changed": 1788113173.4481869
-      },
-      {
-        "name": "venda-mailpit",
-        "service": "mailpit",
-        "state": "running",
-        "status": "Up 6 hours (healthy)",
-        "health": "healthy",
-        "exit_code": 0,
-        "ports": "1025->1025/tcp, 1025->1025/tcp, 8025->8025/tcp, 8025->8025/tcp",
-        "retry_count": 0,
-        "visual_status": "green",
-        "last_changed": 1788113173.4481869
-      },
-      {
-        "name": "venda-postgres",
-        "service": "postgres",
-        "state": "running",
-        "status": "Up 6 hours (healthy)",
-        "health": "healthy",
-        "exit_code": 0,
-        "ports": "5433->5432/tcp, 5433->5432/tcp",
-        "retry_count": 0,
-        "visual_status": "green",
-        "last_changed": 1788113173.4481869
-      }
+    "custom_vscode_extensions": [
+      "ms-python.vscode-pylance",
+      "mtxr.sqltools",
+      "eamodio.gitlens",
+      "ckolkman.vscode-postgres",
+      "cweijan.vscode-database-client2",
+      "ms-toolsai.jupyter",
+      "mtxr.sqltools-driver-pg",
+      "ms-python.python",
+      "ms-azuretools.vscode-docker",
+      "redhat.vscode-yaml"
     ],
+    "containers": [],
     "ui_links": [
       {
-        "name": "Next.js Web App",
-        "url": "http://localhost:3000",
-        "icon": "globe"
+        "name": "Prometheus",
+        "url": "http://localhost:9095",
+        "icon": "activity"
       },
       {
-        "name": "VS Code Web (IDE)",
-        "url": "http://localhost:8443/?folder=/home/coder/project",
+        "name": "SonarQube",
+        "url": "http://localhost:9003",
+        "icon": "check-circle"
+      },
+      {
+        "name": "JupyterLab",
+        "url": "http://localhost:8889",
+        "icon": "book-open"
+      },
+      {
+        "name": "VS Code Multi-Root Workspace",
+        "url": "http://localhost:8445/?workspace=/home/coder/project/workspace.code-workspace",
         "icon": "code"
+      },
+      {
+        "name": "MinIO Object Storage",
+        "url": "http://localhost:9001",
+        "icon": "hard-drive"
+      },
+      {
+        "name": "Apache Spark 3.5 Cluster",
+        "url": "http://localhost:8082",
+        "icon": "zap"
+      },
+      {
+        "name": "JupyterLab Workspace",
+        "url": "http://localhost:8888",
+        "icon": "book-open"
+      },
+      {
+        "name": "Trino SQL Engine",
+        "url": "http://localhost:8085",
+        "icon": "search"
+      },
+      {
+        "name": "Kafka Connect + Debezium",
+        "url": "http://localhost:8083",
+        "icon": "repeat"
+      },
+      {
+        "name": "Apache Iceberg REST Catalog",
+        "url": "http://localhost:8181/v1/config",
+        "icon": "layers"
+      },
+      {
+        "name": "Schema Registry",
+        "url": "http://localhost:8086",
+        "icon": "shield-check"
+      },
+      {
+        "name": "Kafka UI (Provectus)",
+        "url": "http://localhost:8087",
+        "icon": "layout"
       }
     ],
     "launch_strategy": "docker-compose",
     "start_command": "docker compose up -d",
-    "is_merged_workspace": false,
-    "merged_projects": [],
-    "last_cached": "2026-08-30 15:16:42"
+    "is_merged_workspace": true,
+    "merged_projects": [
+      "workspace-api-merged-stack-demo",
+      "workspace-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-test-creation-verify"
+    ],
+    "last_cached": "2026-08-30 23:24:34"
   },
   {
-    "id": "cleanarch",
-    "name": "Cleanarch",
-    "path": "C:\\Users\\samue\\projects\\cleanarch",
-    "description": "Projeto auto-detectado: cleanarch",
+    "id": "workspace-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-test-creation-verify",
+    "name": "Test Workspace API Merged Stack Demo and Test Workspace veloceg-v1 and Test Creation Verify",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-test-creation-verify",
+    "description": "Merged multi-root workspace test suite",
+    "tools": [
+      "schema_registry",
+      "dbt",
+      "kafka_connect",
+      "kafka",
+      "iceberg_rest",
+      "kafka_ui",
+      "spark",
+      "jupyterlab",
+      "minio",
+      "airflow",
+      "trino",
+      "postgres"
+    ],
+    "include_templates": false,
+    "created_at": "2026-08-30 21:46:47",
+    "last_used_at": "2026-08-30T21:46:47.482552",
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
+    "status": "stopped",
+    "visual_status": "orange",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [
+      "eamodio.gitlens",
+      "ms-toolsai.jupyter",
+      "cweijan.vscode-database-client2",
+      "ms-azuretools.vscode-docker",
+      "redhat.vscode-yaml",
+      "mtxr.sqltools",
+      "ms-python.python",
+      "ms-python.vscode-pylance",
+      "ckolkman.vscode-postgres",
+      "mtxr.sqltools-driver-pg"
+    ],
+    "containers": [],
+    "ui_links": [
+      {
+        "name": "Keycloak IAM",
+        "url": "http://localhost:8090",
+        "icon": "key"
+      },
+      {
+        "name": "SonarQube",
+        "url": "http://localhost:9003",
+        "icon": "check-circle"
+      },
+      {
+        "name": "JupyterLab",
+        "url": "http://localhost:8888",
+        "icon": "book-open"
+      },
+      {
+        "name": "Prometheus",
+        "url": "http://localhost:9095",
+        "icon": "activity"
+      },
+      {
+        "name": "VS Code Multi-Root Workspace",
+        "url": "http://localhost:8445/?workspace=/home/coder/project/workspace.code-workspace",
+        "icon": "code"
+      },
+      {
+        "name": "Schema Registry",
+        "url": "http://localhost:8086",
+        "icon": "shield-check"
+      },
+      {
+        "name": "Kafka Connect + Debezium",
+        "url": "http://localhost:8083",
+        "icon": "repeat"
+      },
+      {
+        "name": "Apache Iceberg REST Catalog",
+        "url": "http://localhost:8181/v1/config",
+        "icon": "layers"
+      },
+      {
+        "name": "Kafka UI (Provectus)",
+        "url": "http://localhost:8087",
+        "icon": "layout"
+      },
+      {
+        "name": "Apache Spark 3.5 Cluster",
+        "url": "http://localhost:8082",
+        "icon": "zap"
+      },
+      {
+        "name": "MinIO Object Storage",
+        "url": "http://localhost:9001",
+        "icon": "hard-drive"
+      },
+      {
+        "name": "Trino SQL Engine",
+        "url": "http://localhost:8085",
+        "icon": "search"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "is_merged_workspace": true,
+    "merged_projects": [
+      "workspace-api-merged-stack-demo",
+      "workspace-test-workspace-veloceg-v1-and-test-creation-verify"
+    ],
+    "last_cached": "2026-08-30 23:24:34"
+  },
+  {
+    "id": "workspace-test-workspace-veloceg-v1-and-test-creation-verify",
+    "name": "Test Workspace veloceg-v1 and Test Creation Verify",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-test-workspace-veloceg-v1-and-test-creation-verify",
+    "description": "Merged multi-root workspace test suite",
+    "tools": [
+      "kafka_connect",
+      "jupyterlab",
+      "iceberg_rest",
+      "kafka",
+      "schema_registry",
+      "dbt",
+      "minio",
+      "airflow",
+      "postgres",
+      "spark",
+      "kafka_ui",
+      "trino"
+    ],
+    "include_templates": false,
+    "created_at": "2026-08-30 21:45:38",
+    "last_used_at": "2026-08-30T21:45:38.769906",
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
+    "status": "stopped",
+    "visual_status": "orange",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [
+      "mtxr.sqltools",
+      "eamodio.gitlens",
+      "cweijan.vscode-database-client2",
+      "ms-python.vscode-pylance",
+      "ms-azuretools.vscode-docker",
+      "mtxr.sqltools-driver-pg",
+      "redhat.vscode-yaml",
+      "ckolkman.vscode-postgres",
+      "ms-toolsai.jupyter",
+      "ms-python.python"
+    ],
+    "containers": [],
+    "ui_links": [
+      {
+        "name": "Airflow Webserver",
+        "url": "http://localhost:8089",
+        "icon": "git-merge"
+      },
+      {
+        "name": "JupyterLab",
+        "url": "http://localhost:8888",
+        "icon": "book-open"
+      },
+      {
+        "name": "VS Code Multi-Root Workspace",
+        "url": "http://localhost:8445/?workspace=/home/coder/project/workspace.code-workspace",
+        "icon": "code"
+      },
+      {
+        "name": "Kafka Connect + Debezium",
+        "url": "http://localhost:8083",
+        "icon": "repeat"
+      },
+      {
+        "name": "Apache Iceberg REST Catalog",
+        "url": "http://localhost:8181/v1/config",
+        "icon": "layers"
+      },
+      {
+        "name": "Schema Registry",
+        "url": "http://localhost:8086",
+        "icon": "shield-check"
+      },
+      {
+        "name": "MinIO Object Storage",
+        "url": "http://localhost:9001",
+        "icon": "hard-drive"
+      },
+      {
+        "name": "Apache Spark 3.5 Cluster",
+        "url": "http://localhost:8082",
+        "icon": "zap"
+      },
+      {
+        "name": "Kafka UI (Provectus)",
+        "url": "http://localhost:8087",
+        "icon": "layout"
+      },
+      {
+        "name": "Trino SQL Engine",
+        "url": "http://localhost:8085",
+        "icon": "search"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "is_merged_workspace": true,
+    "merged_projects": [
+      "veloceg-v1",
+      "test-creation-verify"
+    ],
+    "last_cached": "2026-08-30 23:24:34"
+  },
+  {
+    "id": "test-creation-verify",
+    "name": "Test Creation Verify",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\test-creation-verify",
+    "description": "Projeto auto-detectado: test-creation-verify",
     "tools": [],
     "include_templates": true,
-    "created_at": "2026-08-30 09:42:03",
+    "created_at": "2026-08-30 21:42:58",
+    "last_used_at": null,
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
     "status": "stopped",
     "visual_status": "orange",
     "retry_count": 0,
@@ -550,125 +1022,7 @@
     "start_command": "docker compose up -d",
     "is_merged_workspace": false,
     "merged_projects": [],
-    "last_cached": "2026-08-30 15:16:42"
-  },
-  {
-    "id": "cutchulo-sheet",
-    "name": "Cutchulo Sheet",
-    "path": "C:\\Users\\samue\\projects\\cutchulo-sheet",
-    "description": "Projeto auto-detectado: cutchulo-sheet",
-    "tools": [],
-    "include_templates": true,
-    "created_at": "2026-08-30 09:42:03",
-    "status": "stopped",
-    "visual_status": "orange",
-    "retry_count": 0,
-    "auto_install_extensions": true,
-    "custom_vscode_extensions": [],
-    "containers": [],
-    "ui_links": [
-      {
-        "name": "Web App (cthulhu)",
-        "url": "http://localhost:3000",
-        "icon": "globe"
-      }
-    ],
-    "launch_strategy": "docker-compose",
-    "start_command": "docker compose up -d",
-    "is_merged_workspace": false,
-    "merged_projects": [],
-    "last_cached": "2026-08-30 15:16:42"
-  },
-  {
-    "id": "ondecompro",
-    "name": "Ondecompro",
-    "path": "C:\\Users\\samue\\projects\\ondecompro",
-    "description": "Projeto auto-detectado: ondecompro",
-    "tools": [],
-    "include_templates": true,
-    "created_at": "2026-08-30 09:42:03",
-    "status": "stopped",
-    "visual_status": "orange",
-    "retry_count": 0,
-    "auto_install_extensions": true,
-    "custom_vscode_extensions": [],
-    "containers": [],
-    "ui_links": [
-      {
-        "name": "Next.js Web App",
-        "url": "http://localhost:3000",
-        "icon": "globe"
-      }
-    ],
-    "launch_strategy": "docker-compose",
-    "start_command": "docker compose up -d",
-    "is_merged_workspace": false,
-    "merged_projects": [],
-    "last_cached": "2026-08-30 15:16:42"
-  },
-  {
-    "id": "ondecompro-monorepo",
-    "name": "Ondecompro Monorepo",
-    "path": "C:\\Users\\samue\\projects\\ondecompro-monorepo",
-    "description": "Projeto auto-detectado: ondecompro-monorepo",
-    "tools": [],
-    "include_templates": true,
-    "created_at": "2026-08-30 09:42:03",
-    "status": "stopped",
-    "visual_status": "orange",
-    "retry_count": 0,
-    "auto_install_extensions": true,
-    "custom_vscode_extensions": [],
-    "containers": [],
-    "ui_links": [
-      {
-        "name": "Next.js Web App",
-        "url": "http://localhost:3000",
-        "icon": "globe"
-      },
-      {
-        "name": "Prometheus",
-        "url": "http://localhost:${PROMETHEUS_PORT",
-        "icon": "activity"
-      },
-      {
-        "name": "Grafana Dashboards",
-        "url": "http://localhost:${GRAFANA_PORT",
-        "icon": "layout-dashboard"
-      }
-    ],
-    "launch_strategy": "docker-compose",
-    "start_command": "docker compose up -d",
-    "is_merged_workspace": false,
-    "merged_projects": [],
-    "last_cached": "2026-08-30 15:16:42"
-  },
-  {
-    "id": "web250",
-    "name": "Web250",
-    "path": "C:\\Users\\samue\\projects\\web250",
-    "description": "Projeto auto-detectado: web250",
-    "tools": [],
-    "include_templates": true,
-    "created_at": "2026-08-30 09:42:03",
-    "status": "stopped",
-    "visual_status": "orange",
-    "retry_count": 0,
-    "auto_install_extensions": true,
-    "custom_vscode_extensions": [],
-    "containers": [],
-    "ui_links": [
-      {
-        "name": "Web App (frontend)",
-        "url": "http://localhost:${FRONTEND_PORT",
-        "icon": "globe"
-      }
-    ],
-    "launch_strategy": "docker-compose",
-    "start_command": "docker compose up -d",
-    "is_merged_workspace": false,
-    "merged_projects": [],
-    "last_cached": "2026-08-30 15:16:42"
+    "last_cached": "2026-08-30 23:24:34"
   },
   {
     "id": "clean-lakehouse",
@@ -677,7 +1031,13 @@
     "description": "Projeto auto-detectado: clean-lakehouse",
     "tools": [],
     "include_templates": true,
-    "created_at": "2026-08-30 09:39:56",
+    "created_at": "2026-08-30 21:39:42",
+    "last_used_at": null,
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
     "status": "stopped",
     "visual_status": "orange",
     "retry_count": 0,
@@ -710,7 +1070,7 @@
     "start_command": "docker compose up -d",
     "is_merged_workspace": false,
     "merged_projects": [],
-    "last_cached": "2026-08-30 15:16:42"
+    "last_cached": "2026-08-30 23:24:34"
   },
   {
     "id": "crypto-trading-stream",
@@ -719,7 +1079,13 @@
     "description": "Projeto auto-detectado: crypto-trading-stream",
     "tools": [],
     "include_templates": true,
-    "created_at": "2026-08-30 09:39:56",
+    "created_at": "2026-08-30 21:39:42",
+    "last_used_at": null,
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
     "status": "stopped",
     "visual_status": "orange",
     "retry_count": 0,
@@ -737,7 +1103,7 @@
     "start_command": "docker compose up -d",
     "is_merged_workspace": false,
     "merged_projects": [],
-    "last_cached": "2026-08-30 15:16:42"
+    "last_cached": "2026-08-30 23:24:34"
   },
   {
     "id": "devops-edge-stack",
@@ -746,7 +1112,13 @@
     "description": "Projeto auto-detectado: devops-edge-stack",
     "tools": [],
     "include_templates": true,
-    "created_at": "2026-08-30 09:39:56",
+    "created_at": "2026-08-30 21:39:42",
+    "last_used_at": null,
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
     "status": "stopped",
     "visual_status": "orange",
     "retry_count": 0,
@@ -763,13 +1135,18 @@
         "name": "Splunk Enterprise",
         "url": "http://localhost:8001",
         "icon": "search"
+      },
+      {
+        "name": "VS Code Web (IDE)",
+        "url": "http://localhost:8443/?folder=/home/coder/project",
+        "icon": "code"
       }
     ],
     "launch_strategy": "docker-compose",
     "start_command": "docker compose up -d",
     "is_merged_workspace": false,
     "merged_projects": [],
-    "last_cached": "2026-08-30 15:16:42"
+    "last_cached": "2026-08-30 23:24:34"
   },
   {
     "id": "ecommerce-mlops",
@@ -778,7 +1155,13 @@
     "description": "Projeto auto-detectado: ecommerce-mlops",
     "tools": [],
     "include_templates": true,
-    "created_at": "2026-08-30 09:39:56",
+    "created_at": "2026-08-30 21:39:42",
+    "last_used_at": null,
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
     "status": "stopped",
     "visual_status": "orange",
     "retry_count": 0,
@@ -806,7 +1189,7 @@
     "start_command": "docker compose up -d",
     "is_merged_workspace": false,
     "merged_projects": [],
-    "last_cached": "2026-08-30 15:16:42"
+    "last_cached": "2026-08-30 23:24:34"
   },
   {
     "id": "fintech-backend-queue",
@@ -815,7 +1198,13 @@
     "description": "Projeto auto-detectado: fintech-backend-queue",
     "tools": [],
     "include_templates": true,
-    "created_at": "2026-08-30 09:39:56",
+    "created_at": "2026-08-30 21:39:42",
+    "last_used_at": null,
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
     "status": "stopped",
     "visual_status": "orange",
     "retry_count": 0,
@@ -838,7 +1227,7 @@
     "start_command": "docker compose up -d",
     "is_merged_workspace": false,
     "merged_projects": [],
-    "last_cached": "2026-08-30 15:16:42"
+    "last_cached": "2026-08-30 23:24:34"
   },
   {
     "id": "graph-nosql-study",
@@ -847,7 +1236,13 @@
     "description": "Projeto auto-detectado: graph-nosql-study",
     "tools": [],
     "include_templates": true,
-    "created_at": "2026-08-30 09:39:56",
+    "created_at": "2026-08-30 21:39:42",
+    "last_used_at": null,
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
     "status": "stopped",
     "visual_status": "orange",
     "retry_count": 0,
@@ -859,7 +1254,7 @@
     "start_command": "docker compose up -d",
     "is_merged_workspace": false,
     "merged_projects": [],
-    "last_cached": "2026-08-30 15:16:42"
+    "last_cached": "2026-08-30 23:24:34"
   },
   {
     "id": "observability-devops-stack",
@@ -868,7 +1263,13 @@
     "description": "Projeto auto-detectado: observability-devops-stack",
     "tools": [],
     "include_templates": true,
-    "created_at": "2026-08-30 09:39:56",
+    "created_at": "2026-08-30 21:39:42",
+    "last_used_at": null,
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
     "status": "stopped",
     "visual_status": "orange",
     "retry_count": 0,
@@ -896,7 +1297,7 @@
     "start_command": "docker compose up -d",
     "is_merged_workspace": false,
     "merged_projects": [],
-    "last_cached": "2026-08-30 15:16:42"
+    "last_cached": "2026-08-30 23:24:34"
   },
   {
     "id": "telemetry-governance-stack",
@@ -905,7 +1306,13 @@
     "description": "Projeto auto-detectado: telemetry-governance-stack",
     "tools": [],
     "include_templates": true,
-    "created_at": "2026-08-30 09:39:56",
+    "created_at": "2026-08-30 21:39:42",
+    "last_used_at": null,
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
     "status": "stopped",
     "visual_status": "orange",
     "retry_count": 0,
@@ -933,7 +1340,7 @@
     "start_command": "docker compose up -d",
     "is_merged_workspace": false,
     "merged_projects": [],
-    "last_cached": "2026-08-30 15:16:42"
+    "last_cached": "2026-08-30 23:24:34"
   },
   {
     "id": "veloceg-teste",
@@ -942,7 +1349,13 @@
     "description": "Projeto auto-detectado: veloceg-teste",
     "tools": [],
     "include_templates": true,
-    "created_at": "2026-08-30 09:39:56",
+    "created_at": "2026-08-30 21:39:42",
+    "last_used_at": null,
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
     "status": "stopped",
     "visual_status": "orange",
     "retry_count": 0,
@@ -975,7 +1388,7 @@
     "start_command": "docker compose up -d",
     "is_merged_workspace": false,
     "merged_projects": [],
-    "last_cached": "2026-08-30 15:16:42"
+    "last_cached": "2026-08-30 23:24:34"
   },
   {
     "id": "velocelog",
@@ -984,233 +1397,31 @@
     "description": "Projeto auto-detectado: velocelog",
     "tools": [],
     "include_templates": true,
-    "created_at": "2026-08-30 09:39:56",
-    "status": "starting",
-    "visual_status": "yellow",
+    "created_at": "2026-08-30 21:39:42",
+    "last_used_at": "2026-08-30T23:23:30.186746",
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
+    "status": "stopped",
+    "visual_status": "orange",
     "retry_count": 0,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [],
-    "containers": [
-      {
-        "name": "velocelog-airflow-db",
-        "service": "airflow-db",
-        "state": "running",
-        "status": "Up 7 minutes (healthy)",
-        "health": "healthy",
-        "exit_code": 0,
-        "ports": "5432/tcp",
-        "retry_count": 0,
-        "visual_status": "green",
-        "last_changed": 1788113773.6512017
-      },
-      {
-        "name": "velocelog-kafka",
-        "service": "kafka",
-        "state": "running",
-        "status": "Up 7 minutes",
-        "health": null,
-        "exit_code": 0,
-        "ports": "9092->9092/tcp, 9092->9092/tcp",
-        "retry_count": 0,
-        "visual_status": "green",
-        "last_changed": 1788113773.6512017
-      },
-      {
-        "name": "velocelog-kafka-ui",
-        "service": "kafka-ui",
-        "state": "running",
-        "status": "Up 7 minutes",
-        "health": null,
-        "exit_code": 0,
-        "ports": "8087->8080/tcp, 8087->8080/tcp",
-        "retry_count": 0,
-        "visual_status": "green",
-        "last_changed": 1788113773.6512017
-      },
-      {
-        "name": "velocelog-minio",
-        "service": "minio",
-        "state": "running",
-        "status": "Up 7 minutes (healthy)",
-        "health": "healthy",
-        "exit_code": 0,
-        "ports": "9000->9000/tcp, 9000->9000/tcp, 9001->9001/tcp, 9001->9001/tcp",
-        "retry_count": 0,
-        "visual_status": "green",
-        "last_changed": 1788113773.6512017
-      },
-      {
-        "name": "velocelog-postgres",
-        "service": "postgres",
-        "state": "running",
-        "status": "Up 7 minutes (healthy)",
-        "health": "healthy",
-        "exit_code": 0,
-        "ports": "5434->5432/tcp, 5434->5432/tcp",
-        "retry_count": 0,
-        "visual_status": "green",
-        "last_changed": 1788113773.6512017
-      },
-      {
-        "name": "velocelog-schema-registry",
-        "service": "schema-registry",
-        "state": "running",
-        "status": "Up 7 minutes",
-        "health": null,
-        "exit_code": 0,
-        "ports": "8086->8081/tcp, 8086->8081/tcp",
-        "retry_count": 0,
-        "visual_status": "green",
-        "last_changed": 1788113773.6512017
-      },
-      {
-        "name": "velocelog-spark-master",
-        "service": "spark-master",
-        "state": "running",
-        "status": "Up 7 minutes",
-        "health": null,
-        "exit_code": 0,
-        "ports": "7077->7077/tcp, 7077->7077/tcp, 8082->8080/tcp, 8082->8080/tcp",
-        "retry_count": 0,
-        "visual_status": "green",
-        "last_changed": 1788113773.6512017
-      },
-      {
-        "name": "velocelog-airflow-init",
-        "service": "airflow-init",
-        "state": "exited",
-        "status": "Exited (0) 7 minutes ago",
-        "health": null,
-        "exit_code": 0,
-        "ports": "",
-        "retry_count": 0,
-        "visual_status": "orange",
-        "last_changed": 1788113773.6512017
-      },
-      {
-        "name": "velocelog-minio-init",
-        "service": "minio-init",
-        "state": "exited",
-        "status": "Exited (0) 7 minutes ago",
-        "health": null,
-        "exit_code": 0,
-        "ports": "",
-        "retry_count": 0,
-        "visual_status": "orange",
-        "last_changed": 1788113773.6512017
-      },
-      {
-        "name": "velocelog-vscode",
-        "service": "vscode",
-        "state": "created",
-        "status": "Created",
-        "health": null,
-        "exit_code": 0,
-        "ports": "",
-        "retry_count": 0,
-        "visual_status": "yellow",
-        "last_changed": 1788113322.5700636
-      },
-      {
-        "name": "velocelog-airflow-scheduler",
-        "service": "airflow-scheduler",
-        "state": "created",
-        "status": "Created",
-        "health": null,
-        "exit_code": 0,
-        "ports": "",
-        "retry_count": 0,
-        "visual_status": "yellow",
-        "last_changed": 1788113322.569554
-      },
-      {
-        "name": "velocelog-airflow-webserver",
-        "service": "airflow-webserver",
-        "state": "created",
-        "status": "Created",
-        "health": null,
-        "exit_code": 0,
-        "ports": "",
-        "retry_count": 0,
-        "visual_status": "yellow",
-        "last_changed": 1788113322.569554
-      },
-      {
-        "name": "velocelog-iceberg-rest",
-        "service": "iceberg-rest",
-        "state": "created",
-        "status": "Created",
-        "health": null,
-        "exit_code": 0,
-        "ports": "",
-        "retry_count": 0,
-        "visual_status": "yellow",
-        "last_changed": 1788113322.569554
-      },
-      {
-        "name": "velocelog-kafka-connect",
-        "service": "kafka-connect",
-        "state": "created",
-        "status": "Created",
-        "health": null,
-        "exit_code": 0,
-        "ports": "",
-        "retry_count": 0,
-        "visual_status": "yellow",
-        "last_changed": 1788113322.569554
-      },
-      {
-        "name": "velocelog-spark-worker",
-        "service": "spark-worker",
-        "state": "created",
-        "status": "Created",
-        "health": null,
-        "exit_code": 0,
-        "ports": "",
-        "retry_count": 0,
-        "visual_status": "yellow",
-        "last_changed": 1788113322.569554
-      },
-      {
-        "name": "velocelog-trino",
-        "service": "trino",
-        "state": "created",
-        "status": "Created",
-        "health": null,
-        "exit_code": 0,
-        "ports": "",
-        "retry_count": 0,
-        "visual_status": "yellow",
-        "last_changed": 1788113322.569554
-      }
-    ],
+    "containers": [],
     "ui_links": [
       {
-        "name": "MinIO Console",
-        "url": "http://localhost:9001",
-        "icon": "hard-drive"
-      },
-      {
-        "name": "Kafka UI",
-        "url": "http://localhost:8082",
-        "icon": "activity"
-      },
-      {
-        "name": "Redis Commander",
-        "url": "http://localhost:8085",
-        "icon": "database"
-      },
-      {
-        "name": "Airflow Webserver",
-        "url": "http://localhost:8088",
-        "icon": "git-merge"
+        "name": "VS Code Web (IDE)",
+        "url": "http://localhost:8443/?folder=/home/coder/project",
+        "icon": "code"
       }
     ],
     "launch_strategy": "docker-compose",
     "start_command": "docker compose up -d",
     "is_merged_workspace": false,
     "merged_projects": [],
-    "last_cached": "2026-08-30 15:16:42"
+    "last_cached": "2026-08-30 23:24:34"
   },
   {
     "id": "velocelog-lakehouse",
@@ -1219,7 +1430,13 @@
     "description": "Projeto auto-detectado: velocelog-lakehouse",
     "tools": [],
     "include_templates": true,
-    "created_at": "2026-08-30 09:39:56",
+    "created_at": "2026-08-30 21:39:42",
+    "last_used_at": null,
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
     "status": "stopped",
     "visual_status": "orange",
     "retry_count": 0,
@@ -1262,7 +1479,7 @@
     "start_command": "docker compose up -d",
     "is_merged_workspace": false,
     "merged_projects": [],
-    "last_cached": "2026-08-30 15:16:42"
+    "last_cached": "2026-08-30 23:24:34"
   },
   {
     "id": "velosec-log",
@@ -1271,7 +1488,13 @@
     "description": "Projeto auto-detectado: velosec-log",
     "tools": [],
     "include_templates": true,
-    "created_at": "2026-08-30 09:39:56",
+    "created_at": "2026-08-30 21:39:42",
+    "last_used_at": null,
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
     "status": "stopped",
     "visual_status": "orange",
     "retry_count": 0,
@@ -1304,6 +1527,557 @@
     "start_command": "docker compose up -d",
     "is_merged_workspace": false,
     "merged_projects": [],
-    "last_cached": "2026-08-30 15:16:42"
+    "last_cached": "2026-08-30 23:24:34"
+  },
+  {
+    "id": "workspace-ondecompro-e-venda-workspace",
+    "name": "Workspace Ondecompro E Venda Workspace",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-ondecompro-e-venda-workspace",
+    "description": "Projeto auto-detectado: workspace-ondecompro-e-venda-workspace",
+    "tools": [],
+    "include_templates": true,
+    "created_at": "2026-08-30 21:39:42",
+    "last_used_at": null,
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
+    "status": "stopped",
+    "visual_status": "orange",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "containers": [],
+    "ui_links": [
+      {
+        "name": "Next.js Web App",
+        "url": "http://localhost:3003",
+        "icon": "globe"
+      },
+      {
+        "name": "VS Code Multi-Root Workspace",
+        "url": "http://localhost:8445/?workspace=/home/coder/project/workspace.code-workspace",
+        "icon": "code"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "is_merged_workspace": true,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 23:24:34"
+  },
+  {
+    "id": "workspace-ondecompro-full-suite",
+    "name": "Workspace Ondecompro Full Suite",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-ondecompro-full-suite",
+    "description": "Projeto auto-detectado: workspace-ondecompro-full-suite",
+    "tools": [],
+    "include_templates": true,
+    "created_at": "2026-08-30 21:39:42",
+    "last_used_at": null,
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
+    "status": "stopped",
+    "visual_status": "orange",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "containers": [],
+    "ui_links": [
+      {
+        "name": "Web App (frontend)",
+        "url": "http://localhost:3003",
+        "icon": "globe"
+      },
+      {
+        "name": "Splunk Enterprise",
+        "url": "http://localhost:8001",
+        "icon": "search"
+      },
+      {
+        "name": "Prometheus",
+        "url": "http://localhost:9094",
+        "icon": "activity"
+      },
+      {
+        "name": "VS Code Multi-Root Workspace",
+        "url": "http://localhost:8445/?workspace=/home/coder/project/workspace.code-workspace",
+        "icon": "code"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "is_merged_workspace": true,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 23:24:34"
+  },
+  {
+    "id": "workspace-test-workspace-api-merged-stack-demo-and-test-workspace-ondecompro-full-suite-and-api-merged-stack-demo",
+    "name": "Workspace Test Workspace Api Merged Stack Demo And Test Workspace Ondecompro Full Suite And Api Merged Stack Demo",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-test-workspace-api-merged-stack-demo-and-test-workspace-ondecompro-full-suite-and-api-merged-stack-demo",
+    "description": "Projeto auto-detectado: workspace-test-workspace-api-merged-stack-demo-and-test-workspace-ondecompro-full-suite-and-api-merged-stack-demo",
+    "tools": [],
+    "include_templates": true,
+    "created_at": "2026-08-30 21:39:42",
+    "last_used_at": null,
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
+    "status": "stopped",
+    "visual_status": "orange",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "containers": [],
+    "ui_links": [
+      {
+        "name": "Web App (frontend)",
+        "url": "http://localhost:3003",
+        "icon": "globe"
+      },
+      {
+        "name": "Next.js Web App",
+        "url": "http://localhost:3004",
+        "icon": "globe"
+      },
+      {
+        "name": "Splunk Enterprise",
+        "url": "http://localhost:8001",
+        "icon": "search"
+      },
+      {
+        "name": "Prometheus",
+        "url": "http://localhost:9095",
+        "icon": "activity"
+      },
+      {
+        "name": "Grafana Dashboards",
+        "url": "http://localhost:3005",
+        "icon": "layout-dashboard"
+      },
+      {
+        "name": "Airflow Webserver",
+        "url": "http://localhost:8088",
+        "icon": "git-merge"
+      },
+      {
+        "name": "VS Code Multi-Root Workspace",
+        "url": "http://localhost:8445/?workspace=/home/coder/project/workspace.code-workspace",
+        "icon": "code"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "is_merged_workspace": true,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 23:24:34"
+  },
+  {
+    "id": "workspace-test-workspace-ondecompro-e-venda-workspace-and-ondecompro-platform",
+    "name": "Workspace Test Workspace Ondecompro E Venda Workspace And Ondecompro Platform",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-test-workspace-ondecompro-e-venda-workspace-and-ondecompro-platform",
+    "description": "Projeto auto-detectado: workspace-test-workspace-ondecompro-e-venda-workspace-and-ondecompro-platform",
+    "tools": [],
+    "include_templates": true,
+    "created_at": "2026-08-30 21:39:42",
+    "last_used_at": null,
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
+    "status": "stopped",
+    "visual_status": "orange",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "containers": [],
+    "ui_links": [
+      {
+        "name": "Next.js Web App",
+        "url": "http://localhost:3003",
+        "icon": "globe"
+      },
+      {
+        "name": "VS Code Multi-Root Workspace",
+        "url": "http://localhost:8445/?workspace=/home/coder/project/workspace.code-workspace",
+        "icon": "code"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "is_merged_workspace": true,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 23:24:34"
+  },
+  {
+    "id": "workspace-test-workspace-ondecompro-full-suite-and-api-merged-stack-demo",
+    "name": "Workspace Test Workspace Ondecompro Full Suite And Api Merged Stack Demo",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-test-workspace-ondecompro-full-suite-and-api-merged-stack-demo",
+    "description": "Projeto auto-detectado: workspace-test-workspace-ondecompro-full-suite-and-api-merged-stack-demo",
+    "tools": [],
+    "include_templates": true,
+    "created_at": "2026-08-30 21:39:42",
+    "last_used_at": null,
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
+    "status": "stopped",
+    "visual_status": "orange",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "containers": [],
+    "ui_links": [
+      {
+        "name": "Web App (frontend)",
+        "url": "http://localhost:3003",
+        "icon": "globe"
+      },
+      {
+        "name": "Next.js Web App",
+        "url": "http://localhost:3004",
+        "icon": "globe"
+      },
+      {
+        "name": "Splunk Enterprise",
+        "url": "http://localhost:8001",
+        "icon": "search"
+      },
+      {
+        "name": "Prometheus",
+        "url": "http://localhost:9095",
+        "icon": "activity"
+      },
+      {
+        "name": "VS Code Multi-Root Workspace",
+        "url": "http://localhost:8445/?workspace=/home/coder/project/workspace.code-workspace",
+        "icon": "code"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "is_merged_workspace": true,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 23:24:34"
+  },
+  {
+    "id": "workspace-test-workspace-test-llm-os-stack-and-test-os-sandbox",
+    "name": "Workspace Test Workspace Test Llm Os Stack And Test Os Sandbox",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-test-workspace-test-llm-os-stack-and-test-os-sandbox",
+    "description": "Projeto auto-detectado: workspace-test-workspace-test-llm-os-stack-and-test-os-sandbox",
+    "tools": [],
+    "include_templates": true,
+    "created_at": "2026-08-30 21:39:42",
+    "last_used_at": null,
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
+    "status": "stopped",
+    "visual_status": "orange",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "containers": [],
+    "ui_links": [
+      {
+        "name": "VS Code Multi-Root Workspace",
+        "url": "http://localhost:8445/?workspace=/home/coder/project/workspace.code-workspace",
+        "icon": "code"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "is_merged_workspace": true,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 23:24:34"
+  },
+  {
+    "id": "cleanarch",
+    "name": "Cleanarch",
+    "path": "C:\\Users\\samue\\projects\\cleanarch",
+    "description": "Projeto auto-detectado: cleanarch",
+    "tools": [],
+    "include_templates": true,
+    "created_at": "2026-08-30 21:39:42",
+    "last_used_at": null,
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
+    "status": "stopped",
+    "visual_status": "orange",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "containers": [],
+    "ui_links": [],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "is_merged_workspace": false,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 23:24:34"
+  },
+  {
+    "id": "cutchulo-sheet",
+    "name": "Cutchulo Sheet",
+    "path": "C:\\Users\\samue\\projects\\cutchulo-sheet",
+    "description": "Projeto auto-detectado: cutchulo-sheet",
+    "tools": [],
+    "include_templates": true,
+    "created_at": "2026-08-30 21:39:42",
+    "last_used_at": null,
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
+    "status": "stopped",
+    "visual_status": "orange",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "containers": [],
+    "ui_links": [
+      {
+        "name": "Web App (cthulhu)",
+        "url": "http://localhost:3000",
+        "icon": "globe"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "is_merged_workspace": false,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 23:24:34"
+  },
+  {
+    "id": "ondecompro",
+    "name": "Ondecompro",
+    "path": "C:\\Users\\samue\\projects\\ondecompro",
+    "description": "Projeto auto-detectado: ondecompro",
+    "tools": [],
+    "include_templates": true,
+    "created_at": "2026-08-30 21:39:42",
+    "last_used_at": null,
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
+    "status": "stopped",
+    "visual_status": "orange",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "containers": [],
+    "ui_links": [
+      {
+        "name": "Next.js Web App",
+        "url": "http://localhost:3000",
+        "icon": "globe"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "is_merged_workspace": false,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 23:24:34"
+  },
+  {
+    "id": "ondecompro-frontend",
+    "name": "Ondecompro Frontend",
+    "path": "C:\\Users\\samue\\projects\\ondecompro-frontend",
+    "description": "Projeto auto-detectado: ondecompro-frontend",
+    "tools": [],
+    "include_templates": true,
+    "created_at": "2026-08-30 21:39:42",
+    "last_used_at": null,
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
+    "status": "stopped",
+    "visual_status": "orange",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "containers": [],
+    "ui_links": [
+      {
+        "name": "Next.js Web App",
+        "url": "http://localhost:3000",
+        "icon": "globe"
+      },
+      {
+        "name": "VS Code Web (IDE)",
+        "url": "http://localhost:8444/?folder=/home/coder/project",
+        "icon": "code"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "is_merged_workspace": false,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 23:24:34"
+  },
+  {
+    "id": "ondecompro-monorepo",
+    "name": "Ondecompro Monorepo",
+    "path": "C:\\Users\\samue\\projects\\ondecompro-monorepo",
+    "description": "Projeto auto-detectado: ondecompro-monorepo",
+    "tools": [],
+    "include_templates": true,
+    "created_at": "2026-08-30 21:39:42",
+    "last_used_at": null,
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
+    "status": "stopped",
+    "visual_status": "orange",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "containers": [],
+    "ui_links": [
+      {
+        "name": "Next.js Web App",
+        "url": "http://localhost:3000",
+        "icon": "globe"
+      },
+      {
+        "name": "Prometheus",
+        "url": "http://localhost:${PROMETHEUS_PORT",
+        "icon": "activity"
+      },
+      {
+        "name": "Grafana Dashboards",
+        "url": "http://localhost:${GRAFANA_PORT",
+        "icon": "layout-dashboard"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "is_merged_workspace": false,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 23:24:34"
+  },
+  {
+    "id": "ondecompro-platform",
+    "name": "Ondecompro Platform",
+    "path": "C:\\Users\\samue\\projects\\ondecompro-platform",
+    "description": "Projeto auto-detectado: ondecompro-platform",
+    "tools": [],
+    "include_templates": true,
+    "created_at": "2026-08-30 21:39:42",
+    "last_used_at": "2026-08-30T23:23:30.338856",
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
+    "status": "stopped",
+    "visual_status": "orange",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "containers": [],
+    "ui_links": [
+      {
+        "name": "VS Code Web (IDE)",
+        "url": "http://localhost:8443/?folder=/home/coder/project",
+        "icon": "code"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "is_merged_workspace": false,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 23:24:34"
+  },
+  {
+    "id": "venda",
+    "name": "Venda",
+    "path": "C:\\Users\\samue\\projects\\venda",
+    "description": "Projeto auto-detectado: venda",
+    "tools": [],
+    "include_templates": true,
+    "created_at": "2026-08-30 21:39:42",
+    "last_used_at": null,
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
+    "status": "stopped",
+    "visual_status": "orange",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "containers": [],
+    "ui_links": [
+      {
+        "name": "Next.js Web App",
+        "url": "http://localhost:3000",
+        "icon": "globe"
+      },
+      {
+        "name": "VS Code Web (IDE)",
+        "url": "http://localhost:8443/?folder=/home/coder/project",
+        "icon": "code"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "is_merged_workspace": false,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 23:24:34"
+  },
+  {
+    "id": "web250",
+    "name": "Web250",
+    "path": "C:\\Users\\samue\\projects\\web250",
+    "description": "Projeto auto-detectado: web250",
+    "tools": [],
+    "include_templates": true,
+    "created_at": "2026-08-30 21:39:42",
+    "last_used_at": null,
+    "auto_cleanup_days": 15,
+    "clean_images_on_idle": true,
+    "clean_volumes_on_idle": false,
+    "idle_days": 0,
+    "disk_usage_estimate": null,
+    "status": "stopped",
+    "visual_status": "orange",
+    "retry_count": 0,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "containers": [],
+    "ui_links": [
+      {
+        "name": "Web App (frontend)",
+        "url": "http://localhost:${FRONTEND_PORT",
+        "icon": "globe"
+      }
+    ],
+    "launch_strategy": "docker-compose",
+    "start_command": "docker compose up -d",
+    "is_merged_workspace": false,
+    "merged_projects": [],
+    "last_cached": "2026-08-30 23:24:34"
   }
 ]

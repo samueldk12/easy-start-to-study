@@ -31,6 +31,7 @@ from typing import Dict, Any
 from unittest.mock import patch
 import yaml
 import httpx
+import pytest
 
 # Ensure project root is on sys.path
 cwd = os.getcwd()
@@ -353,6 +354,7 @@ def test_feature_7_and_8_k8s_and_topology():
         shutil.rmtree(temp_dir, ignore_errors=True)
 
 
+@pytest.mark.asyncio
 async def test_feature_9_api_endpoints_and_sse():
     print_section("FEATURE 9: FastAPI Endpoints & Real-time Live Log Streaming (SSE)")
     transport = httpx.ASGITransport(app=app)
@@ -395,6 +397,7 @@ async def test_feature_9_api_endpoints_and_sse():
                     assert any("Database is ready" in l for l in lines)
 
 
+@pytest.mark.asyncio
 async def test_feature_10_multi_project_merge_and_workspaces():
     print_section("FEATURE 10: Multi-Project Merge & Multi-Root VS Code Workspaces")
     

@@ -8,7 +8,7 @@
     "include_templates": true,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [],
-    "created_at": "2026-08-30 09:39:56"
+    "created_at": "2026-08-30 21:39:42"
   },
   "crypto-trading-stream": {
     "id": "crypto-trading-stream",
@@ -19,7 +19,7 @@
     "include_templates": true,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [],
-    "created_at": "2026-08-30 09:39:56"
+    "created_at": "2026-08-30 21:39:42"
   },
   "devops-edge-stack": {
     "id": "devops-edge-stack",
@@ -30,7 +30,7 @@
     "include_templates": true,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [],
-    "created_at": "2026-08-30 09:39:56"
+    "created_at": "2026-08-30 21:39:42"
   },
   "ecommerce-mlops": {
     "id": "ecommerce-mlops",
@@ -41,7 +41,7 @@
     "include_templates": true,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [],
-    "created_at": "2026-08-30 09:39:56"
+    "created_at": "2026-08-30 21:39:42"
   },
   "fintech-backend-queue": {
     "id": "fintech-backend-queue",
@@ -52,7 +52,7 @@
     "include_templates": true,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [],
-    "created_at": "2026-08-30 09:39:56"
+    "created_at": "2026-08-30 21:39:42"
   },
   "graph-nosql-study": {
     "id": "graph-nosql-study",
@@ -63,7 +63,7 @@
     "include_templates": true,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [],
-    "created_at": "2026-08-30 09:39:56"
+    "created_at": "2026-08-30 21:39:42"
   },
   "observability-devops-stack": {
     "id": "observability-devops-stack",
@@ -74,7 +74,7 @@
     "include_templates": true,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [],
-    "created_at": "2026-08-30 09:39:56"
+    "created_at": "2026-08-30 21:39:42"
   },
   "telemetry-governance-stack": {
     "id": "telemetry-governance-stack",
@@ -85,7 +85,7 @@
     "include_templates": true,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [],
-    "created_at": "2026-08-30 09:39:56"
+    "created_at": "2026-08-30 21:39:42"
   },
   "veloceg-teste": {
     "id": "veloceg-teste",
@@ -96,7 +96,35 @@
     "include_templates": true,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [],
-    "created_at": "2026-08-30 09:39:56"
+    "created_at": "2026-08-30 21:39:42"
+  },
+  "veloceg-v1": {
+    "id": "veloceg-v1",
+    "name": "veloceg-v1",
+    "path": "./projects/veloceg-v1",
+    "description": "Projeto gerado via StackStudio",
+    "tools": [
+      "iceberg_rest",
+      "kafka_ui",
+      "spark",
+      "dbt",
+      "airflow",
+      "minio",
+      "trino",
+      "jupyterlab",
+      "schema_registry",
+      "vscode",
+      "kafka",
+      "kafka_connect",
+      "postgres"
+    ],
+    "include_templates": true,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "is_merged_workspace": false,
+    "merged_projects": [],
+    "created_at": "2026-08-30 22:18:49",
+    "last_used_at": "2026-08-30T23:23:29.973783"
   },
   "velocelog": {
     "id": "velocelog",
@@ -107,7 +135,8 @@
     "include_templates": true,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [],
-    "created_at": "2026-08-30 09:39:56"
+    "created_at": "2026-08-30 21:39:42",
+    "last_used_at": "2026-08-30T23:23:30.186746"
   },
   "velocelog-lakehouse": {
     "id": "velocelog-lakehouse",
@@ -118,7 +147,7 @@
     "include_templates": true,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [],
-    "created_at": "2026-08-30 09:39:56"
+    "created_at": "2026-08-30 21:39:42"
   },
   "velosec-log": {
     "id": "velosec-log",
@@ -129,7 +158,119 @@
     "include_templates": true,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [],
-    "created_at": "2026-08-30 09:39:56"
+    "created_at": "2026-08-30 21:39:42"
+  },
+  "workspace-api-merged-stack-demo": {
+    "id": "workspace-api-merged-stack-demo",
+    "name": "API Merged Stack Demo",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-api-merged-stack-demo",
+    "description": "API-triggered multi-root workspace",
+    "tools": [
+      "schema_registry",
+      "postgres",
+      "vscode",
+      "kafka_ui",
+      "kafka_connect",
+      "minio",
+      "iceberg_rest",
+      "jupyterlab",
+      "dbt",
+      "kafka",
+      "spark",
+      "trino",
+      "airflow"
+    ],
+    "include_templates": false,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [
+      "ms-python.python",
+      "cweijan.vscode-database-client2",
+      "redhat.vscode-yaml",
+      "mtxr.sqltools-driver-pg",
+      "ms-azuretools.vscode-docker",
+      "ms-python.vscode-pylance",
+      "ms-toolsai.jupyter",
+      "eamodio.gitlens",
+      "mtxr.sqltools",
+      "ckolkman.vscode-postgres"
+    ],
+    "is_merged_workspace": true,
+    "merged_projects": [
+      "workspace-api-merged-stack-demo",
+      "workspace-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-api-merged-stack-demo"
+    ],
+    "created_at": "2026-08-30 22:48:13",
+    "last_used_at": "2026-08-30T22:48:13.848966",
+    "custom_ports": {
+      "vscode": 8445
+    },
+    "launch_strategy": "docker-compose"
+  },
+  "workspace-ondecompro-e-venda-workspace": {
+    "id": "workspace-ondecompro-e-venda-workspace",
+    "name": "Workspace Ondecompro E Venda Workspace",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-ondecompro-e-venda-workspace",
+    "description": "Projeto auto-detectado: workspace-ondecompro-e-venda-workspace",
+    "tools": [],
+    "include_templates": true,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "created_at": "2026-08-30 21:39:42"
+  },
+  "workspace-ondecompro-full-suite": {
+    "id": "workspace-ondecompro-full-suite",
+    "name": "Workspace Ondecompro Full Suite",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-ondecompro-full-suite",
+    "description": "Projeto auto-detectado: workspace-ondecompro-full-suite",
+    "tools": [],
+    "include_templates": true,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "created_at": "2026-08-30 21:39:42"
+  },
+  "workspace-test-workspace-api-merged-stack-demo-and-test-workspace-ondecompro-full-suite-and-api-merged-stack-demo": {
+    "id": "workspace-test-workspace-api-merged-stack-demo-and-test-workspace-ondecompro-full-suite-and-api-merged-stack-demo",
+    "name": "Workspace Test Workspace Api Merged Stack Demo And Test Workspace Ondecompro Full Suite And Api Merged Stack Demo",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-test-workspace-api-merged-stack-demo-and-test-workspace-ondecompro-full-suite-and-api-merged-stack-demo",
+    "description": "Projeto auto-detectado: workspace-test-workspace-api-merged-stack-demo-and-test-workspace-ondecompro-full-suite-and-api-merged-stack-demo",
+    "tools": [],
+    "include_templates": true,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "created_at": "2026-08-30 21:39:42"
+  },
+  "workspace-test-workspace-ondecompro-e-venda-workspace-and-ondecompro-platform": {
+    "id": "workspace-test-workspace-ondecompro-e-venda-workspace-and-ondecompro-platform",
+    "name": "Workspace Test Workspace Ondecompro E Venda Workspace And Ondecompro Platform",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-test-workspace-ondecompro-e-venda-workspace-and-ondecompro-platform",
+    "description": "Projeto auto-detectado: workspace-test-workspace-ondecompro-e-venda-workspace-and-ondecompro-platform",
+    "tools": [],
+    "include_templates": true,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "created_at": "2026-08-30 21:39:42"
+  },
+  "workspace-test-workspace-ondecompro-full-suite-and-api-merged-stack-demo": {
+    "id": "workspace-test-workspace-ondecompro-full-suite-and-api-merged-stack-demo",
+    "name": "Workspace Test Workspace Ondecompro Full Suite And Api Merged Stack Demo",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-test-workspace-ondecompro-full-suite-and-api-merged-stack-demo",
+    "description": "Projeto auto-detectado: workspace-test-workspace-ondecompro-full-suite-and-api-merged-stack-demo",
+    "tools": [],
+    "include_templates": true,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "created_at": "2026-08-30 21:39:42"
+  },
+  "workspace-test-workspace-test-llm-os-stack-and-test-os-sandbox": {
+    "id": "workspace-test-workspace-test-llm-os-stack-and-test-os-sandbox",
+    "name": "Workspace Test Workspace Test Llm Os Stack And Test Os Sandbox",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-test-workspace-test-llm-os-stack-and-test-os-sandbox",
+    "description": "Projeto auto-detectado: workspace-test-workspace-test-llm-os-stack-and-test-os-sandbox",
+    "tools": [],
+    "include_templates": true,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "created_at": "2026-08-30 21:39:42"
   },
   "cleanarch": {
     "id": "cleanarch",
@@ -140,7 +281,7 @@
     "include_templates": true,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [],
-    "created_at": "2026-08-30 09:42:03"
+    "created_at": "2026-08-30 21:39:42"
   },
   "cutchulo-sheet": {
     "id": "cutchulo-sheet",
@@ -151,7 +292,7 @@
     "include_templates": true,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [],
-    "created_at": "2026-08-30 09:42:03"
+    "created_at": "2026-08-30 21:39:42"
   },
   "ondecompro": {
     "id": "ondecompro",
@@ -162,20 +303,18 @@
     "include_templates": true,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [],
-    "created_at": "2026-08-30 09:42:03"
+    "created_at": "2026-08-30 21:39:42"
   },
   "ondecompro-frontend": {
     "id": "ondecompro-frontend",
     "name": "Ondecompro Frontend",
     "path": "C:\\Users\\samue\\projects\\ondecompro-frontend",
     "description": "Projeto auto-detectado: ondecompro-frontend",
-    "tools": [
-      "vscode"
-    ],
+    "tools": [],
     "include_templates": true,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [],
-    "created_at": "2026-08-30 15:03:37"
+    "created_at": "2026-08-30 21:39:42"
   },
   "ondecompro-monorepo": {
     "id": "ondecompro-monorepo",
@@ -186,33 +325,30 @@
     "include_templates": true,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [],
-    "created_at": "2026-08-30 09:42:03"
+    "created_at": "2026-08-30 21:39:42"
   },
   "ondecompro-platform": {
     "id": "ondecompro-platform",
     "name": "Ondecompro Platform",
     "path": "C:\\Users\\samue\\projects\\ondecompro-platform",
     "description": "Projeto auto-detectado: ondecompro-platform",
-    "tools": [
-      "vscode"
-    ],
+    "tools": [],
     "include_templates": true,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [],
-    "created_at": "2026-08-30 15:07:17"
+    "created_at": "2026-08-30 21:39:42",
+    "last_used_at": "2026-08-30T23:23:30.338856"
   },
   "venda": {
     "id": "venda",
     "name": "Venda",
     "path": "C:\\Users\\samue\\projects\\venda",
     "description": "Projeto auto-detectado: venda",
-    "tools": [
-      "vscode"
-    ],
+    "tools": [],
     "include_templates": true,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [],
-    "created_at": "2026-08-30 15:03:24"
+    "created_at": "2026-08-30 21:39:42"
   },
   "web250": {
     "id": "web250",
@@ -223,105 +359,322 @@
     "include_templates": true,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [],
-    "created_at": "2026-08-30 09:42:03"
+    "created_at": "2026-08-30 21:39:42"
   },
-  "workspace-ondecompro-e-venda-workspace": {
-    "id": "workspace-ondecompro-e-venda-workspace",
-    "name": "Ondecompro e Venda Workspace",
-    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-ondecompro-e-venda-workspace",
-    "description": "Workspace Multi-Root unificando Frontend e Venda",
-    "tools": [
-      "vscode"
-    ],
-    "include_templates": false,
+  "test-creation-verify": {
+    "id": "test-creation-verify",
+    "name": "Test Creation Verify",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\test-creation-verify",
+    "description": "Projeto auto-detectado: test-creation-verify",
+    "tools": [],
+    "include_templates": true,
     "auto_install_extensions": true,
-    "custom_vscode_extensions": [
-      "redhat.vscode-yaml",
-      "ms-azuretools.vscode-docker",
-      "ms-python.python",
-      "eamodio.gitlens",
-      "mtxr.sqltools-driver-pg",
-      "ms-python.vscode-pylance",
-      "mtxr.sqltools",
-      "ms-toolsai.jupyter",
-      "cweijan.vscode-database-client2",
-      "ckolkman.vscode-postgres"
-    ],
-    "is_merged_workspace": true,
-    "merged_projects": [
-      "ondecompro-frontend",
-      "venda"
-    ],
-    "created_at": "2026-08-30 15:13:53",
-    "custom_ports": {
-      "vscode": 8445
-    },
-    "launch_strategy": "docker-compose"
+    "custom_vscode_extensions": [],
+    "created_at": "2026-08-30 21:42:58"
   },
-  "workspace-test-workspace-ondecompro-e-venda-workspace-and-ondecompro-platform": {
-    "id": "workspace-test-workspace-ondecompro-e-venda-workspace-and-ondecompro-platform",
-    "name": "Test Workspace Ondecompro e Venda Workspace and Ondecompro Platform",
-    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-test-workspace-ondecompro-e-venda-workspace-and-ondecompro-platform",
+  "workspace-test-workspace-veloceg-v1-and-test-creation-verify": {
+    "id": "workspace-test-workspace-veloceg-v1-and-test-creation-verify",
+    "name": "Test Workspace veloceg-v1 and Test Creation Verify",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-test-workspace-veloceg-v1-and-test-creation-verify",
     "description": "Merged multi-root workspace test suite",
     "tools": [
-      "vscode"
+      "kafka_connect",
+      "jupyterlab",
+      "iceberg_rest",
+      "kafka",
+      "schema_registry",
+      "dbt",
+      "minio",
+      "airflow",
+      "postgres",
+      "spark",
+      "kafka_ui",
+      "trino"
     ],
     "include_templates": false,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [
-      "ms-python.python",
-      "eamodio.gitlens",
       "mtxr.sqltools",
-      "mtxr.sqltools-driver-pg",
-      "ms-toolsai.jupyter",
+      "eamodio.gitlens",
+      "cweijan.vscode-database-client2",
       "ms-python.vscode-pylance",
       "ms-azuretools.vscode-docker",
-      "cweijan.vscode-database-client2",
+      "mtxr.sqltools-driver-pg",
       "redhat.vscode-yaml",
-      "ckolkman.vscode-postgres"
+      "ckolkman.vscode-postgres",
+      "ms-toolsai.jupyter",
+      "ms-python.python"
     ],
     "is_merged_workspace": true,
     "merged_projects": [
-      "workspace-ondecompro-e-venda-workspace",
-      "ondecompro-platform"
+      "veloceg-v1",
+      "test-creation-verify"
     ],
-    "created_at": "2026-08-30 15:16:41",
+    "created_at": "2026-08-30 21:45:38",
+    "last_used_at": "2026-08-30T21:45:38.769906",
     "custom_ports": {
       "vscode": 8445
     },
     "launch_strategy": "docker-compose"
   },
-  "workspace-api-merged-stack-demo": {
-    "id": "workspace-api-merged-stack-demo",
-    "name": "API Merged Stack Demo",
-    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-api-merged-stack-demo",
-    "description": "API-triggered multi-root workspace",
+  "test-llm-os-stack": {
+    "id": "test-llm-os-stack",
+    "name": "Test Llm Os Stack",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\test-llm-os-stack",
+    "description": "Projeto auto-detectado: test-llm-os-stack",
+    "tools": [],
+    "include_templates": true,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "created_at": "2026-08-30 21:45:48"
+  },
+  "test-os-sandbox": {
+    "id": "test-os-sandbox",
+    "name": "Test Os Sandbox",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\test-os-sandbox",
+    "description": "Projeto auto-detectado: test-os-sandbox",
+    "tools": [],
+    "include_templates": true,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "created_at": "2026-08-30 21:45:48"
+  },
+  "workspace-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-test-creation-verify": {
+    "id": "workspace-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-test-creation-verify",
+    "name": "Test Workspace API Merged Stack Demo and Test Workspace veloceg-v1 and Test Creation Verify",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-test-creation-verify",
+    "description": "Merged multi-root workspace test suite",
     "tools": [
-      "vscode"
+      "schema_registry",
+      "dbt",
+      "kafka_connect",
+      "kafka",
+      "iceberg_rest",
+      "kafka_ui",
+      "spark",
+      "jupyterlab",
+      "minio",
+      "airflow",
+      "trino",
+      "postgres"
+    ],
+    "include_templates": false,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [
+      "eamodio.gitlens",
+      "ms-toolsai.jupyter",
+      "cweijan.vscode-database-client2",
+      "ms-azuretools.vscode-docker",
+      "redhat.vscode-yaml",
+      "mtxr.sqltools",
+      "ms-python.python",
+      "ms-python.vscode-pylance",
+      "ckolkman.vscode-postgres",
+      "mtxr.sqltools-driver-pg"
+    ],
+    "is_merged_workspace": true,
+    "merged_projects": [
+      "workspace-api-merged-stack-demo",
+      "workspace-test-workspace-veloceg-v1-and-test-creation-verify"
+    ],
+    "created_at": "2026-08-30 21:46:47",
+    "last_used_at": "2026-08-30T21:46:47.482552",
+    "custom_ports": {
+      "vscode": 8445
+    },
+    "launch_strategy": "docker-compose"
+  },
+  "workspace-test-workspace-api-merged-stack-demo-and-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-test-creation-verify": {
+    "id": "workspace-test-workspace-api-merged-stack-demo-and-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-test-creation-verify",
+    "name": "Test Workspace API Merged Stack Demo and Test Workspace API Merged Stack Demo and Test Workspace veloceg-v1 and Test Creation Verify",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-test-workspace-api-merged-stack-demo-and-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-test-creation-verify",
+    "description": "Merged multi-root workspace test suite",
+    "tools": [
+      "minio",
+      "postgres",
+      "spark",
+      "jupyterlab",
+      "kafka",
+      "trino",
+      "kafka_connect",
+      "dbt",
+      "iceberg_rest",
+      "schema_registry",
+      "kafka_ui",
+      "airflow"
+    ],
+    "include_templates": false,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [
+      "ms-python.vscode-pylance",
+      "mtxr.sqltools",
+      "eamodio.gitlens",
+      "ckolkman.vscode-postgres",
+      "cweijan.vscode-database-client2",
+      "ms-toolsai.jupyter",
+      "mtxr.sqltools-driver-pg",
+      "ms-python.python",
+      "ms-azuretools.vscode-docker",
+      "redhat.vscode-yaml"
+    ],
+    "is_merged_workspace": true,
+    "merged_projects": [
+      "workspace-api-merged-stack-demo",
+      "workspace-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-test-creation-verify"
+    ],
+    "created_at": "2026-08-30 22:08:19",
+    "last_used_at": "2026-08-30T22:08:19.659960",
+    "custom_ports": {
+      "vscode": 8445
+    },
+    "launch_strategy": "docker-compose"
+  },
+  "workspace-test-workspace-api-merged-stack-demo-and-test-workspace-api-merged-stack-demo-and-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-test-creation-verify": {
+    "id": "workspace-test-workspace-api-merged-stack-demo-and-test-workspace-api-merged-stack-demo-and-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-test-creation-verify",
+    "name": "Test Workspace API Merged Stack Demo and Test Workspace API Merged Stack Demo and Test Workspace API Merged Stack Demo and Test Workspace veloceg-v1 and Test Creation Verify",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-test-workspace-api-merged-stack-demo-and-test-workspace-api-merged-stack-demo-and-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-test-creation-verify",
+    "description": "Merged multi-root workspace test suite",
+    "tools": [
+      "dbt",
+      "airflow",
+      "kafka",
+      "minio",
+      "postgres",
+      "iceberg_rest",
+      "kafka_connect",
+      "jupyterlab",
+      "schema_registry",
+      "kafka_ui",
+      "trino",
+      "spark"
     ],
     "include_templates": false,
     "auto_install_extensions": true,
     "custom_vscode_extensions": [
       "ms-python.python",
+      "ms-azuretools.vscode-docker",
       "eamodio.gitlens",
-      "mtxr.sqltools",
       "mtxr.sqltools-driver-pg",
       "ms-toolsai.jupyter",
+      "ckolkman.vscode-postgres",
       "ms-python.vscode-pylance",
-      "ms-azuretools.vscode-docker",
       "cweijan.vscode-database-client2",
       "redhat.vscode-yaml",
-      "ckolkman.vscode-postgres"
+      "mtxr.sqltools"
     ],
     "is_merged_workspace": true,
     "merged_projects": [
-      "workspace-ondecompro-e-venda-workspace",
-      "ondecompro-platform"
+      "workspace-api-merged-stack-demo",
+      "workspace-test-workspace-api-merged-stack-demo-and-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-test-creation-verify"
     ],
-    "created_at": "2026-08-30 15:16:42",
+    "created_at": "2026-08-30 22:14:13",
+    "last_used_at": "2026-08-30T22:14:13.554183",
     "custom_ports": {
       "vscode": 8445
     },
     "launch_strategy": "docker-compose"
+  },
+  "workspace-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-api-merged-stack-demo": {
+    "id": "workspace-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-api-merged-stack-demo",
+    "name": "Test Workspace API Merged Stack Demo and Test Workspace veloceg-v1 and API Merged Stack Demo",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-api-merged-stack-demo",
+    "description": "Merged multi-root workspace test suite",
+    "tools": [
+      "schema_registry",
+      "kafka_ui",
+      "iceberg_rest",
+      "dbt",
+      "kafka_connect",
+      "jupyterlab",
+      "trino",
+      "spark",
+      "postgres",
+      "kafka",
+      "vscode",
+      "airflow",
+      "minio"
+    ],
+    "include_templates": false,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [
+      "ms-python.vscode-pylance",
+      "redhat.vscode-yaml",
+      "ms-python.python",
+      "mtxr.sqltools-driver-pg",
+      "ckolkman.vscode-postgres",
+      "ms-toolsai.jupyter",
+      "mtxr.sqltools",
+      "eamodio.gitlens",
+      "ms-azuretools.vscode-docker",
+      "cweijan.vscode-database-client2"
+    ],
+    "is_merged_workspace": true,
+    "merged_projects": [
+      "workspace-api-merged-stack-demo",
+      "workspace-test-workspace-veloceg-v1-and-api-merged-stack-demo"
+    ],
+    "created_at": "2026-08-30 22:37:16",
+    "last_used_at": "2026-08-30T22:37:16.776184",
+    "custom_ports": {
+      "vscode": 8445
+    },
+    "launch_strategy": "docker-compose"
+  },
+  "workspace-test-workspace-api-merged-stack-demo-and-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-api-merged-stack-demo": {
+    "id": "workspace-test-workspace-api-merged-stack-demo-and-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-api-merged-stack-demo",
+    "name": "Test Workspace API Merged Stack Demo and Test Workspace API Merged Stack Demo and Test Workspace veloceg-v1 and API Merged Stack Demo",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-test-workspace-api-merged-stack-demo-and-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-api-merged-stack-demo",
+    "description": "Merged multi-root workspace test suite",
+    "tools": [
+      "schema_registry",
+      "postgres",
+      "vscode",
+      "kafka_ui",
+      "kafka_connect",
+      "minio",
+      "iceberg_rest",
+      "jupyterlab",
+      "dbt",
+      "kafka",
+      "spark",
+      "trino",
+      "airflow"
+    ],
+    "include_templates": false,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [
+      "ms-python.python",
+      "cweijan.vscode-database-client2",
+      "redhat.vscode-yaml",
+      "mtxr.sqltools-driver-pg",
+      "ms-azuretools.vscode-docker",
+      "ms-python.vscode-pylance",
+      "ms-toolsai.jupyter",
+      "eamodio.gitlens",
+      "mtxr.sqltools",
+      "ckolkman.vscode-postgres"
+    ],
+    "is_merged_workspace": true,
+    "merged_projects": [
+      "workspace-api-merged-stack-demo",
+      "workspace-test-workspace-api-merged-stack-demo-and-test-workspace-veloceg-v1-and-api-merged-stack-demo"
+    ],
+    "created_at": "2026-08-30 22:44:38",
+    "last_used_at": "2026-08-30T22:44:38.557733",
+    "custom_ports": {
+      "vscode": 8445
+    },
+    "launch_strategy": "docker-compose"
+  },
+  "workspace-test-workspace-veloceg-v1-and-api-merged-stack-demo": {
+    "id": "workspace-test-workspace-veloceg-v1-and-api-merged-stack-demo",
+    "name": "Workspace Test Workspace Veloceg V1 And Api Merged Stack Demo",
+    "path": "C:\\Users\\samue\\Documents\\antigravity\\fervent-newton\\projects\\workspace-test-workspace-veloceg-v1-and-api-merged-stack-demo",
+    "description": "Projeto auto-detectado: workspace-test-workspace-veloceg-v1-and-api-merged-stack-demo",
+    "tools": [],
+    "include_templates": true,
+    "auto_install_extensions": true,
+    "custom_vscode_extensions": [],
+    "created_at": "2026-08-30 23:21:28"
   }
 }

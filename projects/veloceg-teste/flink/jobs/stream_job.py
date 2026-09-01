@@ -1,0 +1,1 @@
+# Apache Flink Streaming Job\nprint('Flink Stream Processing Job Initialized')\n

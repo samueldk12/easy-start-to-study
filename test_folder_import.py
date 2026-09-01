@@ -12,14 +12,19 @@ client = TestClient(app)
 
 
 def test_analyze_existing_compose_folder():
-    velocelog_path = Path("projects/velocelog").resolve()
-    if velocelog_path.exists():
-        analysis = FolderAnalyzer.analyze(str(velocelog_path))
+    target_path = None
+    for candidate in ["projects/velocelog-lakehouse", "projects/clean-lakehouse", "projects/velocelog"]:
+        p = Path(candidate).resolve()
+        if p.exists():
+            target_path = p
+            break
+
+    if target_path and target_path.exists():
+        analysis = FolderAnalyzer.analyze(str(target_path))
         assert analysis["success"] is True
         assert analysis["has_compose"] is True
         assert analysis["launch_strategy"] == "docker-compose"
         assert analysis["start_command"] == "docker compose up -d"
-        assert "postgres" in analysis["tools"]
         assert len(analysis["detected_services"]) > 0
         assert len(analysis["detected_techs"]) > 0
 

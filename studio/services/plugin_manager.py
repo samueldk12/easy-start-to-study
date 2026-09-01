@@ -11,7 +11,8 @@ from typing import List, Dict, Optional, Any
 from studio.models import ToolPlugin, ToolOption
 
 
-PLUGINS_DIR = os.path.abspath(os.path.join(".", "plugins"))
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PLUGINS_DIR = os.path.join(_PROJECT_ROOT, "plugins")
 
 
 class PluginManager:
@@ -110,7 +111,7 @@ class PluginManager:
             plugin.compose_services = {svc_name: svc_def}
 
         yaml_path = os.path.join(plugin_folder, "plugin.yaml")
-        plugin_dict = plugin.dict()
+        plugin_dict = plugin.model_dump() if hasattr(plugin, "model_dump") else plugin.dict()
         with open(yaml_path, "w", encoding="utf-8") as f:
             yaml.dump(plugin_dict, f, sort_keys=False, default_flow_style=False)
 

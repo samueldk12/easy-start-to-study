@@ -87,6 +87,9 @@ class ProjectCreateRequest(BaseModel):
     custom_folders: Dict[str, str] = Field(default_factory=dict)
     auto_install_extensions: bool = True
     custom_vscode_extensions: List[str] = Field(default_factory=list)
+    airflow_providers: List[str] = Field(default_factory=list)
+    airflow_executor: Optional[str] = "LocalExecutor"
+    custom_airflow_requirements: List[str] = Field(default_factory=list)
 
 
 class ProjectUpdateRequest(BaseModel):
@@ -99,9 +102,13 @@ class ProjectUpdateRequest(BaseModel):
     custom_folders: Dict[str, str] = Field(default_factory=dict)
     auto_install_extensions: Optional[bool] = True
     custom_vscode_extensions: Optional[List[str]] = None
+    airflow_providers: Optional[List[str]] = None
+    airflow_executor: Optional[str] = None
+    custom_airflow_requirements: Optional[List[str]] = None
 
 
 class ContainerInfo(BaseModel):
+    id: Optional[str] = None
     name: str
     service: str
     state: str
@@ -110,7 +117,8 @@ class ContainerInfo(BaseModel):
     exit_code: Optional[int] = 0
     ports: str = ""
     retry_count: int = 0
-    visual_status: str = "green"  # "green" (running/healthy), "yellow" (starting), "orange" (stopped/paused), "red" (crashed/unhealthy/error)
+    is_oneshot: bool = False
+    visual_status: str = "green"  # "green" (running/healthy), "blue" (concluído/oneshot sucesso), "yellow" (starting), "orange" (stopped/paused), "red" (crashed/unhealthy/error)
     last_changed: float = 0.0
 
 
@@ -136,6 +144,12 @@ class ProjectMergeRequest(BaseModel):
     description: Optional[str] = "Workspace unificado gerado via StackStudio"
 
 
+class ProjectGovernanceRequest(BaseModel):
+    auto_cleanup_days: int = 15  # Days of inactivity before auto-pruning Docker images, 0 = disabled
+    clean_images_on_idle: bool = True
+    clean_volumes_on_idle: bool = False
+
+
 class ProjectInfo(BaseModel):
     id: str
     name: str
@@ -144,6 +158,12 @@ class ProjectInfo(BaseModel):
     tools: List[str]
     include_templates: bool = True
     created_at: str = Field(default_factory=lambda: datetime.now().isoformat())
+    last_used_at: Optional[str] = Field(default_factory=lambda: datetime.now().isoformat())
+    auto_cleanup_days: Optional[int] = 15
+    clean_images_on_idle: bool = True
+    clean_volumes_on_idle: bool = False
+    idle_days: Optional[int] = 0
+    disk_usage_estimate: Optional[str] = None
     status: str = "stopped"  # "running", "starting", "stopped", "paused", "error", "partial"
     visual_status: str = "orange"  # "green", "yellow", "orange", "red"
     retry_count: int = 0

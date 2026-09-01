@@ -1,0 +1,31 @@
+{
+  "folders": [
+    {
+      "name": "\ud83d\udce6 Ondecompro",
+      "path": "/home/coder/project/ondecompro"
+    },
+    {
+      "name": "\ud83d\udce6 Ondecompro Frontend",
+      "path": "/home/coder/project/ondecompro-frontend"
+    },
+    {
+      "name": "\ud83d\udce6 Ondecompro Platform",
+      "path": "/home/coder/project/ondecompro-platform"
+    },
+    {
+      "name": "\ud83d\udce6 Ondecompro Monorepo",
+      "path": "/home/coder/project/ondecompro-monorepo"
+    }
+  ],
+  "settings": {
+    "files.autoSave": "afterDelay",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2,
+    "terminal.integrated.defaultProfile.linux": "bash",
+    "docker.showStartPage": false,
+    "sqltools.useNodeRuntime": true,
+    "sqltools.connections": [],
+    "database.connections": [],
+    "database-client.connections": []
+  }
+}

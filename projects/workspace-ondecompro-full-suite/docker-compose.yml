@@ -1,0 +1,651 @@
+name: workspace-ondecompro-full-suite
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ondecompro
+      POSTGRES_PASSWORD: ondecompro123
+      POSTGRES_DB: ondecompro
+    volumes:
+    - C:/Users/samue/projects/ondecompro/postgres_data:/var/lib/postgresql/data
+    - C:/Users/samue/projects/ondecompro/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+    - 5435:5432
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - pg_isready -U ondecompro
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    container_name: workspace-ondecompro-full-suite-postgres
+    networks:
+    - workspace-ondecompro-full-suite-net
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: 'redis-server --appendonly yes --appendfsync everysec --maxmemory 256mb
+      --maxmemory-policy allkeys-lru --save 60 1000
+
+      '
+    ports:
+    - 6380:6379
+    volumes:
+    - C:/Users/samue/projects/ondecompro/redis_data:/data
+    healthcheck:
+      test:
+      - CMD
+      - redis-cli
+      - ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    container_name: workspace-ondecompro-full-suite-redis
+    networks:
+    - workspace-ondecompro-full-suite-net
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
+    restart: unless-stopped
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: 'false'
+      ES_JAVA_OPTS: -Xms1g -Xmx1g
+    ports:
+    - 9201:9200
+    volumes:
+    - C:/Users/samue/projects/ondecompro/elasticsearch_data:/usr/share/elasticsearch/data
+    container_name: workspace-ondecompro-full-suite-elasticsearch
+    networks:
+    - workspace-ondecompro-full-suite-net
+  backend:
+    build:
+      context: C:/Users/samue/projects/ondecompro/
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    ports:
+    - 8000:8000
+    environment:
+      DATABASE_URL: postgresql+asyncpg://ondecompro:ondecompro123@postgres:5432/ondecompro
+      REDIS_URL: redis://redis:6379/0
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+      SECRET_KEY: super-secret-key-change-in-prod
+      ENVIRONMENT: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_started
+    volumes:
+    - C:/Users/samue/projects/ondecompro/backend:/app
+    - C:/Users/samue/projects/ondecompro/crawlers:/app/crawlers
+    - C:/Users/samue/projects/ondecompro/scripts:/app/scripts
+    - C:/Users/samue/projects/ondecompro/data:/data
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    container_name: workspace-ondecompro-full-suite-backend
+    networks:
+    - workspace-ondecompro-full-suite-net
+  frontend:
+    build:
+      context: C:/Users/samue/projects/ondecompro/frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+    - 3003:3000
+    environment:
+      NEXT_PUBLIC_API_URL: http://backend:8000
+    depends_on:
+    - backend
+    container_name: workspace-ondecompro-full-suite-frontend
+    volumes: []
+    networks:
+    - workspace-ondecompro-full-suite-net
+  airflow-webserver:
+    image: apache/airflow:2.9.0-python3.11
+    restart: unless-stopped
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://ondecompro:ondecompro123@postgres:5432/airflow
+      AIRFLOW__CORE__FERNET_KEY: 46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLt0nfdstY=
+      AIRFLOW__WEBSERVER__SECRET_KEY: ondecompro-airflow-secret
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      _AIRFLOW_DB_MIGRATE: 'true'
+      _AIRFLOW_WWW_USER_CREATE: 'true'
+      _AIRFLOW_WWW_USER_USERNAME: admin
+      _AIRFLOW_WWW_USER_PASSWORD: admin123
+    ports:
+    - 8083:8080
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+    - C:/Users/samue/projects/ondecompro/airflow/dags:/opt/airflow/dags
+    - C:/Users/samue/projects/ondecompro/airflow/plugins:/opt/airflow/plugins
+    - C:/Users/samue/projects/ondecompro/crawlers:/opt/airflow/crawlers
+    - C:/Users/samue/projects/ondecompro/scripts:/opt/airflow/scripts
+    - C:/Users/samue/projects/ondecompro/data:/opt/airflow/data
+    - C:/Users/samue/projects/ondecompro/backend:/opt/airflow/backend
+    - C:/Users/samue/projects/ondecompro/airflow_logs:/opt/airflow/logs
+    command: webserver
+    container_name: workspace-ondecompro-full-suite-airflow-webserver
+    networks:
+    - workspace-ondecompro-full-suite-net
+  airflow-scheduler:
+    image: apache/airflow:2.9.0-python3.11
+    restart: unless-stopped
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://ondecompro:ondecompro123@postgres:5432/airflow
+      AIRFLOW__CORE__FERNET_KEY: 46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLt0nfdstY=
+    depends_on:
+    - airflow-webserver
+    volumes:
+    - C:/Users/samue/projects/ondecompro/airflow/dags:/opt/airflow/dags
+    - C:/Users/samue/projects/ondecompro/airflow/plugins:/opt/airflow/plugins
+    - C:/Users/samue/projects/ondecompro/crawlers:/opt/airflow/crawlers
+    - C:/Users/samue/projects/ondecompro/scripts:/opt/airflow/scripts
+    - C:/Users/samue/projects/ondecompro/data:/opt/airflow/data
+    - C:/Users/samue/projects/ondecompro/backend:/opt/airflow/backend
+    - C:/Users/samue/projects/ondecompro/airflow_logs:/opt/airflow/logs
+    command: scheduler
+    container_name: workspace-ondecompro-full-suite-airflow-scheduler
+    ports: []
+    networks:
+    - workspace-ondecompro-full-suite-net
+  selenium:
+    image: selenium/standalone-chrome:latest
+    restart: unless-stopped
+    ports:
+    - 4445:4444
+    - 7901:7900
+    shm_size: 2gb
+    environment:
+      SE_NODE_MAX_SESSIONS: 4
+      SE_VNC_NO_PASSWORD: 1
+    container_name: workspace-ondecompro-full-suite-selenium
+    volumes: []
+    networks:
+    - workspace-ondecompro-full-suite-net
+  web:
+    image: node:20-alpine
+    container_name: workspace-ondecompro-full-suite-web
+    restart: unless-stopped
+    working_dir: /app
+    ports:
+    - 3003:3000
+    volumes:
+    - C:/Users/samue/projects/ondecompro-frontend:/app
+    environment:
+      NODE_ENV: development
+      NEXT_TELEMETRY_DISABLED: '1'
+      HOSTNAME: 0.0.0.0
+      PORT: '3000'
+    command: sh -c "npx next dev --hostname 0.0.0.0 --port 3000"
+    networks:
+    - workspace-ondecompro-full-suite-net
+  ondecompro-monorepo-postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ondecompro
+      POSTGRES_PASSWORD: ondecompro123
+      POSTGRES_DB: ondecompro
+    volumes:
+    - C:/Users/samue/projects/ondecompro-monorepo/postgres_data:/var/lib/postgresql/data
+    - C:/Users/samue/projects/ondecompro-monorepo/backend/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+    - 5435:5432
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - pg_isready -U ondecompro
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    container_name: workspace-ondecompro-full-suite-ondecompro-monorepo-postgres
+    networks:
+    - workspace-ondecompro-full-suite-net
+  ondecompro-monorepo-redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: 'redis-server --appendonly yes --appendfsync everysec --maxmemory 256mb
+      --maxmemory-policy allkeys-lru --save 60 1000
+
+      '
+    ports:
+    - 6380:6379
+    volumes:
+    - C:/Users/samue/projects/ondecompro-monorepo/redis_data:/data
+    healthcheck:
+      test:
+      - CMD
+      - redis-cli
+      - ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    container_name: workspace-ondecompro-full-suite-ondecompro-monorepo-redis
+    networks:
+    - workspace-ondecompro-full-suite-net
+  ondecompro-monorepo-elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
+    restart: unless-stopped
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: 'false'
+      ES_JAVA_OPTS: ${ELASTICSEARCH_JAVA_OPTS:--Xms512m -Xmx512m}
+    ports:
+    - 9201:9200
+    volumes:
+    - C:/Users/samue/projects/ondecompro-monorepo/elasticsearch_data:/usr/share/elasticsearch/data
+    container_name: workspace-ondecompro-full-suite-ondecompro-monorepo-elasticsearch
+    networks:
+    - workspace-ondecompro-full-suite-net
+  pushgateway:
+    image: prom/pushgateway:v1.8.0
+    restart: unless-stopped
+    ports:
+    - 9094:9091
+    container_name: workspace-ondecompro-full-suite-pushgateway
+    volumes: []
+    networks:
+    - workspace-ondecompro-full-suite-net
+  elasticsearch-exporter:
+    image: quay.io/prometheuscommunity/elasticsearch-exporter:v1.8.0
+    restart: unless-stopped
+    command:
+    - --es.uri=http://elasticsearch:9200
+    depends_on:
+      elasticsearch:
+        condition: service_started
+    ports:
+    - 9115:9114
+    container_name: workspace-ondecompro-full-suite-elasticsearch-exporter
+    volumes: []
+    networks:
+    - workspace-ondecompro-full-suite-net
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    ports:
+    - 11435:11434
+    volumes:
+    - C:/Users/samue/projects/ondecompro-monorepo/ollama_data:/root/.ollama
+    healthcheck:
+      test:
+      - CMD
+      - ollama
+      - list
+      interval: 20s
+      timeout: 10s
+      retries: 10
+    container_name: workspace-ondecompro-full-suite-ollama
+    networks:
+    - workspace-ondecompro-full-suite-net
+  ollama-init:
+    image: ollama/ollama:latest
+    restart: 'no'
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      OLLAMA_PULL_MODELS: ${OLLAMA_PULL_MODELS:-llama3.2,qwen2.5:7b-instruct}
+    volumes:
+    - C:/Users/samue/projects/ondecompro-monorepo/ollama_data:/root/.ollama
+    - C:/Users/samue/projects/ondecompro-monorepo/scripts:/opt/ondecompro/scripts
+    entrypoint:
+    - /bin/sh
+    - /opt/ondecompro/scripts/ollama-init.sh
+    container_name: workspace-ondecompro-full-suite-ollama-init
+    ports: []
+    networks:
+    - workspace-ondecompro-full-suite-net
+  ondecompro-monorepo-backend:
+    build:
+      context: C:/Users/samue/projects/ondecompro-monorepo/
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    ports:
+    - 8001:8000
+    environment:
+      DATABASE_URL: postgresql+asyncpg://ondecompro:ondecompro123@postgres:5432/ondecompro
+      REDIS_URL: redis://redis:6379/0
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+      SECRET_KEY: super-secret-key-change-in-prod
+      ENVIRONMENT: development
+      LOG_JSON: 'true'
+      LOG_FILE_JSON: 'true'
+      LOG_FILE_PATH: /var/log/ondecompro/backend.log
+      SELENIUM_HUB_URL: http://selenium:4444/wd/hub
+      AIRFLOW_API_URL: http://airflow-webserver:8080/api/v1
+      AIRFLOW_UI_URL: http://127.0.0.1:8080
+      AIRFLOW_USERNAME: admin
+      AIRFLOW_PASSWORD: admin123
+      PROMETHEUS_PUSHGATEWAY_URL: http://pushgateway:9091
+      ONDECOMPRO_ELASTIC_LOGS_ENABLED: '1'
+      ONDECOMPRO_CRAWLER_SERVICE_NAME: ondecompro-backend-crawlers
+      LLM_PROVIDER_DEFAULT: ${LLM_PROVIDER_DEFAULT:-ollama-local}
+      OLLAMA_API_BASE: http://ollama:11434/v1
+      OLLAMA_DEFAULT_MODEL: ${OLLAMA_DEFAULT_MODEL:-llama3.2}
+      OLLAMA_MODELS: ${OLLAMA_MODELS:-llama3.2,qwen2.5:7b-instruct}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_DEFAULT_MODEL: ${OPENAI_DEFAULT_MODEL:-gpt-4o-mini}
+      OPENAI_MODELS: ${OPENAI_MODELS:-gpt-4o-mini,gpt-4.1-mini,gpt-4.1}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_DEFAULT_MODEL: ${OPENROUTER_DEFAULT_MODEL:-openai/gpt-4o-mini}
+      OPENROUTER_MODELS: ${OPENROUTER_MODELS:-openai/gpt-4o-mini,anthropic/claude-3.5-sonnet,google/gemini-2.0-flash-001}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GROQ_DEFAULT_MODEL: ${GROQ_DEFAULT_MODEL:-llama-3.3-70b-versatile}
+      GROQ_MODELS: ${GROQ_MODELS:-llama-3.3-70b-versatile,llama-3.1-8b-instant}
+      LLM_COMPAT_LABEL: ${LLM_COMPAT_LABEL:-OpenAI compativel custom}
+      LLM_COMPAT_API_BASE: ${LLM_COMPAT_API_BASE:-}
+      LLM_COMPAT_API_KEY: ${LLM_COMPAT_API_KEY:-}
+      LLM_COMPAT_MODEL: ${LLM_COMPAT_MODEL:-}
+      LLM_COMPAT_MODELS: ${LLM_COMPAT_MODELS:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_started
+      pushgateway:
+        condition: service_started
+      ollama:
+        condition: service_healthy
+    volumes:
+    - C:/Users/samue/projects/ondecompro-monorepo/backend:/app
+    - C:/Users/samue/projects/ondecompro-monorepo/crawlers:/app/crawlers
+    - C:/Users/samue/projects/ondecompro-monorepo/scripts:/app/scripts
+    - C:/Users/samue/projects/ondecompro-monorepo/data:/data
+    - C:/Users/samue/projects/ondecompro-monorepo/logs:/var/log/ondecompro
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir
+      /app/app
+    container_name: workspace-ondecompro-full-suite-ondecompro-monorepo-backend
+    networks:
+    - workspace-ondecompro-full-suite-net
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    restart: unless-stopped
+    ports:
+    - 9094:9090
+    depends_on:
+      backend:
+        condition: service_started
+      pushgateway:
+        condition: service_started
+      elasticsearch-exporter:
+        condition: service_started
+    volumes:
+    - C:/Users/samue/projects/ondecompro-monorepo/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    - C:/Users/samue/projects/ondecompro-monorepo/monitoring/rules:/etc/prometheus/rules:ro
+    - C:/Users/samue/projects/ondecompro-monorepo/prometheus_data:/prometheus
+    command:
+    - --config.file=/etc/prometheus/prometheus.yml
+    - --storage.tsdb.path=/prometheus
+    - --web.enable-lifecycle
+    container_name: workspace-ondecompro-full-suite-prometheus
+    networks:
+    - workspace-ondecompro-full-suite-net
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    restart: unless-stopped
+    ports:
+    - 9094:9093
+    volumes:
+    - C:/Users/samue/projects/ondecompro-monorepo/monitoring/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    - C:/Users/samue/projects/ondecompro-monorepo/alertmanager_data:/alertmanager
+    command:
+    - --config.file=/etc/alertmanager/alertmanager.yml
+    - --storage.path=/alertmanager
+    container_name: workspace-ondecompro-full-suite-alertmanager
+    networks:
+    - workspace-ondecompro-full-suite-net
+  loki:
+    image: grafana/loki:3.0.0
+    restart: unless-stopped
+    ports:
+    - 3101:3100
+    volumes:
+    - C:/Users/samue/projects/ondecompro-monorepo/loki_data:/loki
+    command:
+    - -config.file=/etc/loki/local-config.yaml
+    container_name: workspace-ondecompro-full-suite-loki
+    networks:
+    - workspace-ondecompro-full-suite-net
+  alloy:
+    image: grafana/alloy:latest
+    restart: unless-stopped
+    command:
+    - run
+    - /etc/alloy/config.alloy
+    - --storage.path=/var/lib/alloy/data
+    - --server.http.listen-addr=0.0.0.0:12345
+    depends_on:
+      backend:
+        condition: service_started
+      loki:
+        condition: service_started
+    volumes:
+    - C:/Users/samue/projects/ondecompro-monorepo/monitoring/alloy/config.alloy:/etc/alloy/config.alloy:ro
+    - C:/Users/samue/projects/ondecompro-monorepo/logs:/var/log/ondecompro
+    - C:/Users/samue/projects/ondecompro-monorepo/alloy_data:/var/lib/alloy
+    container_name: workspace-ondecompro-full-suite-alloy
+    ports: []
+    networks:
+    - workspace-ondecompro-full-suite-net
+  crawler-runner:
+    build:
+      context: C:/Users/samue/projects/ondecompro-monorepo/
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+asyncpg://ondecompro:ondecompro123@postgres:5432/ondecompro
+      REDIS_URL: redis://redis:6379/0
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+      PROMETHEUS_PUSHGATEWAY_URL: http://pushgateway:9091
+      SECRET_KEY: super-secret-key-change-in-prod
+      ENVIRONMENT: development
+      LOG_FILE_JSON: 'true'
+      LOG_FILE_PATH: /var/log/ondecompro/crawler-runner.log
+      SELENIUM_HUB_URL: http://selenium:4444/wd/hub
+      ONDECOMPRO_LOG_JSON: '1'
+      ONDECOMPRO_ELASTIC_LOGS_ENABLED: '1'
+      ONDECOMPRO_CRAWLER_SERVICE_NAME: ondecompro-crawler-runner
+      PYTHONUNBUFFERED: '1'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_started
+      pushgateway:
+        condition: service_started
+      selenium:
+        condition: service_started
+    volumes:
+    - C:/Users/samue/projects/ondecompro-monorepo/backend:/app
+    - C:/Users/samue/projects/ondecompro-monorepo/crawlers:/app/crawlers
+    - C:/Users/samue/projects/ondecompro-monorepo/scripts:/app/scripts
+    - C:/Users/samue/projects/ondecompro-monorepo/data:/data
+    - C:/Users/samue/projects/ondecompro-monorepo/logs:/var/log/ondecompro
+    command:
+    - sleep
+    - infinity
+    container_name: workspace-ondecompro-full-suite-crawler-runner
+    ports: []
+    networks:
+    - workspace-ondecompro-full-suite-net
+  grafana:
+    image: grafana/grafana:11.0.0
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin123
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+    depends_on:
+      prometheus:
+        condition: service_started
+      alertmanager:
+        condition: service_started
+      loki:
+        condition: service_started
+      elasticsearch:
+        condition: service_started
+    ports:
+    - 3003:3000
+    volumes:
+    - C:/Users/samue/projects/ondecompro-monorepo/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    - C:/Users/samue/projects/ondecompro-monorepo/monitoring/grafana/dashboards:/etc/grafana/dashboards:ro
+    - C:/Users/samue/projects/ondecompro-monorepo/grafana_data:/var/lib/grafana
+    container_name: workspace-ondecompro-full-suite-grafana
+    networks:
+    - workspace-ondecompro-full-suite-net
+  ondecompro-monorepo-frontend:
+    build:
+      context: C:/Users/samue/projects/ondecompro-monorepo/frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+    - 3003:3000
+    environment:
+      NEXT_PUBLIC_API_URL: http://backend:8000
+    depends_on:
+    - backend
+    container_name: workspace-ondecompro-full-suite-ondecompro-monorepo-frontend
+    volumes: []
+    networks:
+    - workspace-ondecompro-full-suite-net
+  ondecompro-monorepo-airflow-webserver:
+    build:
+      context: C:/Users/samue/projects/ondecompro-monorepo/
+      dockerfile: airflow/Dockerfile
+    restart: unless-stopped
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://ondecompro:ondecompro123@postgres:5432/airflow
+      AIRFLOW__CORE__FERNET_KEY: 46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLt0nfdstY=
+      AIRFLOW__WEBSERVER__SECRET_KEY: ondecompro-airflow-secret
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__API__AUTH_BACKENDS: airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session
+      PYTHONPATH: /opt/airflow:/opt/airflow/backend:/opt/airflow/scripts:/opt/airflow/crawlers
+      BACKEND_API_URL: http://backend:8000
+      REDIS_URL: redis://redis:6379/0
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+      PROMETHEUS_PUSHGATEWAY_URL: http://pushgateway:9091
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: ondecompro
+      POSTGRES_USER: ondecompro
+      POSTGRES_PASSWORD: ondecompro123
+      SELENIUM_HUB: http://selenium:4444/wd/hub
+      ONDECOMPRO_LOG_JSON: '1'
+      ONDECOMPRO_ELASTIC_LOGS_ENABLED: '1'
+      ONDECOMPRO_CRAWLER_SERVICE_NAME: ondecompro-airflow-crawlers
+      LOG_FILE_JSON: 'true'
+      LOG_FILE_PATH: /var/log/ondecompro/airflow-webserver.log
+      _AIRFLOW_DB_MIGRATE: 'true'
+      _AIRFLOW_WWW_USER_CREATE: 'true'
+      _AIRFLOW_WWW_USER_USERNAME: admin
+      _AIRFLOW_WWW_USER_PASSWORD: admin123
+    ports:
+    - 8083:8080
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+    - C:/Users/samue/projects/ondecompro-monorepo/airflow/dags:/opt/airflow/dags
+    - C:/Users/samue/projects/ondecompro-monorepo/airflow/plugins:/opt/airflow/plugins
+    - C:/Users/samue/projects/ondecompro-monorepo/backend:/opt/airflow/backend
+    - C:/Users/samue/projects/ondecompro-monorepo/crawlers:/opt/airflow/crawlers
+    - C:/Users/samue/projects/ondecompro-monorepo/scripts:/opt/airflow/scripts
+    - C:/Users/samue/projects/ondecompro-monorepo/data:/opt/airflow/data
+    - C:/Users/samue/projects/ondecompro-monorepo/airflow_logs:/opt/airflow/logs
+    - C:/Users/samue/projects/ondecompro-monorepo/logs:/var/log/ondecompro
+    command: webserver
+    container_name: workspace-ondecompro-full-suite-ondecompro-monorepo-airflow-webserver
+    networks:
+    - workspace-ondecompro-full-suite-net
+  ondecompro-monorepo-airflow-scheduler:
+    build:
+      context: C:/Users/samue/projects/ondecompro-monorepo/
+      dockerfile: airflow/Dockerfile
+    restart: unless-stopped
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://ondecompro:ondecompro123@postgres:5432/airflow
+      AIRFLOW__CORE__FERNET_KEY: 46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLt0nfdstY=
+      AIRFLOW__API__AUTH_BACKENDS: airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session
+      PYTHONPATH: /opt/airflow:/opt/airflow/backend:/opt/airflow/scripts:/opt/airflow/crawlers
+      BACKEND_API_URL: http://backend:8000
+      REDIS_URL: redis://redis:6379/0
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+      PROMETHEUS_PUSHGATEWAY_URL: http://pushgateway:9091
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: ondecompro
+      POSTGRES_USER: ondecompro
+      POSTGRES_PASSWORD: ondecompro123
+      SELENIUM_HUB: http://selenium:4444/wd/hub
+      ONDECOMPRO_LOG_JSON: '1'
+      ONDECOMPRO_ELASTIC_LOGS_ENABLED: '1'
+      ONDECOMPRO_CRAWLER_SERVICE_NAME: ondecompro-airflow-crawlers
+      LOG_FILE_JSON: 'true'
+      LOG_FILE_PATH: /var/log/ondecompro/airflow-scheduler.log
+    depends_on:
+    - airflow-webserver
+    volumes:
+    - C:/Users/samue/projects/ondecompro-monorepo/airflow/dags:/opt/airflow/dags
+    - C:/Users/samue/projects/ondecompro-monorepo/airflow/plugins:/opt/airflow/plugins
+    - C:/Users/samue/projects/ondecompro-monorepo/backend:/opt/airflow/backend
+    - C:/Users/samue/projects/ondecompro-monorepo/crawlers:/opt/airflow/crawlers
+    - C:/Users/samue/projects/ondecompro-monorepo/scripts:/opt/airflow/scripts
+    - C:/Users/samue/projects/ondecompro-monorepo/data:/opt/airflow/data
+    - C:/Users/samue/projects/ondecompro-monorepo/airflow_logs:/opt/airflow/logs
+    - C:/Users/samue/projects/ondecompro-monorepo/logs:/var/log/ondecompro
+    command: scheduler
+    container_name: workspace-ondecompro-full-suite-ondecompro-monorepo-airflow-scheduler
+    ports: []
+    networks:
+    - workspace-ondecompro-full-suite-net
+  ondecompro-monorepo-selenium:
+    image: selenium/standalone-chrome:latest
+    restart: unless-stopped
+    ports:
+    - 4445:4444
+    - 7901:7900
+    shm_size: 2gb
+    environment:
+      SE_NODE_MAX_SESSIONS: 4
+      SE_VNC_NO_PASSWORD: 1
+    container_name: workspace-ondecompro-full-suite-ondecompro-monorepo-selenium
+    volumes: []
+    networks:
+    - workspace-ondecompro-full-suite-net
+  vscode:
+    image: codercom/code-server:latest
+    container_name: workspace-ondecompro-full-suite-vscode
+    restart: unless-stopped
+    entrypoint:
+    - /bin/sh
+    - /home/coder/project/vscode/entrypoint.sh
+    environment:
+      AUTO_INSTALL_EXTENSIONS: 'true'
+      WORKSPACE_FILE: /home/coder/project/workspace.code-workspace
+    ports:
+    - 8445:8080
+    volumes:
+    - ./:/home/coder/project
+    - C:/Users/samue/projects/ondecompro:/home/coder/project/ondecompro
+    - C:/Users/samue/projects/ondecompro-frontend:/home/coder/project/ondecompro-frontend
+    - C:/Users/samue/projects/ondecompro-platform:/home/coder/project/ondecompro-platform
+    - C:/Users/samue/projects/ondecompro-monorepo:/home/coder/project/ondecompro-monorepo
+    networks:
+    - workspace-ondecompro-full-suite-net
+networks:
+  workspace-ondecompro-full-suite-net:
+    driver: bridge

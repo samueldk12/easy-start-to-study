@@ -92,6 +92,12 @@
       </div>
 
       <div class="flex items-center space-x-3">
+        <!-- Global Network & Containers Overview Button -->
+        <a href="/network" class="px-3.5 py-1.5 text-xs font-semibold text-cyan-300 hover:text-white bg-cyan-950/40 hover:bg-cyan-900/60 rounded-xl border border-cyan-800/60 flex items-center gap-1.5 transition cursor-pointer shadow-sm shadow-cyan-900/20" title="Ver todos os containers ativos, portas alocadas e quem se liga a quem">
+          <svg class="w-4 h-4 text-cyan-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          <span>Topologia & Containers</span>
+        </a>
+
         <!-- Import Existing Folder Button -->
         <button @click="openImportModal()" class="px-3.5 py-1.5 text-xs font-semibold text-emerald-300 hover:text-white bg-emerald-950/40 hover:bg-emerald-900/60 rounded-xl border border-emerald-800/60 flex items-center gap-1.5 transition cursor-pointer">
           <svg class="w-4 h-4 text-emerald-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
@@ -102,6 +108,18 @@
         <button @click="openMergeModal()" class="px-3.5 py-1.5 text-xs font-semibold text-purple-300 hover:text-white bg-purple-950/40 hover:bg-purple-900/60 rounded-xl border border-purple-800/60 flex items-center gap-1.5 transition cursor-pointer" title="Mesclar 2 ou mais projetos em um Workspace Multi-Root com abertura de múltiplas pastas no VS Code">
           <svg class="w-4 h-4 text-purple-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
           <span>Unificar Projetos</span>
+        </button>
+
+        <!-- Governance & Auto-Cleanup Button -->
+        <button @click="openGovernanceModal()" class="px-3.5 py-1.5 text-xs font-semibold text-rose-300 hover:text-white bg-rose-950/40 hover:bg-rose-900/60 rounded-xl border border-rose-800/60 flex items-center gap-1.5 transition cursor-pointer" title="Gestão de Projetos, Inatividade e Limpeza de Imagens Docker">
+          <svg class="w-4 h-4 text-rose-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          <span>Gestão & Limpeza</span>
+        </button>
+
+        <!-- History / Audit Log Button -->
+        <button @click="openHistoryModal()" class="px-3.5 py-1.5 text-xs font-semibold text-amber-300 hover:text-white bg-amber-950/40 hover:bg-amber-900/60 rounded-xl border border-amber-800/60 flex items-center gap-1.5 transition cursor-pointer" title="Histórico de Ações, Containers e Auditoria">
+          <svg class="w-4 h-4 text-amber-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span>Histórico</span>
         </button>
 
         <button @click="openPluginsModal()" class="px-3.5 py-1.5 text-xs font-semibold text-cyan-300 hover:text-white bg-cyan-950/40 hover:bg-cyan-900/60 rounded-xl border border-cyan-800/60 flex items-center gap-1.5 transition">
@@ -126,7 +144,29 @@
   <!-- MAIN CONTENT -->
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
     
-    <!-- STATS BANNER -->
+    <!-- INTERRUPTED SESSION CRASH RECOVERY BANNER -->
+    <div x-show="interruptedProjects.length > 0" x-cloak class="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-wrap items-center justify-between gap-4 shadow-lg shadow-amber-500/5 ring-1 ring-amber-500/20">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        </div>
+        <div class="min-w-0">
+          <h4 class="text-sm font-bold text-amber-300 flex items-center gap-2">
+            <span>Sessão Anterior Detectada</span>
+            <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-xs font-mono font-bold" x-text="interruptedProjects.length + ' projeto(s)'"></span>
+          </h4>
+          <p class="text-xs text-amber-200/80 mt-0.5 truncate">Estes projetos estavam em execução quando o servidor foi reiniciado ou parou. Clique para religar todos automaticamente.</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <button @click="interruptedProjects = []" class="px-3 py-1.5 text-xs text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition cursor-pointer">Ignorar</button>
+        <button @click="restoreInterruptedProjects()" :disabled="isRestoringInterrupted" class="px-4 py-1.5 text-xs font-bold text-dark-950 bg-amber-400 hover:bg-amber-300 rounded-xl shadow-md transition active:scale-95 flex items-center gap-1.5 cursor-pointer">
+          <svg class="w-4 h-4" :class="{'animate-spin': isRestoringInterrupted}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          <span x-text="isRestoringInterrupted ? 'Restaurando Stacks...' : 'Restaurar Projetos'"></span>
+        </button>
+      </div>
+    </div>
+
     <!-- STATS BANNER (INTERACTIVE FILTERS) -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
       <div @click="statusFilter = 'all'" class="bg-dark-900 border rounded-2xl p-4 flex items-center space-x-4 transition cursor-pointer"
@@ -215,7 +255,7 @@
           <div class="flex flex-wrap items-center gap-2">
             <!-- Tool Filter -->
             <select x-model="toolFilter" class="bg-dark-950 border border-slate-800 text-slate-200 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-brand-500 transition cursor-pointer">
-              <option value="all">⚡ Todas as Ferramentas</option>
+              <option value="all">Todas as Ferramentas</option>
               <template x-for="t in availableToolsList" :key="t">
                 <option :value="t" x-text="t"></option>
               </template>
@@ -223,18 +263,18 @@
 
             <!-- Template Filter -->
             <select x-model="templateFilter" class="bg-dark-950 border border-slate-800 text-slate-200 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-brand-500 transition cursor-pointer">
-              <option value="all">📦 Todos os Tipos</option>
+              <option value="all">Todos os Tipos</option>
               <option value="with_templates">Com Templates</option>
               <option value="clean">Estrutura Limpa</option>
             </select>
 
             <!-- Sort Order -->
             <select x-model="sortBy" class="bg-dark-950 border border-slate-800 text-slate-200 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-brand-500 transition cursor-pointer">
-              <option value="recent">🕒 Mais Recentes</option>
-              <option value="name_asc">🔤 Nome (A-Z)</option>
-              <option value="name_desc">🔤 Nome (Z-A)</option>
-              <option value="tools_desc">🛠️ Mais Ferramentas</option>
-              <option value="status">🟢 Status (Online 1º)</option>
+              <option value="recent">Mais Recentes</option>
+              <option value="name_asc">Nome (A-Z)</option>
+              <option value="name_desc">Nome (Z-A)</option>
+              <option value="tools_desc">Mais Ferramentas</option>
+              <option value="status">Status (Online 1º)</option>
             </select>
 
             <!-- Reset Filters Button -->
@@ -255,7 +295,7 @@
               class="px-3.5 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-purple-600/20 transition active:scale-95 cursor-pointer shrink-0"
               title="Mesclar 2 ou mais projetos em um Workspace Multi-Root com abertura simultânea no VS Code">
               <svg class="w-4 h-4 text-purple-200 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-              <span>🔀 Mesclar Projetos</span>
+              <span>Mesclar Projetos</span>
             </button>
           </div>
         </div>
@@ -395,6 +435,21 @@
                         }"></span>
                       <span x-text="project.visual_status === 'green' ? 'Online' : (project.visual_status === 'yellow' ? 'Subindo...' : (project.status === 'paused' ? 'Pausado' : (project.visual_status === 'orange' ? 'Parado' : 'Erro / Caiu')))"></span>
                     </span>
+
+                    <!-- Idle Days Badge -->
+                    <template x-if="project.idle_days !== undefined && project.idle_days > 0 && project.visual_status !== 'green'">
+                      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-semibold shrink-0 cursor-pointer"
+                        @click.stop="openGovernanceModal()"
+                        :class="{
+                          'bg-rose-500/10 text-rose-300 border border-rose-500/30': project.idle_days >= (project.auto_cleanup_days || 15),
+                          'bg-amber-500/10 text-amber-300 border border-amber-500/30': project.idle_days >= 7 && project.idle_days < (project.auto_cleanup_days || 15),
+                          'bg-slate-800 text-slate-400 border border-slate-700': project.idle_days < 7
+                        }"
+                        :title="'Projeto inativo há ' + project.idle_days + ' dia(s). Clique para gerenciar imagens e retenção.'">
+                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span x-text="'Sem uso há ' + project.idle_days + 'd'"></span>
+                      </span>
+                    </template>
                   </div>
                   <p class="text-xs text-slate-400 mt-1 truncate" :title="project.description || project.path" x-text="project.description || project.path"></p>
                 </div>
@@ -410,6 +465,10 @@
                   <!-- Merge Button -->
                   <button @click.stop="openMergeModal(project)" title="Mesclar este projeto com outro em um Workspace Multi-Root" class="p-1.5 text-purple-400 hover:text-white bg-purple-500/10 hover:bg-purple-600 rounded-lg transition cursor-pointer flex items-center justify-center">
                     <svg class="w-4 h-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                  </button>
+                  <!-- Governance / Clean Images Button -->
+                  <button @click.stop="openGovernanceModal()" title="Gestão de Inatividade & Limpeza de Imagens Docker" class="p-1.5 text-rose-400 hover:text-white bg-rose-500/10 hover:bg-rose-600 rounded-lg transition cursor-pointer">
+                    <svg class="w-4 h-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                   </button>
                   <!-- Topology Graph Button -->
                   <button @click.stop="openGraphModal(project)" title="Ver Topologia & Grafo da Arquitetura" class="p-1.5 text-brand-400 hover:text-white bg-brand-500/10 hover:bg-brand-500/25 rounded-lg transition cursor-pointer">
@@ -469,10 +528,11 @@
                   <template x-for="c in getVisibleContainers(project)" :key="c.name">
                     <div class="p-2.5 bg-dark-950 border border-slate-800 rounded-xl flex items-center justify-between gap-2 text-xs transition hover:border-slate-700 min-w-0">
                       <div class="flex items-center gap-2 min-w-0 flex-1">
-                        <!-- Status Dot: Green / Yellow / Orange / Red -->
+                        <!-- Status Dot: Green (Rodando / Created) / Yellow / Orange / Red -->
                         <span class="w-2.5 h-2.5 rounded-full shrink-0"
                           :class="{
-                            'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse': c.visual_status === 'green',
+                            'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse': c.visual_status === 'green' && !c.is_oneshot,
+                            'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]': c.visual_status === 'green' && c.is_oneshot,
                             'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)] animate-bounce': c.visual_status === 'yellow',
                             'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.8)]': c.visual_status === 'orange',
                             'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)] animate-pulse': c.visual_status === 'red'
@@ -481,6 +541,30 @@
                         <div class="truncate flex-1 min-w-0">
                           <div class="flex items-center gap-1.5 flex-wrap">
                             <span class="font-bold text-slate-200 text-xs truncate" x-text="c.service"></span>
+
+                            <!-- Arrow Link / Access Button next to service name -->
+                            <template x-if="getServiceUrl(project, c)">
+                              <a :href="getServiceUrl(project, c)" target="_blank" 
+                                 :title="`Abrir serviço / painel Web de ${c.service} (${getServiceUrl(project, c)})`"
+                                 class="text-brand-400 hover:text-brand-300 hover:bg-brand-500/20 p-0.5 rounded transition inline-flex items-center group cursor-pointer"
+                                 @click.stop>
+                                <svg class="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                              </a>
+                            </template>
+
+                            <!-- Connection info copy for non-web DB / broker services -->
+                            <template x-if="!getServiceUrl(project, c) && getServiceConnectionInfo(project, c)">
+                              <button type="button" @click.stop="copyServiceConnection(project, c)" 
+                                 :title="`Copiar string de conexão / porta de ${c.service} (${getServiceConnectionInfo(project, c)})`"
+                                 class="text-slate-400 hover:text-brand-300 hover:bg-slate-800 p-0.5 rounded transition inline-flex items-center cursor-pointer">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                </svg>
+                              </button>
+                            </template>
+
                             <!-- Status Tag -->
                             <span class="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase shrink-0"
                               :class="{
@@ -489,7 +573,7 @@
                                 'bg-orange-500/10 text-orange-400 border border-orange-500/20': c.visual_status === 'orange',
                                 'bg-red-500/10 text-red-400 border border-red-500/20': c.visual_status === 'red'
                               }"
-                              x-text="c.visual_status === 'green' ? 'Online' : (c.visual_status === 'yellow' ? 'Subindo' : (c.state === 'paused' ? 'Pausado' : (c.visual_status === 'orange' ? 'Parado' : 'Erro')))">
+                              x-text="c.visual_status === 'green' ? (c.is_oneshot ? 'Created' : 'Rodando') : (c.visual_status === 'yellow' ? 'Subindo' : (c.state === 'paused' ? 'Pausado' : (c.visual_status === 'orange' ? 'Parado' : 'Erro')))">
                             </span>
                           </div>
                           <span class="text-[10px] text-slate-400 block truncate" :title="c.status" x-text="c.status"></span>
@@ -504,7 +588,7 @@
                         </button>
 
                         <!-- 2. Restart / Start Service (Emerald Rotate Play) -->
-                        <button type="button" @click.stop="startSingleService(project, c.service)" :title="c.visual_status === 'green' ? 'Reiniciar container (docker compose restart)' : 'Iniciar container (docker compose up -d)'" class="p-1.5 text-emerald-400 hover:text-white bg-emerald-500/10 hover:bg-emerald-500/20 rounded-lg transition cursor-pointer">
+                        <button type="button" @click.stop="startSingleService(project, c.service)" :title="c.is_oneshot ? 'Executar novamente (docker compose up -d)' : (c.visual_status === 'green' ? 'Reiniciar container (docker compose restart)' : 'Iniciar container (docker compose up -d)')" class="p-1.5 text-emerald-400 hover:text-white bg-emerald-500/10 hover:bg-emerald-500/20 rounded-lg transition cursor-pointer">
                           <svg class="w-3.5 h-3.5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                         </button>
                         
@@ -662,7 +746,7 @@
             <h2 class="text-xl font-bold text-white flex items-center gap-2">
               Topologia & Saúde dos Serviços: <span class="text-brand-400" x-text="selectedProject?.name"></span>
             </h2>
-            <p class="text-xs text-slate-400">Estado de saúde em tempo real (🟢 Verde, 🟡 Amarelo, 🟠 Laranja, 🔴 Vermelho) e fluxo de dados</p>
+            <p class="text-xs text-slate-400">Estado de saúde em tempo real (Verde, Amarelo, Laranja, Vermelho) e fluxo de dados</p>
           </div>
         </div>
 
@@ -707,7 +791,8 @@
                     <!-- Status Dot -->
                     <span class="w-2.5 h-2.5 rounded-full shrink-0"
                       :class="{
-                        'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)] animate-pulse': node.visual_status === 'green',
+                        'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)] animate-pulse': node.visual_status === 'green' && !node.is_oneshot,
+                        'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)]': node.visual_status === 'green' && node.is_oneshot,
                         'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.9)] animate-bounce': node.visual_status === 'yellow',
                         'bg-orange-500': node.visual_status === 'orange',
                         'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.9)] animate-pulse': node.visual_status === 'red'
@@ -723,7 +808,7 @@
                       'bg-orange-500/20 text-orange-300 border border-orange-500/30': node.visual_status === 'orange',
                       'bg-red-500/20 text-red-300 border border-red-500/40': node.visual_status === 'red'
                     }"
-                    x-text="node.visual_status === 'green' ? '🟢 Online' : (node.visual_status === 'yellow' ? '🟡 Subindo' : (node.visual_status === 'orange' ? '🟠 Parado' : '🔴 Erro / Caiu'))">
+                    x-text="node.visual_status === 'green' ? (node.is_oneshot ? '🟢 Created' : '🟢 Rodando') : (node.visual_status === 'yellow' ? '🟡 Subindo' : (node.visual_status === 'orange' ? '🟠 Parado' : '🔴 Erro / Caiu'))">
                   </span>
                 </div>
 
@@ -780,7 +865,7 @@
                   'bg-red-500/20 text-red-300 border border-red-500/30': edge.status === 'broken',
                   'bg-slate-800 text-slate-400 border border-slate-700': edge.status === 'inactive'
                 }"
-                x-text="edge.status === 'active' ? '🟢 Ativo' : (edge.status === 'starting' ? '🟡 Subindo' : (edge.status === 'broken' ? '🔴 Falha' : '🟠 Parado'))">
+                x-text="edge.status === 'active' ? 'Ativo' : (edge.status === 'starting' ? 'Subindo' : (edge.status === 'broken' ? 'Falha' : 'Parado'))">
               </span>
             </div>
           </template>
@@ -854,15 +939,17 @@
             <button type="button" @click="onlySelectedToolsFilter = !onlySelectedToolsFilter" 
               :class="onlySelectedToolsFilter ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50 ring-1 ring-cyan-500/30' : 'bg-slate-800/80 text-slate-400 border-slate-700/60 hover:text-slate-200'"
               class="px-2 py-1 border rounded-lg text-[10px] font-semibold transition inline-flex items-center gap-1 cursor-pointer active:scale-95">
-              <span x-text="onlySelectedToolsFilter ? '⭐ Apenas Ativas' : '👁️ Ver Todas'"></span>
+              <span x-text="onlySelectedToolsFilter ? 'Apenas Ativas' : 'Ver Todas'"></span>
             </button>
           </div>
 
           <!-- Tool Name Search Filter -->
           <div class="relative flex-1 max-w-sm">
-            <input type="text" x-model="toolSearchQuery" placeholder="🔍 Filtrar ferramentas por nome (ex: postgres, airflow, redis)..." 
+            <input type="text" x-model="toolSearchQuery" placeholder="Filtrar ferramentas por nome (ex: postgres, airflow, redis)..." 
               class="w-full bg-dark-900 border border-slate-700/80 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/30">
-            <button x-show="toolSearchQuery" @click="toolSearchQuery = ''" type="button" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs">✕</button>
+            <button x-show="toolSearchQuery" @click="toolSearchQuery = ''" type="button" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
           </div>
         </div>
 
@@ -896,7 +983,7 @@
                         <span class="font-bold text-xs text-white" x-text="tool.name"></span>
                         <span class="px-1.5 py-0.5 rounded text-[10px]"
                           :class="tool.is_plugin ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' : 'bg-slate-800 text-slate-300 border border-slate-700'"
-                          x-text="tool.is_plugin ? '🧩 ' + tool.badge : tool.badge"></span>
+                          x-text="tool.badge"></span>
                       </div>
                       <p class="text-[11px] text-slate-400 line-clamp-2" x-text="tool.description"></p>
                     </div>
@@ -997,9 +1084,18 @@
             <span class="text-xs font-bold text-cyan-400 uppercase tracking-wider">Criar Serviço Customizado</span>
             <!-- Source Type Selector -->
             <div class="flex items-center gap-1 bg-dark-900 p-1 rounded-lg border border-slate-800 text-xs">
-              <button type="button" @click="customServiceTab = 'image'; pluginForm.source_type = 'image'" :class="customServiceTab === 'image' ? 'bg-cyan-600 text-white font-bold' : 'text-slate-400 hover:text-white'" class="px-2.5 py-1 rounded transition">🐳 Imagem Docker</button>
-              <button type="button" @click="customServiceTab = 'dockerfile'; pluginForm.source_type = 'dockerfile'" :class="customServiceTab === 'dockerfile' ? 'bg-cyan-600 text-white font-bold' : 'text-slate-400 hover:text-white'" class="px-2.5 py-1 rounded transition">📄 Dockerfile</button>
-              <button type="button" @click="customServiceTab = 'github'; pluginForm.source_type = 'github'" :class="customServiceTab === 'github' ? 'bg-cyan-600 text-white font-bold' : 'text-slate-400 hover:text-white'" class="px-2.5 py-1 rounded transition">🐙 GitHub Repo</button>
+              <button type="button" @click="customServiceTab = 'image'; pluginForm.source_type = 'image'" :class="customServiceTab === 'image' ? 'bg-cyan-600 text-white font-bold' : 'text-slate-400 hover:text-white'" class="px-2.5 py-1 rounded transition flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                <span>Imagem Docker</span>
+              </button>
+              <button type="button" @click="customServiceTab = 'dockerfile'; pluginForm.source_type = 'dockerfile'" :class="customServiceTab === 'dockerfile' ? 'bg-cyan-600 text-white font-bold' : 'text-slate-400 hover:text-white'" class="px-2.5 py-1 rounded transition flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span>Dockerfile</span>
+              </button>
+              <button type="button" @click="customServiceTab = 'github'; pluginForm.source_type = 'github'" :class="customServiceTab === 'github' ? 'bg-cyan-600 text-white font-bold' : 'text-slate-400 hover:text-white'" class="px-2.5 py-1 rounded transition flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                <span>GitHub Repo</span>
+              </button>
             </div>
           </div>
           
@@ -1195,13 +1291,15 @@
           </div>
 
           <div class="flex items-center bg-dark-900 border border-slate-700 p-1 rounded-xl">
-            <button type="button" @click="form.include_templates = true" class="px-3 py-1.5 text-xs font-semibold rounded-lg transition"
+            <button type="button" @click="form.include_templates = true" class="px-3 py-1.5 text-xs font-semibold rounded-lg transition flex items-center gap-1.5"
               :class="form.include_templates ? 'bg-brand-600 text-white shadow' : 'text-slate-400 hover:text-white'">
-              ✨ Com Templates
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+              <span>Com Templates</span>
             </button>
-            <button type="button" @click="form.include_templates = false" class="px-3 py-1.5 text-xs font-semibold rounded-lg transition"
+            <button type="button" @click="form.include_templates = false" class="px-3 py-1.5 text-xs font-semibold rounded-lg transition flex items-center gap-1.5"
               :class="!form.include_templates ? 'bg-slate-700 text-white shadow' : 'text-slate-400 hover:text-white'">
-              🧹 Estrutura Limpa
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              <span>Estrutura Limpa</span>
             </button>
           </div>
         </div>
@@ -1234,15 +1332,17 @@
             <button type="button" @click="onlySelectedToolsFilter = !onlySelectedToolsFilter" 
               :class="onlySelectedToolsFilter ? 'bg-brand-500/20 text-brand-300 border-brand-500/50 ring-1 ring-brand-500/30' : 'bg-slate-800/80 text-slate-400 border-slate-700/60 hover:text-slate-200'"
               class="px-2 py-1 border rounded-lg text-[10px] font-semibold transition inline-flex items-center gap-1 cursor-pointer active:scale-95">
-              <span x-text="onlySelectedToolsFilter ? '⭐ Apenas Selecionadas' : '👁️ Ver Todas'"></span>
+              <span x-text="onlySelectedToolsFilter ? 'Apenas Selecionadas' : 'Ver Todas'"></span>
             </button>
           </div>
 
           <!-- Tool Name Search Filter -->
           <div class="relative flex-1 max-w-sm">
-            <input type="text" x-model="toolSearchQuery" placeholder="🔍 Filtrar ferramentas por nome (ex: postgres, airflow, redis)..." 
+            <input type="text" x-model="toolSearchQuery" placeholder="Filtrar ferramentas por nome (ex: postgres, airflow, redis)..." 
               class="w-full bg-dark-900 border border-slate-700/80 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30">
-            <button x-show="toolSearchQuery" @click="toolSearchQuery = ''" type="button" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs">✕</button>
+            <button x-show="toolSearchQuery" @click="toolSearchQuery = ''" type="button" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
           </div>
         </div>
 
@@ -1277,7 +1377,7 @@
                         <span class="font-bold text-xs text-white" x-text="tool.name"></span>
                         <span class="px-1.5 py-0.5 rounded text-[10px]"
                           :class="tool.is_plugin ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' : 'bg-slate-800 text-slate-300 border border-slate-700'"
-                          x-text="tool.is_plugin ? '🧩 ' + tool.badge : tool.badge"></span>
+                          x-text="tool.badge"></span>
                       </div>
                       <p class="text-[11px] text-slate-400 line-clamp-2" x-text="tool.description"></p>
                     </div>
@@ -1306,7 +1406,7 @@
 
         <div x-show="showAdvancedConfig" x-cloak class="mt-4 space-y-4 pt-3 border-t border-slate-800">
           <div x-show="form.tools.length > 3" class="mb-2">
-            <input type="text" x-model="configToolsSearchQuery" placeholder="🔍 Filtrar ferramentas selecionadas por nome..."
+            <input type="text" x-model="configToolsSearchQuery" placeholder="Filtrar ferramentas selecionadas por nome..."
               class="w-full sm:max-w-xs bg-dark-900 border border-slate-700/80 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-500">
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
@@ -1349,6 +1449,84 @@
               <div class="pt-2">
                 <label class="block text-[10px] text-slate-400 mb-1">Extensões Adicionais / Customizadas (separadas por vírgula):</label>
                 <input type="text" x-model="form.custom_vscode_extensions_input" placeholder="ex: esbenp.prettier-vscode, username.ext-name" class="w-full bg-dark-950 border border-slate-800 rounded px-2.5 py-1 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-blue-500">
+              </div>
+            </div>
+          </div>
+
+          <!-- Airflow Customization & Provider Integration in Create Modal -->
+          <div x-show="form.tools.includes('airflow')" class="p-4 bg-dark-900 border border-brand-500/30 bg-gradient-to-br from-brand-950/20 to-dark-900 rounded-xl space-y-3 mt-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-brand-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                <div>
+                  <span class="font-bold text-xs text-white">Customização & Provedores do Apache Airflow</span>
+                  <span class="text-[10px] text-slate-400 block">Provedores pré-instalados, conexões automáticas (Spark, PostgreSQL, MinIO/S3, Trino, Kafka) e executor</span>
+                </div>
+              </div>
+              <span class="px-2 py-0.5 bg-brand-500/20 text-brand-300 border border-brand-500/40 rounded text-[10px] font-semibold">Airflow 2.9</span>
+            </div>
+
+            <div class="space-y-3 pt-2 border-t border-slate-800/80">
+              <div>
+                <label class="block text-[11px] text-slate-300 font-semibold mb-1.5">Pacotes de Provedores Oficiais & Conexões Automáticas:</label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  <label class="flex items-center gap-2 p-2 bg-dark-950/80 border border-slate-800 hover:border-brand-500/40 rounded-lg cursor-pointer transition">
+                    <input type="checkbox" value="apache-spark" x-model="form.airflow_providers" class="rounded bg-slate-900 border-slate-700 text-brand-600 focus:ring-brand-500">
+                    <div>
+                      <span class="font-bold text-white block">Apache Spark & PySpark</span>
+                      <span class="text-[10px] text-slate-400">SparkSubmitOperator + OpenJDK 17 + spark_default</span>
+                    </div>
+                  </label>
+                  <label class="flex items-center gap-2 p-2 bg-dark-950/80 border border-slate-800 hover:border-brand-500/40 rounded-lg cursor-pointer transition">
+                    <input type="checkbox" value="postgres" x-model="form.airflow_providers" class="rounded bg-slate-900 border-slate-700 text-brand-600 focus:ring-brand-500">
+                    <div>
+                      <span class="font-bold text-white block">PostgreSQL Provider</span>
+                      <span class="text-[10px] text-slate-400">PostgresOperator + conexão postgres_default</span>
+                    </div>
+                  </label>
+                  <label class="flex items-center gap-2 p-2 bg-dark-950/80 border border-slate-800 hover:border-brand-500/40 rounded-lg cursor-pointer transition">
+                    <input type="checkbox" value="amazon" x-model="form.airflow_providers" class="rounded bg-slate-900 border-slate-700 text-brand-600 focus:ring-brand-500">
+                    <div>
+                      <span class="font-bold text-white block">AWS / MinIO (S3)</span>
+                      <span class="text-[10px] text-slate-400">S3Hook + Boto3 + conexão aws_default</span>
+                    </div>
+                  </label>
+                  <label class="flex items-center gap-2 p-2 bg-dark-950/80 border border-slate-800 hover:border-brand-500/40 rounded-lg cursor-pointer transition">
+                    <input type="checkbox" value="trino" x-model="form.airflow_providers" class="rounded bg-slate-900 border-slate-700 text-brand-600 focus:ring-brand-500">
+                    <div>
+                      <span class="font-bold text-white block">Trino SQL Engine</span>
+                      <span class="text-[10px] text-slate-400">TrinoOperator + conexão trino_default</span>
+                    </div>
+                  </label>
+                  <label class="flex items-center gap-2 p-2 bg-dark-950/80 border border-slate-800 hover:border-brand-500/40 rounded-lg cursor-pointer transition">
+                    <input type="checkbox" value="apache-kafka" x-model="form.airflow_providers" class="rounded bg-slate-900 border-slate-700 text-brand-600 focus:ring-brand-500">
+                    <div>
+                      <span class="font-bold text-white block">Apache Kafka Streaming</span>
+                      <span class="text-[10px] text-slate-400">KafkaProduce/Consume + conexão kafka_default</span>
+                    </div>
+                  </label>
+                  <label class="flex items-center gap-2 p-2 bg-dark-950/80 border border-slate-800 hover:border-brand-500/40 rounded-lg cursor-pointer transition">
+                    <input type="checkbox" value="dbt" x-model="form.airflow_providers" class="rounded bg-slate-900 border-slate-700 text-brand-600 focus:ring-brand-500">
+                    <div>
+                      <span class="font-bold text-white block">dbt Core & Cosmos</span>
+                      <span class="text-[10px] text-slate-400">dbt-core + dbt-postgres + astronomer-cosmos</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <div>
+                  <label class="block text-[10px] text-slate-400 mb-1">Executor do Airflow:</label>
+                  <select x-model="form.airflow_executor" class="w-full bg-dark-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-brand-500">
+                    <option value="LocalExecutor">LocalExecutor (Paralelismo Recomendado)</option>
+                    <option value="SequentialExecutor">SequentialExecutor (Single-Thread)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[10px] text-slate-400 mb-1">Pacotes PyPI Adicionais para Airflow (separados por vírgula):</label>
+                  <input type="text" x-model="form.custom_airflow_requirements_input" placeholder="ex: great-expectations, polars, duckdb" class="w-full bg-dark-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-brand-500">
+                </div>
               </div>
             </div>
           </div>
@@ -1558,17 +1736,20 @@
 
       <!-- Navigation Tabs -->
       <div class="px-5 pt-3 border-b border-slate-800 bg-dark-950 flex items-center gap-2">
-        <button type="button" @click="manifestTab = 'compose'" class="px-4 py-2 text-xs font-bold rounded-t-xl transition border-b-2 cursor-pointer"
+        <button type="button" @click="manifestTab = 'compose'" class="px-4 py-2 text-xs font-bold rounded-t-xl transition border-b-2 cursor-pointer flex items-center gap-1.5"
           :class="manifestTab === 'compose' ? 'text-emerald-400 border-emerald-400 bg-dark-900' : 'text-slate-400 border-transparent hover:text-slate-200'">
-          🐳 docker-compose.yml
+          <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+          <span>docker-compose.yml</span>
         </button>
-        <button type="button" @click="manifestTab = 'k8s'" class="px-4 py-2 text-xs font-bold rounded-t-xl transition border-b-2 cursor-pointer"
+        <button type="button" @click="manifestTab = 'k8s'" class="px-4 py-2 text-xs font-bold rounded-t-xl transition border-b-2 cursor-pointer flex items-center gap-1.5"
           :class="manifestTab === 'k8s' ? 'text-indigo-400 border-indigo-400 bg-dark-900' : 'text-slate-400 border-transparent hover:text-slate-200'">
-          ⚓ Kubernetes (k8s/)
+          <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+          <span>Kubernetes (k8s/)</span>
         </button>
-        <button type="button" @click="manifestTab = 'cli'" class="px-4 py-2 text-xs font-bold rounded-t-xl transition border-b-2 cursor-pointer"
+        <button type="button" @click="manifestTab = 'cli'" class="px-4 py-2 text-xs font-bold rounded-t-xl transition border-b-2 cursor-pointer flex items-center gap-1.5"
           :class="manifestTab === 'cli' ? 'text-cyan-400 border-cyan-400 bg-dark-900' : 'text-slate-400 border-transparent hover:text-slate-200'">
-          ⚡ Comandos CLI (Start & Restart)
+          <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          <span>Comandos CLI (Start & Restart)</span>
         </button>
       </div>
 
@@ -1695,7 +1876,7 @@
           <div class="flex items-center gap-2">
             <label class="text-xs text-slate-400">Serviço:</label>
             <select x-model="selectedLogService" @change="changeLogService()" class="bg-dark-950 border border-slate-700 text-white rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:border-brand-500">
-              <option value="all">⚡ Todos os Serviços</option>
+              <option value="all">Todos os Serviços</option>
               <template x-for="toolId in (selectedProject ? selectedProject.tools : [])" :key="toolId">
                 <option :value="toolId" x-text="toolId"></option>
               </template>
@@ -1747,7 +1928,7 @@
             <span>Container:</span>
             <select x-model="terminalService" class="bg-dark-950 border border-slate-700 text-purple-300 rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:border-purple-500 font-sans">
               <template x-for="c in (selectedProject?.containers || [])" :key="c.service">
-                <option :value="c.service" x-text="c.service + ' (' + (c.visual_status === 'green' ? 'Online' : c.status) + ')'"></option>
+                <option :value="c.service" x-text="c.service + ' (' + (c.visual_status === 'green' ? (c.is_oneshot ? 'Created' : 'Rodando') : c.status) + ')'"></option>
               </template>
             </select>
           </div>
@@ -1768,13 +1949,34 @@
       <!-- Quick Command Bar -->
       <div class="px-3.5 py-2 bg-dark-900/90 border-b border-slate-800/80 flex items-center gap-1.5 overflow-x-auto text-[11px] font-sans shrink-0">
         <span class="text-slate-500 font-bold uppercase text-[10px] shrink-0">Comandos Rápidos:</span>
-        <button type="button" @click="runQuickCommand('cat /etc/os-release || uname -a')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-purple-900/50 text-slate-300 hover:text-purple-200 border border-slate-700/60 transition shrink-0 cursor-pointer">🐧 OS Release</button>
-        <button type="button" @click="runQuickCommand('ps aux || ps -ef || top -b -n 1')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-purple-900/50 text-slate-300 hover:text-purple-200 border border-slate-700/60 transition shrink-0 cursor-pointer">📊 Processos (ps)</button>
-        <button type="button" @click="runQuickCommand('df -h')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-purple-900/50 text-slate-300 hover:text-purple-200 border border-slate-700/60 transition shrink-0 cursor-pointer">💾 Disco (df -h)</button>
-        <button type="button" @click="runQuickCommand('ip a || ifconfig || hostname -I')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-purple-900/50 text-slate-300 hover:text-purple-200 border border-slate-700/60 transition shrink-0 cursor-pointer">🌐 Rede (ip a)</button>
-        <button type="button" @click="runQuickCommand('env | sort')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-purple-900/50 text-slate-300 hover:text-purple-200 border border-slate-700/60 transition shrink-0 cursor-pointer">🔑 Envs (env)</button>
-        <button type="button" @click="runQuickCommand('ls -la')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-purple-900/50 text-slate-300 hover:text-purple-200 border border-slate-700/60 transition shrink-0 cursor-pointer">📁 Arquivos (ls -la)</button>
-        <button type="button" @click="runQuickCommand('python --version || python3 --version || node -v || java -version')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-purple-900/50 text-slate-300 hover:text-purple-200 border border-slate-700/60 transition shrink-0 cursor-pointer">⚡ Runtimes</button>
+        <button type="button" @click="runQuickCommand('cat /etc/os-release || uname -a')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-purple-900/50 text-slate-300 hover:text-purple-200 border border-slate-700/60 transition shrink-0 cursor-pointer flex items-center gap-1">
+          <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>
+          <span>OS Release</span>
+        </button>
+        <button type="button" @click="runQuickCommand('ps aux || ps -ef || top -b -n 1')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-purple-900/50 text-slate-300 hover:text-purple-200 border border-slate-700/60 transition shrink-0 cursor-pointer flex items-center gap-1">
+          <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          <span>Processos (ps)</span>
+        </button>
+        <button type="button" @click="runQuickCommand('df -h')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-purple-900/50 text-slate-300 hover:text-purple-200 border border-slate-700/60 transition shrink-0 cursor-pointer flex items-center gap-1">
+          <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/></svg>
+          <span>Disco (df -h)</span>
+        </button>
+        <button type="button" @click="runQuickCommand('ip a || ifconfig || hostname -I')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-purple-900/50 text-slate-300 hover:text-purple-200 border border-slate-700/60 transition shrink-0 cursor-pointer flex items-center gap-1">
+          <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+          <span>Rede (ip a)</span>
+        </button>
+        <button type="button" @click="runQuickCommand('env | sort')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-purple-900/50 text-slate-300 hover:text-purple-200 border border-slate-700/60 transition shrink-0 cursor-pointer flex items-center gap-1">
+          <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+          <span>Envs (env)</span>
+        </button>
+        <button type="button" @click="runQuickCommand('ls -la')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-purple-900/50 text-slate-300 hover:text-purple-200 border border-slate-700/60 transition shrink-0 cursor-pointer flex items-center gap-1">
+          <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+          <span>Arquivos (ls -la)</span>
+        </button>
+        <button type="button" @click="runQuickCommand('python --version || python3 --version || node -v || java -version')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-purple-900/50 text-slate-300 hover:text-purple-200 border border-slate-700/60 transition shrink-0 cursor-pointer flex items-center gap-1">
+          <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+          <span>Runtimes</span>
+        </button>
       </div>
 
       <!-- Terminal Output Screen -->
@@ -1952,7 +2154,7 @@
             <div class="space-y-1 pl-2 font-mono text-xs text-purple-200">
               <template x-for="pid in mergeForm.project_ids" :key="pid">
                 <div class="flex items-center gap-2">
-                  <span class="text-purple-400">📁</span>
+                  <svg class="w-3.5 h-3.5 text-purple-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
                   <span class="font-bold" x-text="projects.find(x => x.id === pid)?.name || pid"></span>
                   <span class="text-[10px] text-slate-500" x-text="`-> /home/coder/project/${pid}`"></span>
                 </div>
@@ -1975,6 +2177,321 @@
           <svg class="w-4 h-4 animate-spin" x-show="isMerging" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
           <svg class="w-4 h-4" x-show="!isMerging" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
           <span x-text="isMerging ? 'Unificando Stack...' : 'Gerar Workspace Unificado'"></span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- HISTORY & AUDIT LOG MODAL -->
+  <div x-show="showHistoryModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div @click.away="showHistoryModal = false" class="bg-dark-900 border border-amber-500/40 rounded-2xl max-w-4xl w-full p-6 shadow-2xl space-y-5 max-h-[90vh] flex flex-col">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-slate-800 pb-4 shrink-0">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shadow-lg shadow-amber-500/20">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              Histórico de Ações & Auditoria
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">Audit Trail</span>
+            </h2>
+            <p class="text-xs text-slate-400">Registro persistente de todas as operações, inicializações, containers e eventos executados pelo StackStudio.</p>
+          </div>
+        </div>
+        <button @click="showHistoryModal = false" class="text-slate-400 hover:text-white p-1 rounded-lg cursor-pointer">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Search & Refresh Toolbar -->
+      <div class="flex items-center gap-3 shrink-0">
+        <div class="relative flex-1">
+          <input 
+            type="text" 
+            x-model="historySearchQuery" 
+            placeholder="Filtrar histórico por projeto, ação, detalhes ou container ID..." 
+            class="w-full bg-dark-950 border border-slate-800 focus:border-amber-500 rounded-xl pl-9 pr-3.5 py-2 text-xs text-white placeholder-slate-600 focus:outline-none transition">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </div>
+        </div>
+        <button @click="fetchHistory()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold rounded-xl border border-slate-700 flex items-center gap-1.5 transition cursor-pointer">
+          <svg class="w-3.5 h-3.5" :class="{'animate-spin': isLoadingHistory}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          <span>Atualizar</span>
+        </button>
+      </div>
+
+      <!-- History List -->
+      <div class="flex-1 overflow-y-auto space-y-2.5 pr-1 min-h-[300px]">
+        <template x-if="filteredHistoryLogs.length === 0">
+          <div class="text-center py-12 text-slate-500 text-sm">
+            Nenhum registro de ação encontrado.
+          </div>
+        </template>
+
+        <template x-for="(item, idx) in filteredHistoryLogs" :key="idx">
+          <div class="p-3.5 rounded-xl border bg-dark-950/70 transition flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+            :class="{
+              'border-emerald-500/30 hover:border-emerald-500/50': item.status === 'success' && (item.action === 'start' || item.action === 'resume'),
+              'border-purple-500/30 hover:border-purple-500/50': item.action === 'merge',
+              'border-amber-500/30 hover:border-amber-500/50': item.action === 'pause',
+              'border-slate-800 hover:border-slate-700': item.status === 'success' && item.action === 'stop',
+              'border-rose-500/50 bg-rose-950/10': item.status === 'failed'
+            }">
+            <div class="flex items-start gap-3 min-w-0 flex-1">
+              <!-- Action Badge -->
+              <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider shrink-0 mt-0.5"
+                :class="{
+                  'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30': item.action === 'start' || item.action === 'resume',
+                  'bg-purple-500/20 text-purple-300 border border-purple-500/30': item.action === 'merge',
+                  'bg-amber-500/20 text-amber-300 border border-amber-500/30': item.action === 'pause',
+                  'bg-slate-800 text-slate-400 border border-slate-700': item.action === 'stop',
+                  'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30': item.action === 'restart' || item.action === 'create' || item.action === 'import',
+                  'bg-rose-500/20 text-rose-300 border border-rose-500/30': item.status === 'failed'
+                }"
+                x-text="item.action">
+              </span>
+
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-sm font-bold text-white truncate" x-text="item.project_name || item.project_id"></span>
+                  <span class="text-xs text-slate-400" x-text="'(' + item.project_id + ')'"></span>
+                  <span class="px-2 py-0.2 rounded text-[10px] font-semibold"
+                    :class="item.status === 'success' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'"
+                    x-text="item.status === 'success' ? 'Sucesso' : 'Falha'">
+                  </span>
+                </div>
+                <p class="text-xs text-slate-300 mt-1" x-text="item.details || 'Ação executada com sucesso'"></p>
+                
+                <!-- Containers IDs tag if available -->
+                <template x-if="item.container_ids && item.container_ids.length > 0">
+                  <div class="flex items-center gap-1.5 flex-wrap mt-2">
+                    <span class="text-[10px] text-slate-500 font-mono">Containers:</span>
+                    <template x-for="cid in item.container_ids.slice(0, 5)" :key="cid">
+                      <span class="px-1.5 py-0.5 rounded bg-dark-900 text-slate-400 text-[10px] font-mono border border-slate-800 truncate max-w-[120px]" x-text="cid"></span>
+                    </template>
+                    <template x-if="item.container_ids.length > 5">
+                      <span class="text-[10px] text-slate-500" x-text="'+' + (item.container_ids.length - 5) + ' mais'"></span>
+                    </template>
+                  </div>
+                </template>
+              </div>
+            </div>
+
+            <!-- Timestamp -->
+            <div class="text-right shrink-0">
+              <span class="text-xs font-mono text-slate-400" x-text="new Date(item.timestamp).toLocaleString('pt-BR')"></span>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="flex items-center justify-between border-t border-slate-800 pt-4 shrink-0">
+        <div class="text-xs text-slate-500">
+          <span x-text="filteredHistoryLogs.length"></span> eventos registrados em disco (<code class="text-amber-400">projects/.state_history.json</code>)
+        </div>
+        <button type="button" @click="showHistoryModal = false" class="px-4 py-2 text-xs font-semibold text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition cursor-pointer">
+          Fechar
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- GOVERNANCE & DOCKER CLEANUP MODAL -->
+  <div x-show="showGovernanceModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div @click.away="showGovernanceModal = false" class="bg-dark-900 border border-rose-500/40 rounded-2xl max-w-5xl w-full p-6 shadow-2xl space-y-5 max-h-[92vh] flex flex-col">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-slate-800 pb-4 shrink-0">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center shadow-lg shadow-rose-500/20">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              Gestão de Projetos & Limpeza de Imagens
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40">Governança Docker</span>
+            </h2>
+            <p class="text-xs text-slate-400">Configure políticas de retenção automática por dias de inatividade e libere espaço em disco apagando imagens e containers órfãos.</p>
+          </div>
+        </div>
+        <button @click="showGovernanceModal = false" class="text-slate-400 hover:text-white p-1 rounded-lg cursor-pointer">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Action & Filter Toolbar -->
+      <div class="flex flex-wrap items-center justify-between gap-3 shrink-0 bg-dark-950 p-3 rounded-xl border border-slate-800">
+        <div class="flex items-center gap-2">
+          <button 
+            @click="governanceFilter = 'all'" 
+            class="px-3 py-1 text-xs font-semibold rounded-lg transition"
+            :class="governanceFilter === 'all' ? 'bg-slate-800 text-white border border-slate-700' : 'text-slate-400 hover:text-white'">
+            Todos (<span x-text="governanceList.length"></span>)
+          </button>
+          <button 
+            @click="governanceFilter = 'cleanup_ready'" 
+            class="px-3 py-1 text-xs font-semibold rounded-lg transition"
+            :class="governanceFilter === 'cleanup_ready' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' : 'text-slate-400 hover:text-white'">
+            Prontos p/ Limpeza
+          </button>
+          <button 
+            @click="governanceFilter = 'idle_warning'" 
+            class="px-3 py-1 text-xs font-semibold rounded-lg transition"
+            :class="governanceFilter === 'idle_warning' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'text-slate-400 hover:text-white'">
+            Inativos &gt; 7d
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button 
+            @click="fetchGovernanceSummary()" 
+            class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold rounded-xl border border-slate-700 flex items-center gap-1.5 transition cursor-pointer">
+            <svg class="w-3.5 h-3.5" :class="{'animate-spin': isLoadingGovernance}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            <span>Recalcular Uso</span>
+          </button>
+
+          <button 
+            @click="runAutoCleanupAll()" 
+            :disabled="isAutoCleaning"
+            class="px-3.5 py-1.5 bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50">
+            <svg class="w-3.5 h-3.5" :class="{'animate-spin': isAutoCleaning}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            <span x-text="isAutoCleaning ? 'Executando Varredura...' : 'Executar Auto-Cleanup Geral'"></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Project Governance List -->
+      <div class="flex-1 overflow-y-auto space-y-3 pr-1 min-h-[320px]">
+        <template x-if="filteredGovernanceList.length === 0">
+          <div class="text-center py-16 text-slate-500 text-sm">
+            Nenhum projeto correspondente aos filtros de governança.
+          </div>
+        </template>
+
+        <template x-for="item in filteredGovernanceList" :key="item.project_id">
+          <div class="p-4 rounded-xl border bg-dark-950/80 transition space-y-3"
+            :class="{
+              'border-rose-500/40 ring-1 ring-rose-500/20': item.recommendation === 'auto_cleanup_eligible',
+              'border-amber-500/30': item.recommendation === 'idle_warning',
+              'border-slate-800 hover:border-slate-700': item.recommendation === 'ok'
+            }">
+            
+            <!-- Row Header -->
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-3 h-3 rounded-full shrink-0"
+                  :class="{
+                    'bg-emerald-500 shadow-sm shadow-emerald-500/50': item.visual_status === 'green',
+                    'bg-amber-500 animate-pulse': item.visual_status === 'yellow',
+                    'bg-slate-600': item.visual_status === 'orange',
+                    'bg-rose-500': item.visual_status === 'red'
+                  }">
+                </div>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-sm font-bold text-white truncate" x-text="item.name"></span>
+                    <span class="text-xs text-slate-400 font-mono" x-text="'(' + item.project_id + ')'"></span>
+                    
+                    <!-- Recommendation Badge -->
+                    <template x-if="item.recommendation === 'auto_cleanup_eligible'">
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse">
+                        Pronto p/ Limpeza Automática
+                      </span>
+                    </template>
+                    <template x-if="item.recommendation === 'idle_warning'">
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                        Inativo &gt; 7 dias
+                      </span>
+                    </template>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Idle & Storage Stats -->
+              <div class="flex items-center gap-3 shrink-0">
+                <div class="text-right">
+                  <div class="text-xs font-mono font-bold"
+                    :class="{
+                      'text-rose-400': item.idle_days >= (item.auto_cleanup_days || 15),
+                      'text-amber-400': item.idle_days >= 7 && item.idle_days < (item.auto_cleanup_days || 15),
+                      'text-emerald-400': item.idle_days < 7
+                    }"
+                    x-text="item.is_running ? 'Em Execução' : (item.idle_days === 0 ? 'Usado hoje' : 'Sem uso há ' + item.idle_days + ' dia(s)')">
+                  </div>
+                  <div class="text-[10px] text-slate-500" x-text="'Imagens: ' + (item.disk_usage?.human || '—')"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Configuration & Actions Row -->
+            <div class="pt-2 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <!-- Policy Settings -->
+              <div class="flex items-center gap-4 flex-wrap">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-slate-400">Auto-limpar após:</span>
+                  <input 
+                    type="number" 
+                    min="0" 
+                    max="365" 
+                    x-model.number="item.auto_cleanup_days" 
+                    class="w-16 bg-dark-900 border border-slate-700 rounded px-2 py-1 text-white font-mono text-center focus:border-rose-500 focus:outline-none"
+                    placeholder="15">
+                  <span class="text-slate-500">dias (0 = desligado)</span>
+                </div>
+
+                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                  <input type="checkbox" x-model="item.clean_images_on_idle" class="rounded border-slate-700 bg-dark-900 text-rose-500 focus:ring-0">
+                  <span>Apagar Imagens</span>
+                </label>
+
+                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300" title="Apaga volumes persistentes (bancos de dados, etc.)">
+                  <input type="checkbox" x-model="item.clean_volumes_on_idle" class="rounded border-slate-700 bg-dark-900 text-rose-500 focus:ring-0">
+                  <span class="text-amber-400/90">Purgar Volumes</span>
+                </label>
+
+                <button 
+                  @click="saveProjectGovernance(item)" 
+                  class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded border border-slate-700 transition cursor-pointer font-semibold">
+                  Salvar Regra
+                </button>
+              </div>
+
+              <!-- Manual Cleanup Action Buttons -->
+              <div class="flex items-center gap-2">
+                <button 
+                  @click="cleanupProjectDocker(item.project_id, true, false)" 
+                  :disabled="item.is_running || isCleaningProject[item.project_id]"
+                  class="px-3 py-1.5 bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 hover:text-white rounded-lg border border-rose-800/60 transition flex items-center gap-1 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed font-semibold">
+                  <svg class="w-3.5 h-3.5" :class="{'animate-spin': isCleaningProject[item.project_id]}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  <span>Apagar Imagens</span>
+                </button>
+
+                <button 
+                  @click="if (confirm('Atenção: Isso apagará todas as imagens E os volumes com dados deste projeto. Deseja continuar?')) cleanupProjectDocker(item.project_id, true, true)" 
+                  :disabled="item.is_running || isCleaningProject[item.project_id]"
+                  class="px-3 py-1.5 bg-slate-900 hover:bg-rose-950 text-slate-400 hover:text-rose-300 rounded-lg border border-slate-800 hover:border-rose-800 transition flex items-center gap-1 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed text-[11px]" title="Limpeza total incluindo dados persistentes">
+                  <span>Limpar Tudo (+Volumes)</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </template>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="flex items-center justify-between border-t border-slate-800 pt-4 shrink-0 text-xs text-slate-500">
+        <div>
+          As imagens Docker apagadas são automaticamente reconstruídas quando o projeto for iniciado novamente.
+        </div>
+        <button type="button" @click="showGovernanceModal = false" class="px-4 py-2 text-xs font-semibold text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition cursor-pointer">
+          Fechar
         </button>
       </div>
 
@@ -2017,6 +2534,18 @@
           project_ids: [],
           description: ''
         },
+        interruptedProjects: [],
+        isRestoringInterrupted: false,
+        showHistoryModal: false,
+        historyLogs: [],
+        historySearchQuery: '',
+        isLoadingHistory: false,
+        showGovernanceModal: false,
+        governanceList: [],
+        isLoadingGovernance: false,
+        governanceFilter: 'all',
+        isCleaningProject: {},
+        isAutoCleaning: false,
         showGraphModal: false,
         showLogsModal: false,
         showManifestsModal: false,
@@ -2176,23 +2705,23 @@
           this.selectedProject = project;
           this.selectedLogService = serviceName;
           this.showLogsModal = true;
-          this.logsContent = `[StackStudio] 🚀 Subindo/Reiniciando container "${serviceName}" no projeto "${project.name}"...\n[StackStudio] 📡 Conectando ao fluxo de logs ao vivo...\n\n`;
+          this.logsContent = `[StackStudio] Subindo/Reiniciando container "${serviceName}" no projeto "${project.name}"...\n[StackStudio] Conectando ao fluxo de logs ao vivo...\n\n`;
           this.connectLogsStream();
           this.showToast('Iniciando Serviço', `Iniciando container "${serviceName}". Acompanhe os logs ao vivo.`, 'info');
 
           try {
             const res = await fetch(`/api/projects/${project.id}/services/${serviceName}/start`, { method: 'POST' });
             if (res.ok) {
-              this.logsContent += `\n[StackStudio] ✅ Container "${serviceName}" iniciado com sucesso!\n`;
+              this.logsContent += `\n[StackStudio] Container "${serviceName}" iniciado com sucesso!\n`;
               this.showToast('Serviço Iniciado', `Container "${serviceName}" está ativo!`, 'success');
             } else {
               const err = await res.json();
-              this.logsContent += `\n[StackStudio] ❌ Erro ao iniciar "${serviceName}": ${err.detail || 'Erro ao subir container'}\n`;
+              this.logsContent += `\n[StackStudio] Erro ao iniciar "${serviceName}": ${err.detail || 'Erro ao subir container'}\n`;
               this.showToast('Falha no Serviço', err.detail || 'Erro ao subir container', 'error');
             }
             await this.refreshProjects();
           } catch (e) {
-            this.logsContent += `\n[StackStudio] ❌ Falha: ${e.message}\n`;
+            this.logsContent += `\n[StackStudio] Falha: ${e.message}\n`;
             this.showToast('Erro', e.message, 'error');
           }
         },
@@ -2276,7 +2805,10 @@
           custom_envs: {},
           custom_folders: {},
           auto_install_extensions: true,
-          custom_vscode_extensions_input: ''
+          custom_vscode_extensions_input: '',
+          airflow_providers: ['apache-spark', 'postgres', 'amazon', 'trino', 'apache-kafka'],
+          airflow_executor: 'LocalExecutor',
+          custom_airflow_requirements_input: ''
         },
 
         editForm: {
@@ -2290,7 +2822,10 @@
           custom_envs: {},
           custom_folders: {},
           auto_install_extensions: true,
-          custom_vscode_extensions_input: ''
+          custom_vscode_extensions_input: '',
+          airflow_providers: ['apache-spark', 'postgres', 'amazon', 'trino', 'apache-kafka'],
+          airflow_executor: 'LocalExecutor',
+          custom_airflow_requirements_input: ''
         },
 
         getRecommendedExtensions(toolsList = [], customInput = '') {
@@ -2374,13 +2909,16 @@
 
           // 4. Background refresh ("por baixo dos panos") to sync real-time Docker container states
           this.refreshProjects(true);
+
+          // 5. Check for interrupted projects (crash recovery)
+          this.checkInterruptedProjects();
           
-          // 5. Poll project & container real status every 3.5 seconds in background
+          // 6. Poll project & container real status every 4.5 seconds in background
           setInterval(() => {
             if (!this.showCreateModal && !this.showEditModal && !this.showGraphModal && !this.showLogsModal && !this.showPluginsModal) {
               this.refreshProjects(true);
             }
-          }, 3500);
+          }, 4500);
 
           this.$nextTick(() => {
             if (window.lucide) lucide.createIcons();
@@ -2440,10 +2978,12 @@
             const res = await fetch('/api/projects?refresh=true');
             if (res.ok) {
               const freshData = await res.json();
-              this.projects = freshData;
-              try {
-                localStorage.setItem('stackstudio_projects_cache', JSON.stringify(freshData));
-              } catch (err) {}
+              if (Array.isArray(freshData) && freshData.length > 0) {
+                this.projects = freshData;
+                try {
+                  localStorage.setItem('stackstudio_projects_cache', JSON.stringify(freshData));
+                } catch (err) {}
+              }
             }
           } catch (e) {
             console.error('Error refreshing projects in background:', e);
@@ -2523,6 +3063,171 @@
             const desc = (p.description || '').toLowerCase();
             return name.includes(q) || id.includes(q) || path.includes(q) || desc.includes(q);
           });
+        },
+
+        get filteredHistoryLogs() {
+          const q = (this.historySearchQuery || '').trim().toLowerCase();
+          if (!q) return this.historyLogs;
+          return this.historyLogs.filter(item => {
+            const name = (item.project_name || '').toLowerCase();
+            const id = (item.project_id || '').toLowerCase();
+            const action = (item.action || '').toLowerCase();
+            const details = (item.details || '').toLowerCase();
+            const cids = (item.container_ids || []).join(' ').toLowerCase();
+            return name.includes(q) || id.includes(q) || action.includes(q) || details.includes(q) || cids.includes(q);
+          });
+        },
+
+        get filteredGovernanceList() {
+          let list = this.governanceList || [];
+          if (this.governanceFilter === 'cleanup_ready') {
+            return list.filter(item => item.recommendation === 'auto_cleanup_eligible');
+          } else if (this.governanceFilter === 'idle_warning') {
+            return list.filter(item => item.idle_days >= 7);
+          }
+          return list;
+        },
+
+        async openHistoryModal(projectId = null) {
+          this.showHistoryModal = true;
+          this.historySearchQuery = '';
+          await this.fetchHistory(projectId);
+        },
+
+        async fetchHistory(projectId = null) {
+          this.isLoadingHistory = true;
+          try {
+            const url = projectId ? `/api/history?project_id=${projectId}&limit=100` : '/api/history?limit=100';
+            const res = await fetch(url);
+            if (res.ok) {
+              this.historyLogs = await res.json();
+            }
+          } catch (e) {
+            console.error('Error fetching history:', e);
+          } finally {
+            this.isLoadingHistory = false;
+          }
+        },
+
+        async checkInterruptedProjects() {
+          try {
+            const res = await fetch('/api/state/managed');
+            if (res.ok) {
+              const data = await res.json();
+              this.interruptedProjects = data.interrupted_projects || [];
+            }
+          } catch (e) {
+            console.error('Error checking interrupted state:', e);
+          }
+        },
+
+        async restoreInterruptedProjects() {
+          this.isRestoringInterrupted = true;
+          try {
+            const res = await fetch('/api/state/restore-interrupted', { method: 'POST' });
+            if (res.ok) {
+              const data = await res.json();
+              this.interruptedProjects = [];
+              await this.refreshProjects();
+              alert(`Restauração concluída! ${data.restored.length} projeto(s) reiniciado(s).`);
+            } else {
+              alert('Erro ao restaurar projetos anteriores.');
+            }
+          } catch (e) {
+            console.error('Error restoring projects:', e);
+            alert('Falha na comunicação com o servidor para restauração.');
+          } finally {
+            this.isRestoringInterrupted = false;
+          }
+        },
+
+        async openGovernanceModal() {
+          this.showGovernanceModal = true;
+          await this.fetchGovernanceSummary();
+        },
+
+        async fetchGovernanceSummary() {
+          this.isLoadingGovernance = true;
+          try {
+            const res = await fetch('/api/governance/summary');
+            if (res.ok) {
+              this.governanceList = await res.json();
+            }
+          } catch (e) {
+            console.error('Error fetching governance summary:', e);
+          } finally {
+            this.isLoadingGovernance = false;
+          }
+        },
+
+        async saveProjectGovernance(item) {
+          try {
+            const res = await fetch(`/api/governance/${item.project_id}/settings`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                auto_cleanup_days: parseInt(item.auto_cleanup_days) || 0,
+                clean_images_on_idle: !!item.clean_images_on_idle,
+                clean_volumes_on_idle: !!item.clean_volumes_on_idle
+              })
+            });
+            if (res.ok) {
+              alert(`Regra de governança para "${item.name}" salva com sucesso!`);
+              await this.fetchGovernanceSummary();
+            } else {
+              const err = await res.json();
+              alert(`Erro ao salvar: ${err.detail || 'Falha ao salvar'}`);
+            }
+          } catch (e) {
+            console.error('Error saving governance:', e);
+            alert('Erro de conexão ao salvar regra de governança.');
+          }
+        },
+
+        async cleanupProjectDocker(projectId, removeImages = true, removeVolumes = false) {
+          this.isCleaningProject[projectId] = true;
+          try {
+            const res = await fetch(`/api/governance/${projectId}/cleanup?remove_images=${removeImages}&remove_volumes=${removeVolumes}`, {
+              method: 'POST'
+            });
+            if (res.ok) {
+              const data = await res.json();
+              alert(`Limpeza concluída com sucesso para o projeto!`);
+              await this.fetchGovernanceSummary();
+              await this.refreshProjects();
+            } else {
+              const err = await res.json();
+              alert(`Erro na limpeza: ${err.detail || 'Falha'}`);
+            }
+          } catch (e) {
+            console.error('Error during cleanup:', e);
+            alert('Erro de conexão durante a limpeza Docker.');
+          } finally {
+            this.isCleaningProject[projectId] = false;
+          }
+        },
+
+        async runAutoCleanupAll() {
+          if (!confirm('Deseja executar a varredura e limpeza automática em todos os projetos que ultrapassaram o limite de inatividade configurado?')) {
+            return;
+          }
+          this.isAutoCleaning = true;
+          try {
+            const res = await fetch('/api/governance/auto-cleanup', { method: 'POST' });
+            if (res.ok) {
+              const data = await res.json();
+              alert(`Varredura concluída! ${data.total_cleaned} projeto(s) limpo(s) automaticamente.`);
+              await this.fetchGovernanceSummary();
+              await this.refreshProjects();
+            } else {
+              alert('Erro ao executar auto-cleanup geral.');
+            }
+          } catch (e) {
+            console.error('Error running auto cleanup:', e);
+            alert('Erro de conexão ao executar auto-cleanup.');
+          } finally {
+            this.isAutoCleaning = false;
+          }
         },
 
         getTool(toolId) {
@@ -2703,6 +3408,127 @@
 
           // 3. Already running -> open immediately
           window.open(ideUrl, '_blank');
+        },
+
+        getServiceUrl(project, c) {
+          if (!project || !c) return null;
+          const svc = (c.service || c.name || '').toLowerCase();
+          
+          // 1. Direct match in project.ui_links
+          if (project.ui_links && project.ui_links.length > 0) {
+            const matched = project.ui_links.find(l => {
+              const lname = (l.name || '').toLowerCase();
+              const lurl = (l.url || '').toLowerCase();
+              
+              if (svc === 'airflow-webserver' || svc === 'airflow') {
+                return lname.includes('airflow') || lurl.includes('8098') || lurl.includes('8080');
+              }
+              if (svc === 'spark-master' || svc === 'spark') {
+                return (lname.includes('spark') || lurl.includes('8096') || lurl.includes('8080')) && !lname.includes('worker');
+              }
+              if (svc === 'spark-worker') {
+                return lname.includes('spark') || lurl.includes('8096') || lurl.includes('8081');
+              }
+              if (svc === 'kafka-ui') {
+                return lname.includes('kafka ui') || lname.includes('kafka-ui') || lurl.includes('8089');
+              }
+              if (svc === 'kafka') {
+                return lname.includes('kafka ui') || lname.includes('kafka-ui') || lurl.includes('8089');
+              }
+              if (svc === 'minio') {
+                return lname.includes('minio') || lurl.includes('9001') || lurl.includes('9007') || lurl.includes('9091');
+              }
+              if (svc === 'trino') {
+                return lname.includes('trino') || lurl.includes('8095') || lurl.includes('8080');
+              }
+              if (svc === 'jupyterlab' || svc === 'jupyter') {
+                return lname.includes('jupyter') || lurl.includes('8888');
+              }
+              if (svc === 'vscode' || svc === 'code-server') {
+                return lname.includes('vs code') || lname.includes('code') || lurl.includes('8443');
+              }
+              if (svc === 'iceberg-rest' || svc === 'iceberg') {
+                return lname.includes('iceberg') || lurl.includes('8181') || lurl.includes('8182');
+              }
+              if (svc === 'schema-registry') {
+                return lname.includes('schema registry') || lurl.includes('8081') || lurl.includes('8090');
+              }
+              if (svc === 'kafka-connect' || svc === 'debezium') {
+                return (lname.includes('connect') || lname.includes('debezium')) && !lname.includes('postgres');
+              }
+              if (svc === 'clickhouse') {
+                return lname.includes('clickhouse') || lurl.includes('8123');
+              }
+              if (svc === 'pgadmin') {
+                return lname.includes('pgadmin') || lurl.includes('5055');
+              }
+              if (svc === 'postgres') {
+                return lname.includes('pgadmin');
+              }
+              if (svc === 'grafana') return lname.includes('grafana') || lurl.includes('3000');
+              if (svc === 'prometheus') return lname.includes('prometheus') || lurl.includes('9090');
+              if (svc === 'superset') return lname.includes('superset') || lurl.includes('8088');
+              if (svc === 'metabase') return lname.includes('metabase') || lurl.includes('3000');
+              if (svc === 'mlflow') return lname.includes('mlflow') || lurl.includes('5000');
+              if (svc === 'rabbitmq') return lname.includes('rabbitmq') || lurl.includes('15672');
+              if (svc === 'keycloak') return lname.includes('keycloak') || lurl.includes('8080');
+              if (svc === 'mailpit' || svc === 'mailhog') return lname.includes('mail') || lurl.includes('8025');
+              
+              return lname.includes(svc) || svc.includes(lname.replace(/\s+/g, '-'));
+            });
+            if (matched && matched.url) return matched.url;
+          }
+
+          // 2. Parse from published ports string (e.g., "0.0.0.0:8098->8080/tcp, :::8098->8080/tcp")
+          if (c.ports) {
+            const pStr = String(c.ports);
+            const matches = Array.from(pStr.matchAll(/(?:(?:0\.0\.0\.0|:::|127\.0\.0\.1):)?(\d+)->(\d+)/g));
+            for (const m of matches) {
+              const hostPort = m[1];
+              const containerPort = m[2];
+              const webPorts = ['80', '8080', '8081', '8082', '8083', '8084', '8089', '8090', '8095', '8096', '8098', '8888', '8443', '9001', '9007', '3000', '3001', '5000', '5055', '5678', '8000', '8001', '8002', '8585', '15672', '8123', '8181', '8182', '16686', '9090'];
+              const isWeb = webPorts.includes(containerPort) || webPorts.includes(hostPort);
+              const nonWebDb = ['5432', '5435', '9092', '9094', '7077', '7078', '29092', '29093', '6379', '27017', '9042'];
+              if (isWeb && !nonWebDb.includes(hostPort)) {
+                const proto = (hostPort === '9443' || hostPort === '8444') ? 'https' : 'http';
+                return `${proto}://localhost:${hostPort}`;
+              }
+            }
+          }
+
+          return null;
+        },
+
+        getServiceConnectionInfo(project, c) {
+          if (!project || !c) return null;
+          const svc = (c.service || c.name || '').toLowerCase();
+          if (c.ports) {
+            const pStr = String(c.ports);
+            const match = pStr.match(/(?:(?:0\.0\.0\.0|:::|127\.0\.0\.1):)?(\d+)->(\d+)/);
+            if (match) {
+              const hostPort = match[1];
+              const projClean = (project.name || '').replace(/[^a-zA-Z0-9_]/g, '_').toLowerCase() || 'lakehouse';
+              if (svc.includes('postgres')) return `postgresql://admin:admin123@localhost:${hostPort}/${projClean}`;
+              if (svc.includes('kafka') && !svc.includes('ui')) return `localhost:${hostPort}`;
+              if (svc.includes('redis')) return `redis://localhost:${hostPort}`;
+              if (svc.includes('mongo')) return `mongodb://admin:admin123@localhost:${hostPort}`;
+              if (svc.includes('mysql')) return `mysql://root:admin123@localhost:${hostPort}`;
+              return `localhost:${hostPort}`;
+            }
+          }
+          return null;
+        },
+
+        async copyServiceConnection(project, c) {
+          const info = this.getServiceConnectionInfo(project, c);
+          if (info) {
+            try {
+              await navigator.clipboard.writeText(info);
+              this.showToast('Copiado para Área de Transferência', `Dados de conexão de ${c.service}: ${info}`, 'success');
+            } catch (e) {
+              this.showToast('Conexão', `${c.service}: ${info}`, 'info');
+            }
+          }
         },
 
         toggleSelectForMerge(projectId) {
@@ -3131,10 +3957,16 @@
             .map(s => s.trim())
             .filter(Boolean);
 
+          const customAirflowReqs = (this.form.custom_airflow_requirements_input || '')
+            .split(',')
+            .map(s => s.trim())
+            .filter(Boolean);
+
           const payload = {
             ...this.form,
             custom_ports: cleanedPorts,
-            custom_vscode_extensions: customExts
+            custom_vscode_extensions: customExts,
+            custom_airflow_requirements: customAirflowReqs
           };
 
           try {
@@ -3168,13 +4000,20 @@
           this.selectedProject = project;
           this.selectedLogService = 'all';
           this.showLogsModal = true;
-          this.logsContent = `[StackStudio] 🚀 Subindo containers de "${project.name}" (docker compose up -d --build)...\n[StackStudio] 📡 Conectando ao fluxo de logs ao vivo em tempo real...\n\n`;
+          this.logsContent = `[StackStudio] Subindo containers de "${project.name}" (docker compose up -d --build)...\n[StackStudio] Conectando ao fluxo de logs ao vivo em tempo real...\n\n`;
           this.connectLogsStream();
           this.showToast('Iniciando Projeto', `Subindo "${project.name}". Acompanhe os logs ao vivo no painel.`, 'info');
 
           try {
             const res = await fetch(`/api/projects/${project.id}/start`, { method: 'POST' });
             if (res.ok) {
+              const data = await res.json();
+              if (data.details?.stdout) {
+                this.logsContent += `\n${data.details.stdout}\n`;
+              }
+              if (data.details?.stderr) {
+                this.logsContent += `\n${data.details.stderr}\n`;
+              }
               this.logsContent += `\n[StackStudio] ✅ Todos os containers de "${project.name}" foram iniciados com sucesso!\n`;
               this.showToast('Projeto Iniciado', `Serviços de "${project.name}" foram iniciados com sucesso!`, 'success');
             } else {
@@ -3319,14 +4158,25 @@
         connectLogsStream() {
           if (this.logEventSource) {
             this.logEventSource.close();
+            this.logEventSource = null;
           }
 
           const svcParam = this.selectedLogService && this.selectedLogService !== 'all' ? `?service=${this.selectedLogService}` : '';
-          this.logsContent += `[StackStudio] 📡 Conectando aos logs de ${this.selectedProject?.name} [${this.selectedLogService}]...\n`;
+          let connectedLogged = false;
 
           this.logEventSource = new EventSource(`/api/projects/${this.selectedProject?.id}/logs${svcParam}`);
           this.logEventSource.onmessage = (event) => {
-            this.logsContent += event.data + '\n';
+            let line = event.data || '';
+            if (line.includes('[StackStudio SSE] Conectado ao fluxo de logs')) {
+              if (connectedLogged) return;
+              connectedLogged = true;
+            }
+            // Clean ANSI escape codes so logs are crisp and readable
+            line = line.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '')
+                       .replace(/\[\[[0-9;]+m/g, '')
+                       .replace(/\[0m\]/g, ']')
+                       .replace(/\[[0-9;]+m/g, '');
+            this.logsContent += line + '\n';
             if (this.logsAutoScroll) {
               this.$nextTick(() => {
                 const el = document.getElementById('terminal-body');
@@ -3335,7 +4185,7 @@
             }
           };
           this.logEventSource.onerror = () => {
-            // Keep connection alive or allow reconnection
+            // Reconnection handled gracefully by EventSource without visual flooding
           };
         },
 

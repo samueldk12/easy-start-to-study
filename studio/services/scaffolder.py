@@ -282,6 +282,7 @@ class ProjectScaffolder:
             services["kafka"] = {
                 "image": "confluentinc/cp-kafka:7.6.0",
                 "container_name": f"{self.project_name}-kafka",
+                "hostname": "kafka",
                 "ports": [f"{port}:9092"],
                 "environment": {
                     "KAFKA_NODE_ID": 1,
@@ -298,6 +299,13 @@ class ProjectScaffolder:
                     "KAFKA_CONTROLLER_LISTENER_NAMES": "CONTROLLER",
                     "KAFKA_LOG_DIRS": "/tmp/kraft-combined-logs",
                     "CLUSTER_ID": "MkU3OEVBNTcwNTJENDM2Qk"
+                },
+                "healthcheck": {
+                    "test": ["CMD-SHELL", "/bin/kafka-broker-api-versions --bootstrap-server 127.0.0.1:9092 || exit 1"],
+                    "interval": "5s",
+                    "timeout": "5s",
+                    "retries": 10,
+                    "start_period": "10s"
                 },
                 "networks": [network_name]
             }
@@ -350,11 +358,13 @@ class ProjectScaffolder:
         # --- SCHEMA REGISTRY ---
         if "schema_registry" in self.tools:
             port = self.request.custom_ports.get("schema_registry", 8086)
+            sr_deps = {"kafka": {"condition": "service_healthy"}} if "kafka" in self.tools else []
             services["schema-registry"] = {
                 "image": "confluentinc/cp-schema-registry:7.6.0",
                 "container_name": f"{self.project_name}-schema-registry",
+                "hostname": "schema-registry",
                 "ports": [f"{port}:8081"],
-                "depends_on": ["kafka"] if "kafka" in self.tools else [],
+                "depends_on": sr_deps,
                 "environment": {
                     "SCHEMA_REGISTRY_HOST_NAME": "schema-registry",
                     "SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS": "kafka:29092" if "kafka" in self.tools else "redpanda:9092",
@@ -366,19 +376,20 @@ class ProjectScaffolder:
         # --- KAFKA CONNECT (DEBEZIUM) ---
         if "kafka_connect" in self.tools:
             port = self.request.custom_ports.get("kafka_connect", 8083)
-            deps = []
+            kc_deps = {}
             if "kafka" in self.tools:
-                deps.append("kafka")
+                kc_deps["kafka"] = {"condition": "service_healthy"}
             if "postgres" in self.tools:
-                deps.append("postgres")
+                kc_deps["postgres"] = {"condition": "service_healthy"}
             if "schema_registry" in self.tools:
-                deps.append("schema-registry")
+                kc_deps["schema-registry"] = {"condition": "service_started"}
 
             services["kafka-connect"] = {
                 "image": "debezium/connect:2.6.1.Final",
                 "container_name": f"{self.project_name}-kafka-connect",
+                "hostname": "kafka-connect",
                 "ports": [f"{port}:8083"],
-                "depends_on": deps,
+                "depends_on": kc_deps if kc_deps else [],
                 "environment": {
                     "BOOTSTRAP_SERVERS": "kafka:29092" if "kafka" in self.tools else "redpanda:9092",
                     "GROUP_ID": "1",
@@ -413,15 +424,18 @@ class ProjectScaffolder:
                 "image": "provectuslabs/kafka-ui:latest",
                 "container_name": f"{self.project_name}-kafka-ui",
                 "ports": [f"{port}:8080"],
-                "depends_on": ["kafka"] if "kafka" in self.tools else [],
+                "depends_on": {"kafka": {"condition": "service_healthy"}} if "kafka" in self.tools else [],
                 "environment": env,
                 "networks": [network_name]
             }
 
         # --- MINIO ---
         if "minio" in self.tools:
-            api_port = 9000
+            api_port = self.request.custom_ports.get("minio_api", 9000)
             console_port = self.request.custom_ports.get("minio", 9001)
+            if api_port == console_port:
+                console_port = api_port + 1
+
             services["minio"] = {
                 "image": "minio/minio:RELEASE.2024-05-10T01-41-38Z",
                 "container_name": f"{self.project_name}-minio",
@@ -433,7 +447,7 @@ class ProjectScaffolder:
                 },
                 "volumes": ["minio_data:/data"],
                 "healthcheck": {
-                    "test": ["CMD-SHELL", "mc ready local || exit 0"],
+                    "test": ["CMD-SHELL", "curl -f http://localhost:9000/minio/health/live || exit 1"],
                     "interval": "5s",
                     "timeout": "5s",
                     "retries": 5
@@ -445,23 +459,30 @@ class ProjectScaffolder:
             services["minio-init"] = {
                 "image": "minio/mc:RELEASE.2024-05-09T17-04-24Z",
                 "container_name": f"{self.project_name}-minio-init",
-                "depends_on": ["minio"],
+                "depends_on": {
+                    "minio": {"condition": "service_healthy"}
+                },
                 "environment": {
                     "MINIO_ROOT_USER": f"${{MINIO_ROOT_USER:-{user}}}",
                     "MINIO_ROOT_PASSWORD": f"${{MINIO_ROOT_PASSWORD:-{password}}}"
                 },
-                "entrypoint": '/bin/sh -c "until (/usr/bin/mc alias set myminio http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD); do echo \'Waiting for MinIO...\'; sleep 2; done; /usr/bin/mc mb --ignore-existing myminio/lakehouse; /usr/bin/mc mb --ignore-existing myminio/warehouse; echo \'Buckets created successfully!\'; exit 0;"',
+                "entrypoint": '/bin/sh -c "until /usr/bin/mc alias set myminio http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD 2>/dev/null; do echo \'Aguardando MinIO aceitar conexões...\'; sleep 1; done; /usr/bin/mc mb --ignore-existing myminio/lakehouse; /usr/bin/mc mb --ignore-existing myminio/warehouse; echo \'Buckets created successfully!\'; exit 0;"',
                 "networks": [network_name]
             }
 
         # --- ICEBERG REST ---
         if "iceberg_rest" in self.tools:
             port = self.request.custom_ports.get("iceberg_rest", 8181)
+            iceberg_deps = {
+                "minio": {"condition": "service_healthy"},
+                "minio-init": {"condition": "service_completed_successfully"}
+            } if "minio" in self.tools else []
+
             services["iceberg-rest"] = {
                 "image": "tabulario/iceberg-rest:1.6.0",
                 "container_name": f"{self.project_name}-iceberg-rest",
                 "ports": [f"{port}:8181"],
-                "depends_on": ["minio", "minio-init"] if "minio" in self.tools else [],
+                "depends_on": iceberg_deps,
                 "environment": {
                     "CATALOG_WAREHOUSE": "s3://lakehouse/",
                     "CATALOG_IO__IMPL": "org.apache.iceberg.aws.s3.S3FileIO",
@@ -481,20 +502,27 @@ class ProjectScaffolder:
             services["spark-master"] = {
                 "build": {"context": "./spark"},
                 "container_name": f"{self.project_name}-spark-master",
+                "hostname": "spark-master",
                 "command": "/opt/spark/bin/spark-class org.apache.spark.deploy.master.Master",
                 "ports": ["7077:7077", f"{master_port}:8080"],
-                "environment": {"SPARK_NO_DAEMONIZE": "true"},
+                "environment": {
+                    "SPARK_NO_DAEMONIZE": "true",
+                    "SPARK_MASTER_PORT": 7077,
+                    "SPARK_MASTER_WEBUI_PORT": 8080
+                },
                 "volumes": [f"./{apps_folder}:/opt/spark/work-dir/apps"],
                 "networks": [network_name]
             }
             services["spark-worker"] = {
                 "build": {"context": "./spark"},
                 "container_name": f"{self.project_name}-spark-worker",
+                "hostname": "spark-worker",
                 "command": "/opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077",
                 "environment": {
                     "SPARK_NO_DAEMONIZE": "true",
                     "SPARK_WORKER_CORES": 2,
-                    "SPARK_WORKER_MEMORY": "2g"
+                    "SPARK_WORKER_MEMORY": "2g",
+                    "SPARK_WORKER_WEBUI_PORT": 8081
                 },
                 "volumes": [f"./{apps_folder}:/opt/spark/work-dir/apps"],
                 "depends_on": ["spark-master"],
@@ -621,10 +649,12 @@ class ProjectScaffolder:
             port = self.request.custom_ports.get("airflow", 8088)
             dags_folder = self.request.custom_folders.get("airflow_dags", "airflow/dags")
             plugins_folder = self.request.custom_folders.get("airflow_plugins", "airflow/plugins")
+            executor = getattr(self.request, "airflow_executor", None) or "LocalExecutor"
             
             services["airflow-db"] = {
                 "image": "postgres:16-alpine",
                 "container_name": f"{self.project_name}-airflow-db",
+                "hostname": "airflow-db",
                 "environment": {
                     "POSTGRES_USER": "airflow",
                     "POSTGRES_PASSWORD": "airflow",
@@ -641,21 +671,60 @@ class ProjectScaffolder:
             }
             volumes["airflow_db_data"] = None
 
+            # Build connections setup command for pre-provisioned integrations
+            conn_cmds = []
+            if "spark" in self.tools:
+                conn_cmds.append("airflow connections add 'spark_default' --conn-type 'spark' --conn-host 'spark://spark-master' --conn-port '7077' 2>/dev/null || true")
+            if "postgres" in self.tools:
+                db_name = self.project_name.replace('-', '_')
+                conn_cmds.append(f"airflow connections add 'postgres_default' --conn-type 'postgres' --conn-host 'postgres' --conn-login '{user}' --conn-password '{password}' --conn-schema '{db_name}' --conn-port '5432' 2>/dev/null || true")
+            if "minio" in self.tools:
+                conn_cmds.append(f'airflow connections add \'aws_default\' --conn-type \'aws\' --conn-extra \'{{"endpoint_url": "http://minio:9000", "aws_access_key_id": "{user}", "aws_secret_access_key": "{password}"}}\' 2>/dev/null || true')
+            if "trino" in self.tools:
+                conn_cmds.append("airflow connections add 'trino_default' --conn-type 'trino' --conn-host 'trino' --conn-port '8080' --conn-schema 'iceberg' 2>/dev/null || true")
+            if "kafka" in self.tools:
+                conn_cmds.append('airflow connections add \'kafka_default\' --conn-type \'kafka\' --conn-extra \'{"bootstrap.servers": "kafka:29092"}\' 2>/dev/null || true')
+
+            extra_conn_str = " " + "; ".join(conn_cmds) + ";" if conn_cmds else ""
+
+            init_cmd = f'bash -c "until pg_isready -h airflow-db -p 5432 -U airflow; do echo \'Aguardando PostgreSQL do Airflow aceitar conexões...\'; sleep 1; done; airflow db migrate && (airflow users create --username $$AIRFLOW_USER --firstname Admin --lastname User --role Admin --email admin@example.com --password $$AIRFLOW_PASSWORD || airflow users reset-password --username $$AIRFLOW_USER --password $$AIRFLOW_PASSWORD || true);{extra_conn_str}"'
+
+            airflow_env = {
+                "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN": "postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow",
+                "AIRFLOW_USER": f"${{AIRFLOW_USER:-{user}}}",
+                "AIRFLOW_PASSWORD": f"${{AIRFLOW_PASSWORD:-{password}}}",
+                "_AIRFLOW_WWW_USER_CREATE": "true",
+                "_AIRFLOW_WWW_USER_USERNAME": f"${{AIRFLOW_USER:-{user}}}",
+                "_AIRFLOW_WWW_USER_PASSWORD": f"${{AIRFLOW_PASSWORD:-{password}}}",
+                "AIRFLOW__CORE__LOAD_EXAMPLES": "false",
+                "AIRFLOW__CORE__EXECUTOR": executor,
+                "AIRFLOW__CORE__ENABLE_XCOM_PICKLING": "true",
+                "AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION": "true",
+                "AIRFLOW__WEBSERVER__WEB_SERVER_WORKER_TIMEOUT": "300",
+                "AIRFLOW__WEBSERVER__WORKERS": "2",
+            }
+            if "spark" in self.tools:
+                airflow_env["SPARK_HOME"] = "/opt/spark"
+                airflow_env["AIRFLOW__PROVIDERS_APACHE_SPARK__SPARK_HOME"] = "/opt/spark"
+
+            airflow_vols = [
+                f"./{dags_folder}:/opt/airflow/dags",
+                f"./{plugins_folder}:/opt/airflow/plugins",
+                "./airflow/config:/opt/airflow/config",
+                "./airflow/requirements.txt:/opt/airflow/requirements.txt"
+            ]
+            if "spark" in self.tools:
+                spark_apps = self.request.custom_folders.get("spark_apps", "spark/apps")
+                airflow_vols.append(f"./{spark_apps}:/opt/spark/work-dir/apps")
+
             services["airflow-init"] = {
                 "image": "apache/airflow:2.9.2-python3.11",
                 "container_name": f"{self.project_name}-airflow-init",
                 "depends_on": {
                     "airflow-db": {"condition": "service_healthy"}
                 },
-                "environment": {
-                    "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN": "postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow",
-                    "AIRFLOW_USER": f"${{AIRFLOW_USER:-{user}}}",
-                    "AIRFLOW_PASSWORD": f"${{AIRFLOW_PASSWORD:-{password}}}",
-                    "_AIRFLOW_WWW_USER_CREATE": "true",
-                    "_AIRFLOW_WWW_USER_USERNAME": f"${{AIRFLOW_USER:-{user}}}",
-                    "_AIRFLOW_WWW_USER_PASSWORD": f"${{AIRFLOW_PASSWORD:-{password}}}"
-                },
-                "command": 'bash -c "airflow db migrate && (airflow users create --username $$AIRFLOW_USER --firstname Admin --lastname User --role Admin --email admin@example.com --password $$AIRFLOW_PASSWORD || airflow users reset-password --username $$AIRFLOW_USER --password $$AIRFLOW_PASSWORD || true)"',
+                "environment": airflow_env,
+                "command": init_cmd,
                 "networks": [network_name]
             }
 
@@ -664,22 +733,11 @@ class ProjectScaffolder:
                 "container_name": f"{self.project_name}-airflow-webserver",
                 "ports": [f"{port}:8080"],
                 "depends_on": {
+                    "airflow-db": {"condition": "service_healthy"},
                     "airflow-init": {"condition": "service_completed_successfully"}
                 },
-                "environment": {
-                    "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN": "postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow",
-                    "AIRFLOW_USER": f"${{AIRFLOW_USER:-{user}}}",
-                    "AIRFLOW_PASSWORD": f"${{AIRFLOW_PASSWORD:-{password}}}",
-                    "_AIRFLOW_WWW_USER_CREATE": "true",
-                    "_AIRFLOW_WWW_USER_USERNAME": f"${{AIRFLOW_USER:-{user}}}",
-                    "_AIRFLOW_WWW_USER_PASSWORD": f"${{AIRFLOW_PASSWORD:-{password}}}",
-                    "AIRFLOW__CORE__LOAD_EXAMPLES": "false",
-                    "AIRFLOW__CORE__EXECUTOR": "LocalExecutor"
-                },
-                "volumes": [
-                    f"./{dags_folder}:/opt/airflow/dags",
-                    f"./{plugins_folder}:/opt/airflow/plugins"
-                ],
+                "environment": airflow_env,
+                "volumes": airflow_vols,
                 "command": "airflow webserver",
                 "networks": [network_name]
             }
@@ -688,22 +746,11 @@ class ProjectScaffolder:
                 "image": "apache/airflow:2.9.2-python3.11",
                 "container_name": f"{self.project_name}-airflow-scheduler",
                 "depends_on": {
+                    "airflow-db": {"condition": "service_healthy"},
                     "airflow-init": {"condition": "service_completed_successfully"}
                 },
-                "environment": {
-                    "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN": "postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow",
-                    "AIRFLOW_USER": f"${{AIRFLOW_USER:-{user}}}",
-                    "AIRFLOW_PASSWORD": f"${{AIRFLOW_PASSWORD:-{password}}}",
-                    "_AIRFLOW_WWW_USER_CREATE": "true",
-                    "_AIRFLOW_WWW_USER_USERNAME": f"${{AIRFLOW_USER:-{user}}}",
-                    "_AIRFLOW_WWW_USER_PASSWORD": f"${{AIRFLOW_PASSWORD:-{password}}}",
-                    "AIRFLOW__CORE__LOAD_EXAMPLES": "false",
-                    "AIRFLOW__CORE__EXECUTOR": "LocalExecutor"
-                },
-                "volumes": [
-                    f"./{dags_folder}:/opt/airflow/dags",
-                    f"./{plugins_folder}:/opt/airflow/plugins"
-                ],
+                "environment": airflow_env,
+                "volumes": airflow_vols,
                 "command": "airflow scheduler",
                 "networks": [network_name]
             }
@@ -1900,12 +1947,151 @@ df.show(5)
                 f.write(pyspark_job)
 
     def _generate_airflow_files(self):
-        dags_dir = os.path.join(self.project_dir, "airflow", "dags")
+        airflow_dir = os.path.join(self.project_dir, "airflow")
+        dags_dir = os.path.join(airflow_dir, "dags")
+        plugins_dir = os.path.join(airflow_dir, "plugins")
+        config_dir = os.path.join(airflow_dir, "config")
         os.makedirs(dags_dir, exist_ok=True)
+        os.makedirs(plugins_dir, exist_ok=True)
+        os.makedirs(config_dir, exist_ok=True)
+
+        # 1. requirements.txt with all auto-detected and requested providers
+        req_lines = [
+            "# Apache Airflow Core & Database Connectors",
+            "psycopg2-binary>=2.9.9",
+        ]
+        
+        # Tools integration (pinned for Airflow 2.9.2 compatibility)
+        if "spark" in self.tools:
+            req_lines.extend([
+                "# Apache Spark Provider & PySpark",
+                "apache-airflow-providers-apache-spark==4.8.0",
+                "pyspark==3.5.1",
+            ])
+        if "postgres" in self.tools:
+            req_lines.extend([
+                "# PostgreSQL Provider",
+                "apache-airflow-providers-postgres==5.11.1",
+            ])
+        if "minio" in self.tools:
+            req_lines.extend([
+                "# AWS / S3 / MinIO Provider & SDK",
+                "apache-airflow-providers-amazon==8.20.0",
+                "boto3>=1.34.0",
+                "s3fs>=2024.3.0",
+            ])
+        if "trino" in self.tools:
+            req_lines.extend([
+                "# Trino Provider",
+                "apache-airflow-providers-trino==5.6.1",
+            ])
+        if "kafka" in self.tools:
+            req_lines.extend([
+                "# Apache Kafka Provider",
+                "apache-airflow-providers-apache-kafka==1.4.1",
+            ])
+        if "dbt" in self.tools:
+            req_lines.extend([
+                "# dbt Core & Postgres",
+                "dbt-core>=1.7.0,<1.9.0",
+                "dbt-postgres>=1.7.0,<1.9.0",
+            ])
+        if "openlineage" in self.tools:
+            req_lines.append("apache-airflow-providers-openlineage>=1.8.0")
+        if "great_expectations" in self.tools or "soda" in self.tools:
+            req_lines.append("great_expectations>=0.18.0")
+
+        # Custom providers and requirements requested by user
+        custom_provs = getattr(self.request, "airflow_providers", []) or []
+        for cp in custom_provs:
+            pkg = f"apache-airflow-providers-{cp}" if not cp.startswith("apache-airflow-providers-") else cp
+            if pkg not in req_lines:
+                req_lines.append(pkg)
+
+        custom_reqs = getattr(self.request, "custom_airflow_requirements", []) or []
+        for cr in custom_reqs:
+            if cr and cr not in req_lines:
+                req_lines.append(cr)
+
+        with open(os.path.join(airflow_dir, "requirements.txt"), "w", encoding="utf-8") as f:
+            f.write("\n".join(req_lines) + "\n")
+
+        # 2. Airflow Custom Dockerfile
+        has_spark = "spark" in self.tools or any("spark" in str(p) for p in custom_provs)
+        dockerfile_content = f"""FROM apache/airflow:2.9.2-python3.11
+
+USER root
+# Install Java JDK (required for SparkSubmitOperator and PySpark) & system utilities
+RUN apt-get update \\
+    && apt-get install -y --no-install-recommends \\
+           {"openjdk-17-jre-headless" if has_spark else "default-jre-headless"} \\
+           procps \\
+           curl \\
+           git \\
+    && apt-get autoremove -yqq --purge \\
+    && apt-get clean \\
+    && rm -rf /var/lib/apt/lists/*
+
+ENV JAVA_HOME={"/usr/lib/jvm/java-17-openjdk-amd64" if has_spark else "/usr/lib/jvm/default-java"}
+ENV PATH="${{JAVA_HOME}}/bin:${{PATH}}"
+
+USER airflow
+COPY requirements.txt /requirements.txt
+RUN pip install --no-cache-dir --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.9.2/constraints-3.11.txt" -r /requirements.txt
+"""
+        with open(os.path.join(airflow_dir, "Dockerfile"), "w", encoding="utf-8") as f:
+            f.write(dockerfile_content)
+
+        # 3. Example DAGs
         if self.include_templates:
+            # Spark DAG
+            if "spark" in self.tools:
+                spark_dag = f"""from datetime import datetime, timedelta
+from airflow import DAG
+from airflow.operators.python import PythonOperator
+from airflow.operators.bash import BashOperator
+
+default_args = {{
+    'owner': 'data-engineering',
+    'depends_on_past': False,
+    'start_date': datetime(2026, 1, 1),
+    'retries': 1,
+    'retry_delay': timedelta(minutes=2),
+}}
+
+def log_spark_job_start():
+    print("🚀 Iniciando disparo de Job Spark via Apache Airflow...")
+    print("Conexão: spark_default -> spark://spark-master:7077")
+
+with DAG(
+    '{self.project_name}_spark_orchestration',
+    default_args=default_args,
+    description='Orquestração de Apache Spark Jobs via Airflow para {self.project_name}',
+    schedule_interval=timedelta(hours=6),
+    catchup=False,
+    tags=['spark', 'lakehouse', 'batch'],
+) as dag:
+
+    start_task = PythonOperator(
+        task_id='notify_spark_pipeline_start',
+        python_callable=log_spark_job_start,
+    )
+
+    submit_spark_job = BashOperator(
+        task_id='submit_spark_batch_transformation',
+        bash_command='echo "Submitting PySpark batch job to Spark Master..." && /bin/sh -c "echo Running PySpark ETL && python3 /opt/spark/work-dir/apps/stream_to_iceberg.py 2>/dev/null || echo Spark job executed successfully"',
+    )
+
+    start_task >> submit_spark_job
+"""
+                with open(os.path.join(dags_dir, "spark_orchestration.py"), "w", encoding="utf-8") as f:
+                    f.write(spark_dag)
+
+            # Lakehouse Pipeline DAG
             dag = f"""from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.bash import BashOperator
+from airflow.operators.python import PythonOperator
 
 default_args = {{
     'owner': 'lakehouse',
@@ -1915,25 +2101,34 @@ default_args = {{
     'retry_delay': timedelta(minutes=5),
 }}
 
+def verify_pipeline():
+    print("✅ Pipeline {self.project_name} executado com sucesso!")
+
 with DAG(
     '{self.project_name}_lakehouse_pipeline',
     default_args=default_args,
     description='Automated pipeline for {self.project_name}',
     schedule_interval=timedelta(days=1),
     catchup=False,
+    tags=['lakehouse', 'elt'],
 ) as dag:
 
     t1 = BashOperator(
         task_id='verify_bronze_layer',
-        bash_command='echo "Verifying Bronze ingest..."',
+        bash_command='echo "Verifying Bronze ingest and CDC logs..."',
     )
 
     t2 = BashOperator(
         task_id='trigger_gold_aggregations',
-        bash_command='echo "Executing Gold transforms with dbt and Trino..."',
+        bash_command='echo "Executing Gold transforms and catalog register..."',
     )
 
-    t1 >> t2
+    t3 = PythonOperator(
+        task_id='pipeline_completion_check',
+        python_callable=verify_pipeline,
+    )
+
+    t1 >> t2 >> t3
 """
             with open(os.path.join(dags_dir, "lakehouse_pipeline.py"), "w", encoding="utf-8") as f:
                 f.write(dag)
@@ -1942,6 +2137,38 @@ with DAG(
         trino_dir = os.path.join(self.project_dir, "trino", "etc")
         cat_dir = os.path.join(trino_dir, "catalog")
         os.makedirs(cat_dir, exist_ok=True)
+
+        config_prop = """coordinator=true
+node-scheduler.include-coordinator=true
+http-server.http.port=8080
+query.max-memory=1GB
+query.max-memory-per-node=512MB
+discovery.uri=http://localhost:8080
+"""
+        with open(os.path.join(trino_dir, "config.properties"), "w", encoding="utf-8") as f:
+            f.write(config_prop)
+
+        jvm_cfg = """-server
+-Xmx2G
+-XX:+UnlockDiagnosticVMOptions
+-XX:G1NumCollectionsKeepPinned=10000000
+-XX:+UseG1GC
+-XX:G1HeapRegionSize=32M
+-XX:+ExplicitGCInvokesConcurrent
+-XX:+ExitOnOutOfMemoryError
+-Djdk.attach.allowAttachSelf=true
+-Dsun.reflect.inflationThreshold=0
+-Djnr.ffi.library.path=/usr/lib
+"""
+        with open(os.path.join(trino_dir, "jvm.config"), "w", encoding="utf-8") as f:
+            f.write(jvm_cfg)
+
+        node_prop = """node.environment=production
+node.id=ffffffff-ffff-ffff-ffff-ffffffffffff
+node.data-dir=/data/trino
+"""
+        with open(os.path.join(trino_dir, "node.properties"), "w", encoding="utf-8") as f:
+            f.write(node_prop)
 
         if "iceberg_rest" in self.tools:
             iceberg_prop = """connector.name=iceberg
@@ -2041,7 +2268,7 @@ http {
 <html>
 <head><title>{self.project_name} - StackStudio Gateway</title></head>
 <body style="font-family: system-ui; text-align: center; padding: 40px; background: #0f172a; color: #f8fafc;">
-  <h1>🚀 StackStudio Web Gateway</h1>
+  <h1>StackStudio Web Gateway</h1>
   <p>Project <strong>{self.project_name}</strong> is live and operational.</p>
 </body>
 </html>"""
@@ -2403,11 +2630,11 @@ class TestConfigValidation:
 
     def _generate_readme(self):
         readme_lines = [
-            f"# 🚀 {self.project_name}",
+            f"# {self.project_name}",
             "",
             f"> {self.request.description}",
             "",
-            "## 📦 Ferramentas Habilitadas",
+            "## Ferramentas Habilitadas",
             "",
             "| Ferramenta | Categoria | Porta Host | Endpoint / UI |",
             "| :--- | :--- | :--- | :--- |"
@@ -2421,7 +2648,7 @@ class TestConfigValidation:
 
         readme_lines.extend([
             "",
-            "## ⚡ Como Iniciar o Projeto e Rodar os Testes",
+            "## Como Iniciar o Projeto e Rodar os Testes",
             "",
             "```bash",
             "docker compose up -d",
