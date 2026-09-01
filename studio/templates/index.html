@@ -91,46 +91,57 @@
         </div>
       </div>
 
-      <div class="flex items-center space-x-3">
-        <!-- Global Network & Containers Overview Button -->
-        <a href="/network" class="px-3.5 py-1.5 text-xs font-semibold text-cyan-300 hover:text-white bg-cyan-950/40 hover:bg-cyan-900/60 rounded-xl border border-cyan-800/60 flex items-center gap-1.5 transition cursor-pointer shadow-sm shadow-cyan-900/20" title="Ver todos os containers ativos, portas alocadas e quem se liga a quem">
-          <svg class="w-4 h-4 text-cyan-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-          <span>Topologia & Containers</span>
-        </a>
+      <div class="flex items-center space-x-2">
+        <!-- Consolidated Tools Menu (Topologia, Importar, Unificar, Gestão, Histórico, Plugins, Cofre) -->
+        <div class="relative">
+          <button @click="showToolsMenu = !showToolsMenu" class="px-3.5 py-1.5 text-xs font-semibold text-slate-300 hover:text-white bg-slate-800/70 hover:bg-slate-700 rounded-xl border border-slate-700 flex items-center gap-1.5 transition cursor-pointer">
+            <svg class="w-4 h-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            <span>Ferramentas</span>
+            <svg class="w-3 h-3 pointer-events-none transition" :class="{'rotate-180': showToolsMenu}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
 
-        <!-- Import Existing Folder Button -->
-        <button @click="openImportModal()" class="px-3.5 py-1.5 text-xs font-semibold text-emerald-300 hover:text-white bg-emerald-950/40 hover:bg-emerald-900/60 rounded-xl border border-emerald-800/60 flex items-center gap-1.5 transition cursor-pointer">
-          <svg class="w-4 h-4 text-emerald-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-          <span>Importar Pasta</span>
-        </button>
+          <div x-show="showToolsMenu" x-cloak @click.away="showToolsMenu = false"
+               x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
+               class="absolute right-0 mt-2 w-72 bg-dark-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden z-40 py-1.5">
+            <a href="/network" class="flex items-center gap-2.5 px-3.5 py-2.5 text-xs text-slate-300 hover:bg-slate-800 hover:text-white transition">
+              <svg class="w-4 h-4 text-cyan-400 pointer-events-none shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              <span>Topologia & Containers</span>
+            </a>
+            <button @click="showToolsMenu = false; openImportModal()" class="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs text-slate-300 hover:bg-slate-800 hover:text-white transition text-left cursor-pointer">
+              <svg class="w-4 h-4 text-emerald-400 pointer-events-none shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+              <span>Importar Pasta</span>
+            </button>
+            <button @click="showToolsMenu = false; openMergeModal()" class="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs text-slate-300 hover:bg-slate-800 hover:text-white transition text-left cursor-pointer" title="Mesclar 2 ou mais projetos em um Workspace Multi-Root com abertura de múltiplas pastas no VS Code">
+              <svg class="w-4 h-4 text-purple-400 pointer-events-none shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+              <span>Unificar Projetos</span>
+            </button>
+            <button @click="showToolsMenu = false; openGovernanceModal()" class="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs text-slate-300 hover:bg-slate-800 hover:text-white transition text-left cursor-pointer" title="Gestão de Projetos, Inatividade e Limpeza de Imagens Docker">
+              <svg class="w-4 h-4 text-rose-400 pointer-events-none shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              <span>Gestão & Limpeza</span>
+            </button>
+            <button @click="showToolsMenu = false; openHistoryModal()" class="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs text-slate-300 hover:bg-slate-800 hover:text-white transition text-left cursor-pointer" title="Histórico de Ações, Containers e Auditoria">
+              <svg class="w-4 h-4 text-amber-400 pointer-events-none shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span>Histórico</span>
+            </button>
 
-        <!-- Unify / Merge Projects Button -->
-        <button @click="openMergeModal()" class="px-3.5 py-1.5 text-xs font-semibold text-purple-300 hover:text-white bg-purple-950/40 hover:bg-purple-900/60 rounded-xl border border-purple-800/60 flex items-center gap-1.5 transition cursor-pointer" title="Mesclar 2 ou mais projetos em um Workspace Multi-Root com abertura de múltiplas pastas no VS Code">
-          <svg class="w-4 h-4 text-purple-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-          <span>Unificar Projetos</span>
-        </button>
+            <div class="border-t border-slate-800 my-1"></div>
 
-        <!-- Governance & Auto-Cleanup Button -->
-        <button @click="openGovernanceModal()" class="px-3.5 py-1.5 text-xs font-semibold text-rose-300 hover:text-white bg-rose-950/40 hover:bg-rose-900/60 rounded-xl border border-rose-800/60 flex items-center gap-1.5 transition cursor-pointer" title="Gestão de Projetos, Inatividade e Limpeza de Imagens Docker">
-          <svg class="w-4 h-4 text-rose-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-          <span>Gestão & Limpeza</span>
-        </button>
+            <button @click="showToolsMenu = false; openPluginsModal()" class="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs text-slate-300 hover:bg-slate-800 hover:text-white transition text-left cursor-pointer">
+              <i data-lucide="puzzle" class="w-4 h-4 text-cyan-400 pointer-events-none shrink-0"></i>
+              <span class="flex-1">Plugins</span>
+              <span class="px-1.5 py-0.2 bg-cyan-500/20 text-cyan-300 rounded-full text-[10px]" x-text="plugins.length"></span>
+            </button>
+            <button @click="showToolsMenu = false; openVaultModal()" class="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs text-slate-300 hover:bg-slate-800 hover:text-white transition text-left cursor-pointer" title="Cofre de Credenciais — armazenamento local criptografado de segredos e credenciais de cloud">
+              <svg x-show="!vaultStatus.unlocked" class="w-4 h-4 text-yellow-400 pointer-events-none shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+              <svg x-show="vaultStatus.unlocked" x-cloak class="w-4 h-4 text-emerald-400 pointer-events-none shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-9 4h10a2 2 0 012 2v6a2 2 0 01-2 2H7a2 2 0 01-2-2v-6a2 2 0 012-2z"/></svg>
+              <span class="flex-1">Cofre de Credenciais</span>
+              <span x-show="vaultStatus.credential_count > 0" class="px-1.5 py-0.2 bg-yellow-500/20 text-yellow-300 rounded-full text-[10px]" x-text="vaultStatus.credential_count"></span>
+            </button>
+          </div>
+        </div>
 
-        <!-- History / Audit Log Button -->
-        <button @click="openHistoryModal()" class="px-3.5 py-1.5 text-xs font-semibold text-amber-300 hover:text-white bg-amber-950/40 hover:bg-amber-900/60 rounded-xl border border-amber-800/60 flex items-center gap-1.5 transition cursor-pointer" title="Histórico de Ações, Containers e Auditoria">
-          <svg class="w-4 h-4 text-amber-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          <span>Histórico</span>
-        </button>
-
-        <button @click="openPluginsModal()" class="px-3.5 py-1.5 text-xs font-semibold text-cyan-300 hover:text-white bg-cyan-950/40 hover:bg-cyan-900/60 rounded-xl border border-cyan-800/60 flex items-center gap-1.5 transition">
-          <i data-lucide="puzzle" class="w-4 h-4 text-cyan-400 pointer-events-none"></i>
-          <span>Plugins</span>
-          <span class="px-1.5 py-0.2 bg-cyan-500/20 text-cyan-300 rounded-full text-[10px]" x-text="plugins.length"></span>
-        </button>
-
-        <button @click="refreshProjects()" class="px-3 py-1.5 text-xs font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 flex items-center gap-1.5 transition">
-          <svg class="w-3.5 h-3.5" :class="{'animate-spin': isRefreshing}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-          Atualizar
+        <button @click="refreshProjects()" title="Atualizar" class="p-2 text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 transition cursor-pointer">
+          <svg class="w-4 h-4" :class="{'animate-spin': isRefreshing}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
         </button>
 
         <button @click="openCreateModal()" class="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 rounded-xl shadow-lg shadow-brand-600/30 flex items-center gap-2 transition active:scale-95">
@@ -1224,6 +1235,232 @@
     </div>
   </div>
 
+  <!-- MODAL: COFRE DE CREDENCIAIS (CLOUD & GENÉRICAS) -->
+  <div x-show="showVaultModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div @click.away="showVaultModal = false" class="bg-dark-900 border border-yellow-700/40 rounded-2xl max-w-4xl w-full p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-yellow-500/20 text-yellow-400 flex items-center justify-center">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-white">Cofre de Credenciais</h2>
+            <p class="text-xs text-slate-400">Segredos genéricos e credenciais de cloud (AWS, GCP, Azure...) criptografados localmente com sua senha mestra</p>
+          </div>
+        </div>
+        <button @click="showVaultModal = false" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- STEP 1: VAULT NOT YET INITIALIZED -->
+      <div x-show="!vaultStatus.initialized" x-cloak class="space-y-4">
+        <div class="p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl text-xs text-yellow-200 leading-relaxed">
+          Nenhum cofre foi criado ainda. Defina uma <strong>senha mestra</strong> — ela nunca é salva em disco, apenas usada para derivar a chave de criptografia. Todo credencial ficará ilegível sem ela, e o cofre é bloqueado automaticamente sempre que o StackStudio for reiniciado. Não há recuperação de senha: se você esquecê-la, precisará apagar <code class="bg-black/30 px-1 rounded">data/credentials.vault.json</code> e recomeçar.
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[10px] text-slate-400 mb-1">Nova Senha Mestra (mín. 8 caracteres)</label>
+            <input type="password" x-model="vaultSetupPassword" @keydown.enter="setupVault()" placeholder="••••••••" class="w-full bg-dark-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
+          </div>
+          <div>
+            <label class="block text-[10px] text-slate-400 mb-1">Confirmar Senha Mestra</label>
+            <input type="password" x-model="vaultSetupPasswordConfirm" @keydown.enter="setupVault()" placeholder="••••••••" class="w-full bg-dark-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
+          </div>
+        </div>
+        <div class="flex justify-end">
+          <button @click="setupVault()" :disabled="isVaultBusy" class="px-5 py-2 bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-500 hover:to-amber-500 disabled:opacity-40 text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-md">
+            Criar Cofre & Desbloquear
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 2: VAULT INITIALIZED BUT LOCKED -->
+      <div x-show="vaultStatus.initialized && !vaultStatus.unlocked" x-cloak class="space-y-4">
+        <div class="p-4 bg-slate-800/40 border border-slate-700 rounded-xl text-xs text-slate-300 leading-relaxed flex items-start gap-2">
+          <svg class="w-4 h-4 text-yellow-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+          <span>Cofre bloqueado (<span x-text="vaultStatus.credential_count"></span> credenciais salvas). Digite a senha mestra para desbloquear nesta sessão do servidor.</span>
+        </div>
+        <div class="flex items-end gap-3">
+          <div class="flex-1">
+            <label class="block text-[10px] text-slate-400 mb-1">Senha Mestra</label>
+            <input type="password" x-model="vaultUnlockPassword" @keydown.enter="unlockVault()" placeholder="••••••••" class="w-full bg-dark-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
+          </div>
+          <button @click="unlockVault()" :disabled="isVaultBusy" class="px-5 py-2 bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-500 hover:to-amber-500 disabled:opacity-40 text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-md">
+            Desbloquear
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 3: VAULT UNLOCKED -->
+      <div x-show="vaultStatus.initialized && vaultStatus.unlocked" x-cloak class="space-y-5">
+
+        <div class="flex flex-wrap items-center justify-between gap-2 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl">
+          <span class="text-xs text-emerald-300 font-semibold flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            Cofre desbloqueado nesta sessão
+          </span>
+          <div class="flex items-center gap-2">
+            <button @click="showVaultChangePassword = !showVaultChangePassword" class="px-3 py-1.5 text-[11px] font-semibold text-slate-300 hover:text-white bg-dark-950 hover:bg-slate-800 border border-slate-700 rounded-lg transition cursor-pointer">
+              Trocar Senha Mestra
+            </button>
+            <button @click="lockVault()" class="px-3 py-1.5 text-[11px] font-semibold text-yellow-300 hover:text-white bg-yellow-950/40 hover:bg-yellow-900/60 border border-yellow-800/60 rounded-lg transition cursor-pointer">
+              Bloquear Cofre
+            </button>
+          </div>
+        </div>
+
+        <!-- CHANGE MASTER PASSWORD -->
+        <div x-show="showVaultChangePassword" x-cloak class="p-4 bg-dark-950 border border-slate-800 rounded-xl space-y-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-1">Senha Mestra Atual</label>
+              <input type="password" x-model="vaultChangeOld" placeholder="••••••••" class="w-full bg-dark-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-1">Nova Senha Mestra</label>
+              <input type="password" x-model="vaultChangeNew" placeholder="••••••••" class="w-full bg-dark-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
+            </div>
+          </div>
+          <div class="flex justify-end">
+            <button @click="changeVaultPassword()" :disabled="isVaultBusy" class="px-4 py-1.5 bg-slate-700 hover:bg-slate-600 disabled:opacity-40 text-white rounded-lg text-xs font-bold transition cursor-pointer">
+              Confirmar Troca (recriptografa todas as credenciais)
+            </button>
+          </div>
+        </div>
+
+        <!-- CREDENTIALS LIST + NEW BUTTON -->
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold text-white">Credenciais Salvas (<span x-text="vaultCredentials.length"></span>)</h3>
+          <button @click="showNewCredentialForm ? closeCredentialForm() : openNewCredentialForm()" class="px-3 py-1.5 text-xs font-semibold bg-yellow-600 hover:bg-yellow-500 text-white rounded-lg flex items-center gap-1.5 transition cursor-pointer">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            <span x-text="showNewCredentialForm ? 'Cancelar' : '+ Nova Credencial'"></span>
+          </button>
+        </div>
+
+        <!-- NEW / EDIT CREDENTIAL FORM -->
+        <div x-show="showNewCredentialForm" x-cloak class="p-5 bg-dark-950 border border-yellow-500/40 rounded-xl space-y-4 shadow-lg">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-1">Nome da Credencial *</label>
+              <input type="text" x-model="credentialForm.name" placeholder="ex: AWS Produção, Banco Postgres Staging..." class="w-full bg-dark-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-1">Tipo / Provedor *</label>
+              <select x-model="credentialForm.type" @change="onCredentialTypeChange()" class="w-full bg-dark-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
+                <template x-for="(schema, key) in vaultProviders" :key="key">
+                  <option :value="key" x-text="schema.label"></option>
+                </template>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[10px] text-slate-400 mb-1">Notas (opcional)</label>
+            <input type="text" x-model="credentialForm.notes" placeholder="Contexto de uso, conta, ambiente..." class="w-full bg-dark-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
+          </div>
+
+          <!-- STRUCTURED FIELDS (aws, gcp, azure, database, api_key, ssh_key, docker_registry...) -->
+          <div x-show="vaultProviders[credentialForm.type] && !vaultProviders[credentialForm.type].freeform" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <template x-for="field in (vaultProviders[credentialForm.type] ? vaultProviders[credentialForm.type].fields : [])" :key="field.key">
+              <div :class="field.multiline ? 'sm:col-span-2' : ''">
+                <label class="block text-[10px] text-slate-400 mb-1" x-text="field.label + (field.optional ? '' : ' *')"></label>
+                <textarea x-show="field.multiline" x-model="credentialForm.fields[field.key]" rows="4" class="w-full bg-dark-900 border border-slate-800 rounded p-2.5 text-xs text-emerald-400 font-mono leading-relaxed"></textarea>
+                <input x-show="!field.multiline" :type="field.secret ? 'password' : 'text'" x-model="credentialForm.fields[field.key]" class="w-full bg-dark-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white font-mono">
+              </div>
+            </template>
+          </div>
+
+          <!-- FREEFORM KEY/VALUE PAIRS (generic type) -->
+          <div x-show="vaultProviders[credentialForm.type] && vaultProviders[credentialForm.type].freeform" class="space-y-2">
+            <label class="block text-[10px] text-slate-400">Campos (chave / valor)</label>
+            <template x-for="(pair, idx) in credentialForm.freeformPairs" :key="idx">
+              <div class="flex items-center gap-2">
+                <input type="text" x-model="pair.key" placeholder="CHAVE" class="w-1/3 bg-dark-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white font-mono">
+                <input type="text" x-model="pair.value" placeholder="valor" class="flex-1 bg-dark-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white font-mono">
+                <button type="button" @click="removeFreeformPair(idx)" class="text-red-400 hover:text-red-300 p-1 cursor-pointer">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+              </div>
+            </template>
+            <button type="button" @click="addFreeformPair()" class="text-[11px] text-yellow-400 hover:text-yellow-300 cursor-pointer">+ adicionar campo</button>
+          </div>
+
+          <div class="flex justify-end pt-2">
+            <button @click="saveCredential()" :disabled="!credentialForm.name || isVaultBusy" class="px-5 py-2 bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-500 hover:to-amber-500 disabled:opacity-40 text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-md">
+              <span x-text="credentialForm.id ? 'Atualizar Credencial' : 'Salvar no Cofre'"></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- CREDENTIALS GRID -->
+        <div class="space-y-3">
+          <p x-show="vaultCredentials.length === 0" class="text-xs text-slate-500 italic">Nenhuma credencial salva ainda.</p>
+          <template x-for="c in vaultCredentials" :key="c.id">
+            <div class="p-4 bg-dark-950 border border-slate-800 rounded-xl space-y-3">
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="font-bold text-xs text-white" x-text="c.name"></span>
+                    <span class="px-2 py-0.5 bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 rounded text-[10px]" x-text="vaultProviders[c.type] ? vaultProviders[c.type].label : c.type"></span>
+                  </div>
+                  <p class="text-[11px] text-slate-400 mt-1" x-text="c.notes || 'Sem notas'"></p>
+                  <p class="text-[10px] text-slate-600 mt-1">Atualizado em <span x-text="new Date(c.updated_at).toLocaleString('pt-BR')"></span></p>
+                </div>
+                <div class="flex items-center gap-1 shrink-0">
+                  <button @click="toggleRevealCredential(c.id)" :title="revealedCredentials[c.id] ? 'Ocultar valores' : 'Revelar valores'" class="p-1.5 text-slate-400 hover:text-white bg-slate-800/60 hover:bg-slate-700 rounded-lg cursor-pointer">
+                    <svg x-show="!revealedCredentials[c.id]" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    <svg x-show="revealedCredentials[c.id]" x-cloak class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"/></svg>
+                  </button>
+                  <button @click="editCredential(c)" title="Editar" class="p-1.5 text-slate-400 hover:text-white bg-slate-800/60 hover:bg-slate-700 rounded-lg cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                  </button>
+                  <button @click="deleteCredential(c.id, c.name)" title="Remover" class="p-1.5 text-red-400 hover:text-white bg-red-500/10 hover:bg-red-600 rounded-lg cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- REVEALED SECRET FIELDS -->
+              <div x-show="revealedCredentials[c.id]" x-cloak class="p-3 bg-black/30 border border-slate-800 rounded-lg space-y-1">
+                <template x-for="(value, key) in (revealedCredentials[c.id] ? revealedCredentials[c.id].data : {})" :key="key">
+                  <div class="flex items-start gap-2 text-[11px] font-mono">
+                    <span class="text-slate-500 shrink-0" x-text="key + ':'"></span>
+                    <span class="text-emerald-400 break-all" x-text="value"></span>
+                  </div>
+                </template>
+              </div>
+
+              <!-- APPLY TO PROJECT -->
+              <div class="pt-2 border-t border-slate-800/80 flex flex-wrap items-center gap-2">
+                <span class="text-[10px] text-slate-500">Aplicar como variáveis de ambiente em:</span>
+                <select x-model="credentialApplyTarget[c.id]" class="bg-dark-900 border border-slate-800 rounded px-2 py-1 text-[11px] text-white flex-1 min-w-[140px]">
+                  <option value="">Selecione um projeto...</option>
+                  <template x-for="p in projects" :key="p.id">
+                    <option :value="p.id" x-text="p.name"></option>
+                  </template>
+                </select>
+                <button @click="applyCredentialToProject(c.id)" class="px-3 py-1 text-[11px] font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition cursor-pointer">
+                  Aplicar ao Projeto
+                </button>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="flex items-center justify-end border-t border-slate-800 pt-4">
+        <button @click="showVaultModal = false" class="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition cursor-pointer">
+          Fechar
+        </button>
+      </div>
+
+    </div>
+  </div>
+
   <!-- MODAL: CRIAR NOVO PROJETO -->
   <div x-show="showCreateModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
     <div @click.away="showCreateModal = false" class="bg-dark-900 border border-slate-700 rounded-2xl max-w-4xl w-full p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
@@ -1305,10 +1542,18 @@
         </div>
       </div>
 
-      <!-- Step 2: Presets Rápidos -->
+      <!-- Step 2: Presets Rápidos (minimizado por padrão) -->
       <div>
-        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Presets de Arquitetura (1-Clique)</label>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <button type="button" @click="showPresetsPanel = !showPresetsPanel" class="w-full flex items-center justify-between mb-2 cursor-pointer group">
+          <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider group-hover:text-white transition cursor-pointer">
+            Presets de Arquitetura (1-Clique)
+            <span class="text-slate-500 normal-case font-normal">— <span x-text="presets.length"></span> disponíveis</span>
+          </label>
+          <svg class="w-4 h-4 text-slate-400 group-hover:text-white transition shrink-0" :class="{'rotate-180': showPresetsPanel}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div x-show="showPresetsPanel" x-cloak
+             x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
+             class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <template x-for="preset in presets" :key="preset.id">
             <button type="button" @click="applyPreset(preset)" class="p-3 bg-dark-950 border rounded-xl text-left transition hover:border-brand-500 flex flex-col justify-between"
               :class="isPresetSelected(preset) ? 'border-brand-500 ring-1 ring-brand-500/50 bg-brand-500/5' : 'border-slate-800'">
@@ -2505,6 +2750,7 @@
         projects: [],
         categories: [],
         presets: [],
+        showPresetsPanel: false,
         plugins: [],
         totalToolsAvailable: 30,
         selectedCategory: 'all',
@@ -2568,6 +2814,25 @@
           cli_instructions: {}
         },
         showPluginsModal: false,
+        showToolsMenu: false,
+
+        // Credentials Vault State
+        showVaultModal: false,
+        vaultStatus: { initialized: false, unlocked: false, unlocked_at: null, credential_count: 0 },
+        vaultProviders: {},
+        vaultCredentials: [],
+        vaultSetupPassword: '',
+        vaultSetupPasswordConfirm: '',
+        vaultUnlockPassword: '',
+        vaultChangeOld: '',
+        vaultChangeNew: '',
+        showVaultChangePassword: false,
+        isVaultBusy: false,
+        showNewCredentialForm: false,
+        credentialForm: { id: null, name: '', type: 'generic', notes: '', fields: {}, freeformPairs: [{ key: '', value: '' }] },
+        revealedCredentials: {},
+        credentialApplyTarget: {},
+
         showNewPluginForm: false,
         showAdvancedConfig: false,
         selectedProject: null,
@@ -2912,7 +3177,10 @@
 
           // 5. Check for interrupted projects (crash recovery)
           this.checkInterruptedProjects();
-          
+
+          // 5b. Check credentials vault lock state (locked by default on every server start)
+          this.refreshVaultStatus();
+
           // 6. Poll project & container real status every 4.5 seconds in background
           setInterval(() => {
             if (!this.showCreateModal && !this.showEditModal && !this.showGraphModal && !this.showLogsModal && !this.showPluginsModal) {
@@ -2931,6 +3199,292 @@
             this.plugins = await res.json();
           } catch (e) {
             console.error('Error loading plugins:', e);
+          }
+        },
+
+        // ===================== CREDENTIALS VAULT =====================
+
+        async refreshVaultStatus() {
+          try {
+            const res = await fetch('/api/vault/status');
+            this.vaultStatus = await res.json();
+          } catch (e) {
+            console.error('Error loading vault status:', e);
+          }
+        },
+
+        async loadVaultProviders() {
+          try {
+            const res = await fetch('/api/vault/providers');
+            this.vaultProviders = await res.json();
+          } catch (e) {
+            console.error('Error loading vault providers:', e);
+          }
+        },
+
+        async loadVaultCredentials() {
+          try {
+            const res = await fetch('/api/vault/credentials');
+            this.vaultCredentials = await res.json();
+          } catch (e) {
+            console.error('Error loading credentials:', e);
+          }
+        },
+
+        async openVaultModal() {
+          this.showVaultModal = true;
+          this.showNewCredentialForm = false;
+          this.showVaultChangePassword = false;
+          await this.refreshVaultStatus();
+          if (Object.keys(this.vaultProviders).length === 0) await this.loadVaultProviders();
+          if (this.vaultStatus.unlocked) await this.loadVaultCredentials();
+          this.$nextTick(() => { if (window.lucide) lucide.createIcons(); });
+        },
+
+        async setupVault() {
+          if (!this.vaultSetupPassword || this.vaultSetupPassword.length < 8) {
+            this.showToast('Senha Curta', 'A senha mestra deve ter ao menos 8 caracteres.', 'warning');
+            return;
+          }
+          if (this.vaultSetupPassword !== this.vaultSetupPasswordConfirm) {
+            this.showToast('Senhas Diferentes', 'A confirmação não corresponde à senha mestra.', 'warning');
+            return;
+          }
+          this.isVaultBusy = true;
+          try {
+            const res = await fetch('/api/vault/setup', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ password: this.vaultSetupPassword })
+            });
+            if (res.ok) {
+              this.vaultStatus = await res.json();
+              this.vaultSetupPassword = '';
+              this.vaultSetupPasswordConfirm = '';
+              this.showToast('Cofre Criado', 'Senha mestra definida. Cofre desbloqueado nesta sessão!', 'success');
+              await this.loadVaultCredentials();
+            } else {
+              const err = await res.json();
+              this.showToast('Erro ao Criar Cofre', err.detail || 'Falha ao inicializar o cofre', 'error');
+            }
+          } catch (e) {
+            this.showToast('Erro de Conexão', e.message, 'error');
+          }
+          this.isVaultBusy = false;
+        },
+
+        async unlockVault() {
+          if (!this.vaultUnlockPassword) return;
+          this.isVaultBusy = true;
+          try {
+            const res = await fetch('/api/vault/unlock', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ password: this.vaultUnlockPassword })
+            });
+            if (res.ok) {
+              this.vaultStatus = await res.json();
+              this.vaultUnlockPassword = '';
+              this.showToast('Cofre Desbloqueado', 'Credenciais disponíveis nesta sessão do servidor.', 'success');
+              await this.loadVaultCredentials();
+            } else {
+              const err = await res.json();
+              this.showToast('Erro ao Desbloquear', err.detail || 'Senha mestra incorreta', 'error');
+            }
+          } catch (e) {
+            this.showToast('Erro de Conexão', e.message, 'error');
+          }
+          this.isVaultBusy = false;
+        },
+
+        async lockVault() {
+          try {
+            await fetch('/api/vault/lock', { method: 'POST' });
+          } catch (e) { /* ignore */ }
+          await this.refreshVaultStatus();
+          this.vaultCredentials = [];
+          this.revealedCredentials = {};
+          this.showNewCredentialForm = false;
+          this.showToast('Cofre Bloqueado', 'As credenciais foram bloqueadas novamente.', 'info');
+        },
+
+        async changeVaultPassword() {
+          if (!this.vaultChangeNew || this.vaultChangeNew.length < 8) {
+            this.showToast('Senha Curta', 'A nova senha mestra deve ter ao menos 8 caracteres.', 'warning');
+            return;
+          }
+          this.isVaultBusy = true;
+          try {
+            const res = await fetch('/api/vault/change-password', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ old_password: this.vaultChangeOld, new_password: this.vaultChangeNew })
+            });
+            if (res.ok) {
+              this.vaultChangeOld = '';
+              this.vaultChangeNew = '';
+              this.showVaultChangePassword = false;
+              this.showToast('Senha Alterada', 'Senha mestra atualizada e todas as credenciais recriptografadas.', 'success');
+            } else {
+              const err = await res.json();
+              this.showToast('Erro ao Trocar Senha', err.detail || 'Falha ao trocar a senha mestra', 'error');
+            }
+          } catch (e) {
+            this.showToast('Erro de Conexão', e.message, 'error');
+          }
+          this.isVaultBusy = false;
+        },
+
+        openNewCredentialForm(type) {
+          this.showNewCredentialForm = true;
+          this.credentialForm = {
+            id: null,
+            name: '',
+            type: type || Object.keys(this.vaultProviders)[0] || 'generic',
+            notes: '',
+            fields: {},
+            freeformPairs: [{ key: '', value: '' }]
+          };
+        },
+
+        closeCredentialForm() {
+          this.showNewCredentialForm = false;
+        },
+
+        onCredentialTypeChange() {
+          this.credentialForm.fields = {};
+          this.credentialForm.freeformPairs = [{ key: '', value: '' }];
+        },
+
+        addFreeformPair() {
+          this.credentialForm.freeformPairs.push({ key: '', value: '' });
+        },
+
+        removeFreeformPair(idx) {
+          this.credentialForm.freeformPairs.splice(idx, 1);
+        },
+
+        async saveCredential() {
+          if (!this.credentialForm.name || !this.credentialForm.name.trim()) {
+            this.showToast('Nome Obrigatório', 'Informe um nome para a credencial.', 'warning');
+            return;
+          }
+
+          const schema = this.vaultProviders[this.credentialForm.type];
+          let data = {};
+          if (schema && schema.freeform) {
+            this.credentialForm.freeformPairs.forEach(pair => {
+              if (pair.key && pair.key.trim()) data[pair.key.trim()] = pair.value;
+            });
+          } else {
+            data = { ...this.credentialForm.fields };
+          }
+
+          const payload = {
+            name: this.credentialForm.name.trim(),
+            type: this.credentialForm.type,
+            notes: this.credentialForm.notes || '',
+            data
+          };
+
+          this.isVaultBusy = true;
+          try {
+            const url = this.credentialForm.id ? `/api/vault/credentials/${this.credentialForm.id}` : '/api/vault/credentials';
+            const method = this.credentialForm.id ? 'PUT' : 'POST';
+            const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (res.ok) {
+              this.showToast('Credencial Salva', `"${payload.name}" foi salva no cofre.`, 'success');
+              this.showNewCredentialForm = false;
+              delete this.revealedCredentials[this.credentialForm.id];
+              await this.loadVaultCredentials();
+              await this.refreshVaultStatus();
+            } else {
+              const err = await res.json();
+              this.showToast('Erro ao Salvar', err.detail || 'Falha ao salvar credencial', 'error');
+            }
+          } catch (e) {
+            this.showToast('Erro de Conexão', e.message, 'error');
+          }
+          this.isVaultBusy = false;
+        },
+
+        async deleteCredential(cid, name) {
+          if (!confirm(`Remover permanentemente a credencial "${name}" do cofre?`)) return;
+          try {
+            const res = await fetch(`/api/vault/credentials/${cid}`, { method: 'DELETE' });
+            if (res.ok) {
+              this.showToast('Credencial Removida', `"${name}" foi removida do cofre.`, 'info');
+              delete this.revealedCredentials[cid];
+              await this.loadVaultCredentials();
+              await this.refreshVaultStatus();
+            } else {
+              const err = await res.json();
+              this.showToast('Erro ao Remover', err.detail || 'Falha ao remover credencial', 'error');
+            }
+          } catch (e) {
+            this.showToast('Erro de Conexão', e.message, 'error');
+          }
+        },
+
+        async toggleRevealCredential(cid) {
+          if (this.revealedCredentials[cid]) {
+            delete this.revealedCredentials[cid];
+            return;
+          }
+          try {
+            const res = await fetch(`/api/vault/credentials/${cid}/reveal`, { method: 'POST' });
+            if (res.ok) {
+              this.revealedCredentials[cid] = await res.json();
+            } else {
+              const err = await res.json();
+              this.showToast('Erro ao Revelar', err.detail || 'Falha ao descriptografar credencial', 'error');
+            }
+          } catch (e) {
+            this.showToast('Erro de Conexão', e.message, 'error');
+          }
+        },
+
+        async editCredential(c) {
+          if (!this.revealedCredentials[c.id]) {
+            await this.toggleRevealCredential(c.id);
+          }
+          const revealed = this.revealedCredentials[c.id];
+          if (!revealed) return;
+
+          const schema = this.vaultProviders[c.type];
+          this.showNewCredentialForm = true;
+          if (schema && schema.freeform) {
+            this.credentialForm = {
+              id: c.id, name: c.name, type: c.type, notes: c.notes || '',
+              fields: {},
+              freeformPairs: Object.entries(revealed.data).map(([key, value]) => ({ key, value }))
+            };
+          } else {
+            this.credentialForm = {
+              id: c.id, name: c.name, type: c.type, notes: c.notes || '',
+              fields: { ...revealed.data },
+              freeformPairs: [{ key: '', value: '' }]
+            };
+          }
+        },
+
+        async applyCredentialToProject(cid) {
+          const projectId = this.credentialApplyTarget[cid];
+          if (!projectId) {
+            this.showToast('Selecione um Projeto', 'Escolha o projeto de destino antes de aplicar a credencial.', 'warning');
+            return;
+          }
+          try {
+            const res = await fetch(`/api/vault/credentials/${cid}/apply`, {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ project_id: projectId })
+            });
+            if (res.ok) {
+              const data = await res.json();
+              this.showToast('Credencial Aplicada', `Variáveis gravadas no .env: ${data.applied_vars.join(', ')}`, 'success');
+            } else {
+              const err = await res.json();
+              this.showToast('Erro ao Aplicar', err.detail || 'Falha ao aplicar credencial ao projeto', 'error');
+            }
+          } catch (e) {
+            this.showToast('Erro de Conexão', e.message, 'error');
           }
         },
 
@@ -3268,9 +3822,7 @@
           this.onlySelectedToolsFilter = false;
           this.configToolsSearchQuery = '';
           this.showAdvancedConfig = false;
-          if (this.presets.length > 0) {
-            this.applyPreset(this.presets[0]);
-          }
+          this.showPresetsPanel = false;
           this.showCreateModal = true;
         },
 

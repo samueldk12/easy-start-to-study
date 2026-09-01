@@ -169,6 +169,32 @@ class ProjectMergeRequest(BaseModel):
         return _validate_safe_name(v)
 
 
+class VaultPasswordRequest(BaseModel):
+    password: str
+
+
+class VaultChangePasswordRequest(BaseModel):
+    old_password: str
+    new_password: str
+
+
+class CredentialCreateRequest(BaseModel):
+    name: str
+    type: str = "generic"
+    data: Dict[str, str] = Field(default_factory=dict)
+    notes: Optional[str] = ""
+
+
+class CredentialUpdateRequest(BaseModel):
+    name: Optional[str] = None
+    data: Optional[Dict[str, str]] = None
+    notes: Optional[str] = None
+
+
+class CredentialApplyRequest(BaseModel):
+    project_id: str
+
+
 class ProjectGovernanceRequest(BaseModel):
     auto_cleanup_days: int = 15  # Days of inactivity before auto-pruning Docker images, 0 = disabled
     clean_images_on_idle: bool = True

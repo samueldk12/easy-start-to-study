@@ -48,7 +48,11 @@ from fastapi.requests import Request
 from studio.models import (
     ProjectCreateRequest, ProjectInfo, ToolCategory, ProjectPreset, ToolPlugin,
     ContainerExecRequest, FolderAnalyzeRequest, ProjectImportRequest, ProjectUpdateRequest,
-    ProjectMergeRequest, ProjectGovernanceRequest
+    ProjectMergeRequest, ProjectGovernanceRequest, VaultPasswordRequest, VaultChangePasswordRequest,
+    CredentialCreateRequest, CredentialUpdateRequest, CredentialApplyRequest
+)
+from studio.services.credential_vault import (
+    CredentialVault, VaultLockedError, VaultNotInitializedError, InvalidPasswordError
 )
 from studio.services.project_governance import ProjectGovernance
 from studio.services.catalog import CATEGORIES, PRESETS
@@ -109,7 +113,7 @@ async def health_check():
     return {"status": "ok", "version": app.version}
 
 
-def _read_template_cached(path: str, _cache: dict = {}) -> str:
+def _read_template_cached(path: str, _cache: Dict[str, str] = {}) -> str:
     """Reads a template file once per process; templates are static assets bundled with the app."""
     if path not in _cache:
         with open(path, "r", encoding="utf-8") as f:
@@ -325,6 +329,123 @@ async def run_auto_cleanup():
     """Runs automatic cleanup on all projects exceeding their idle threshold."""
     result = await ProjectGovernance.auto_cleanup_check()
     return result
+
+
+# =============================================================================
+# CREDENTIAL VAULT — encrypted local storage for generic & cloud credentials.
+# Locked by default on every server start; unlocked in-memory only for the
+# lifetime of this process once the master password is supplied.
+# =============================================================================
+
+@app.get("/api/vault/status")
+async def get_vault_status():
+    return CredentialVault.status()
+
+
+@app.get("/api/vault/providers")
+async def get_vault_providers():
+    return CredentialVault.get_providers()
+
+
+@app.post("/api/vault/setup")
+async def setup_vault(req: VaultPasswordRequest):
+    try:
+        return CredentialVault.setup(req.password)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/api/vault/unlock")
+async def unlock_vault(req: VaultPasswordRequest):
+    try:
+        return CredentialVault.unlock(req.password)
+    except VaultNotInitializedError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+    except InvalidPasswordError as e:
+        raise HTTPException(status_code=401, detail=str(e))
+
+
+@app.post("/api/vault/lock")
+async def lock_vault():
+    CredentialVault.lock()
+    return CredentialVault.status()
+
+
+@app.post("/api/vault/change-password")
+async def change_vault_password(req: VaultChangePasswordRequest):
+    try:
+        return CredentialVault.change_password(req.old_password, req.new_password)
+    except VaultNotInitializedError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+    except InvalidPasswordError as e:
+        raise HTTPException(status_code=401, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/api/vault/credentials")
+async def list_vault_credentials():
+    return CredentialVault.list_credentials()
+
+
+@app.post("/api/vault/credentials")
+async def create_vault_credential(req: CredentialCreateRequest):
+    try:
+        return CredentialVault.create_credential(req.name, req.type, req.data, req.notes or "")
+    except VaultLockedError as e:
+        raise HTTPException(status_code=423, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.put("/api/vault/credentials/{credential_id}")
+async def update_vault_credential(credential_id: str, req: CredentialUpdateRequest):
+    try:
+        return CredentialVault.update_credential(credential_id, req.name, req.data, req.notes)
+    except VaultLockedError as e:
+        raise HTTPException(status_code=423, detail=str(e))
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.delete("/api/vault/credentials/{credential_id}")
+async def delete_vault_credential(credential_id: str):
+    try:
+        deleted = CredentialVault.delete_credential(credential_id)
+    except VaultLockedError as e:
+        raise HTTPException(status_code=423, detail=str(e))
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Credencial não encontrada.")
+    return {"message": "Credencial removida do cofre."}
+
+
+@app.post("/api/vault/credentials/{credential_id}/reveal")
+async def reveal_vault_credential(credential_id: str):
+    """Decrypts and returns one credential's secret fields. Requires the vault to be unlocked."""
+    try:
+        return CredentialVault.reveal_credential(credential_id)
+    except VaultLockedError as e:
+        raise HTTPException(status_code=423, detail=str(e))
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.post("/api/vault/credentials/{credential_id}/apply")
+async def apply_vault_credential(credential_id: str, req: CredentialApplyRequest):
+    """Decrypts a credential and writes it into the target project's .env (and, for
+    blob-type secrets like a GCP service account or an SSH key, a gitignored .secrets/ file)."""
+    proj = ProjectStore.get_project(req.project_id)
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found.")
+    try:
+        result = CredentialVault.apply_to_project(credential_id, proj.path)
+    except VaultLockedError as e:
+        raise HTTPException(status_code=423, detail=str(e))
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return {"message": f"Credencial aplicada ao projeto '{proj.name}' com sucesso.", **result}
 
 
 _ENRICH_LOCK = asyncio.Lock()
