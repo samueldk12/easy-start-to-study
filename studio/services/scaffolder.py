@@ -7,6 +7,8 @@ dbt models, Spark Jobs, Flink Pipelines, SIEM/SOC configs, DevSecOps pipelines, 
 import os
 import json
 import yaml
+import re
+from studio.services.security import ProjectSecrets, bind_local_ports
 from typing import Dict, List, Any, Set
 from studio.models import ProjectCreateRequest, ProjectInfo
 from studio.services.catalog import get_tool_by_id
@@ -19,6 +21,7 @@ class ProjectScaffolder:
         self.request = request
         self.project_name = request.name.strip().replace(" ", "-").lower()
         self.project_dir = project_dir or request.path or os.path.join(PROJECTS_DIR, self.project_name)
+        self.secrets = ProjectSecrets(self.project_dir, request)
         self.tools: Set[str] = set(request.tools)
         self.include_templates = getattr(request, "include_templates", True)
 
@@ -170,7 +173,7 @@ class ProjectScaffolder:
         network_name = f"{self.project_name}-net"
 
         user = getattr(self.request, "default_user", None) or "admin"
-        password = getattr(self.request, "default_password", None) or "admin123"
+        password = self.secrets.default_password
         project_db = self.project_name.lower().replace("-", "_")
 
         # --- POSTGRESQL ---
@@ -184,7 +187,7 @@ class ProjectScaffolder:
                 "ports": [f"{port}:5432"],
                 "environment": {
                     "POSTGRES_USER": f"${{POSTGRES_USER:-{user}}}",
-                    "POSTGRES_PASSWORD": f"${{POSTGRES_PASSWORD:-{password}}}",
+                    "POSTGRES_PASSWORD": "${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}",
                     "POSTGRES_DB": f"${{POSTGRES_DB:-{project_db}}}"
                 },
                 "volumes": [
@@ -210,10 +213,10 @@ class ProjectScaffolder:
                 "command": "--server-id=1 --log-bin=mysql-bin --binlog-format=ROW --binlog-row-image=FULL --default-authentication-plugin=mysql_native_password",
                 "ports": [f"{port}:3306"],
                 "environment": {
-                    "MYSQL_ROOT_PASSWORD": f"${{MYSQL_ROOT_PASSWORD:-{password}}}",
+                    "MYSQL_ROOT_PASSWORD": "${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}",
                     "MYSQL_DATABASE": "${MYSQL_DATABASE:-app_db}",
                     "MYSQL_USER": f"${{MYSQL_USER:-{user}}}",
-                    "MYSQL_PASSWORD": f"${{MYSQL_PASSWORD:-{password}}}"
+                    "MYSQL_PASSWORD": "${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in .env}"
                 },
                 "volumes": ["mysql_data:/var/lib/mysql", "./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql"],
                 "networks": [network_name]
@@ -443,7 +446,7 @@ class ProjectScaffolder:
                 "ports": [f"{api_port}:9000", f"{console_port}:9001"],
                 "environment": {
                     "MINIO_ROOT_USER": f"${{MINIO_ROOT_USER:-{user}}}",
-                    "MINIO_ROOT_PASSWORD": f"${{MINIO_ROOT_PASSWORD:-{password}}}"
+                    "MINIO_ROOT_PASSWORD": "${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD in .env}"
                 },
                 "volumes": ["minio_data:/data"],
                 "healthcheck": {
@@ -456,6 +459,7 @@ class ProjectScaffolder:
             }
             volumes["minio_data"] = None
 
+            mlflow_bucket_cmd = "/usr/bin/mc mb --ignore-existing myminio/mlflow; " if "mlflow" in self.tools else ""
             services["minio-init"] = {
                 "image": "minio/mc:RELEASE.2024-05-09T17-04-24Z",
                 "container_name": f"{self.project_name}-minio-init",
@@ -464,9 +468,9 @@ class ProjectScaffolder:
                 },
                 "environment": {
                     "MINIO_ROOT_USER": f"${{MINIO_ROOT_USER:-{user}}}",
-                    "MINIO_ROOT_PASSWORD": f"${{MINIO_ROOT_PASSWORD:-{password}}}"
+                    "MINIO_ROOT_PASSWORD": "${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD in .env}"
                 },
-                "entrypoint": '/bin/sh -c "until /usr/bin/mc alias set myminio http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD 2>/dev/null; do echo \'Aguardando MinIO aceitar conexões...\'; sleep 1; done; /usr/bin/mc mb --ignore-existing myminio/lakehouse; /usr/bin/mc mb --ignore-existing myminio/warehouse; echo \'Buckets created successfully!\'; exit 0;"',
+                "entrypoint": f'/bin/sh -c "until /usr/bin/mc alias set myminio http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD 2>/dev/null; do echo \'Aguardando MinIO aceitar conexões...\'; sleep 1; done; /usr/bin/mc mb --ignore-existing myminio/lakehouse; /usr/bin/mc mb --ignore-existing myminio/warehouse; {mlflow_bucket_cmd}echo \'Buckets created successfully!\'; exit 0;"',
                 "networks": [network_name]
             }
 
@@ -489,7 +493,7 @@ class ProjectScaffolder:
                     "CATALOG_S3_ENDPOINT": "http://minio:9000",
                     "CATALOG_S3_PATH__STYLE__ACCESS": "true",
                     "AWS_ACCESS_KEY_ID": f"${{MINIO_ROOT_USER:-{user}}}",
-                    "AWS_SECRET_ACCESS_KEY": f"${{MINIO_ROOT_PASSWORD:-{password}}}",
+                    "AWS_SECRET_ACCESS_KEY": "${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD in .env}",
                     "AWS_REGION": "us-east-1"
                 },
                 "networks": [network_name]
@@ -585,9 +589,9 @@ class ProjectScaffolder:
                 "container_name": f"{self.project_name}-superset",
                 "ports": [f"{port}:8088"],
                 "environment": {
-                    "SUPERSET_SECRET_KEY": "supersecretkey123456789",
+                    "SUPERSET_SECRET_KEY": "${SUPERSET_SECRET_KEY:?Set SUPERSET_SECRET_KEY in .env}",
                     "ADMIN_USERNAME": f"${{SUPERSET_ADMIN_USER:-{user}}}",
-                    "ADMIN_PASSWORD": f"${{SUPERSET_ADMIN_PASSWORD:-{password}}}"
+                    "ADMIN_PASSWORD": "${SUPERSET_ADMIN_PASSWORD:?Set SUPERSET_ADMIN_PASSWORD in .env}"
                 },
                 "volumes": ["superset_home:/app/superset_home"],
                 "networks": [network_name]
@@ -638,7 +642,7 @@ class ProjectScaffolder:
                 "ports": [f"{port}:6080"],
                 "environment": {
                     "RANGER_ADMIN_USER": f"${{RANGER_ADMIN_USER:-{user}}}",
-                    "RANGER_ADMIN_PASSWORD": f"${{RANGER_ADMIN_PASSWORD:-{password}}}",
+                    "RANGER_ADMIN_PASSWORD": "${RANGER_ADMIN_PASSWORD:?Set RANGER_ADMIN_PASSWORD in .env}",
                     "DB_HOST": "postgres" if "postgres" in self.tools else "localhost"
                 },
                 "networks": [network_name]
@@ -657,7 +661,7 @@ class ProjectScaffolder:
                 "hostname": "airflow-db",
                 "environment": {
                     "POSTGRES_USER": "airflow",
-                    "POSTGRES_PASSWORD": "airflow",
+                    "POSTGRES_PASSWORD": "${AIRFLOW_DB_PASSWORD:?Set AIRFLOW_DB_PASSWORD in .env}",
                     "POSTGRES_DB": "airflow"
                 },
                 "volumes": ["airflow_db_data:/var/lib/postgresql/data"],
@@ -675,30 +679,29 @@ class ProjectScaffolder:
             conn_cmds = []
             if "spark" in self.tools:
                 conn_cmds.append("airflow connections add 'spark_default' --conn-type 'spark' --conn-host 'spark://spark-master' --conn-port '7077' 2>/dev/null || true")
-            if "postgres" in self.tools:
-                db_name = self.project_name.replace('-', '_')
-                conn_cmds.append(f"airflow connections add 'postgres_default' --conn-type 'postgres' --conn-host 'postgres' --conn-login '{user}' --conn-password '{password}' --conn-schema '{db_name}' --conn-port '5432' 2>/dev/null || true")
-            if "minio" in self.tools:
-                conn_cmds.append(f'airflow connections add \'aws_default\' --conn-type \'aws\' --conn-extra \'{{"endpoint_url": "http://minio:9000", "aws_access_key_id": "{user}", "aws_secret_access_key": "{password}"}}\' 2>/dev/null || true')
             if "trino" in self.tools:
                 conn_cmds.append("airflow connections add 'trino_default' --conn-type 'trino' --conn-host 'trino' --conn-port '8080' --conn-schema 'iceberg' 2>/dev/null || true")
+            if "postgres" in self.tools:
+                conn_cmds.append("airflow connections add 'postgres_default' --conn-uri \"$${AIRFLOW_CONN_POSTGRES_DEFAULT}\" 2>/dev/null || true")
+            if "minio" in self.tools:
+                conn_cmds.append("airflow connections add 'aws_default' --conn-uri \"$${AIRFLOW_CONN_AWS_DEFAULT}\" 2>/dev/null || true")
             if "kafka" in self.tools:
                 conn_cmds.append('airflow connections add \'kafka_default\' --conn-type \'kafka\' --conn-extra \'{"bootstrap.servers": "kafka:29092"}\' 2>/dev/null || true')
 
             extra_conn_str = " " + "; ".join(conn_cmds) + ";" if conn_cmds else ""
 
-            init_cmd = f'bash -c "until pg_isready -h airflow-db -p 5432 -U airflow; do echo \'Aguardando PostgreSQL do Airflow aceitar conexões...\'; sleep 1; done; airflow db migrate && (airflow users create --username $$AIRFLOW_USER --firstname Admin --lastname User --role Admin --email admin@example.com --password $$AIRFLOW_PASSWORD || airflow users reset-password --username $$AIRFLOW_USER --password $$AIRFLOW_PASSWORD || true);{extra_conn_str}"'
+            init_cmd = f'bash -c "until pg_isready -h airflow-db -p 5432 -U airflow; do echo \'Aguardando PostgreSQL do Airflow aceitar conexões...\'; sleep 1; done; airflow db migrate && (airflow users create --username \"$${{AIRFLOW_USER}}\" --firstname Admin --lastname User --role Admin --email admin@example.com --password \"$${{AIRFLOW_PASSWORD}}\" || airflow users reset-password --username \"$${{AIRFLOW_USER}}\" --password \"$${{AIRFLOW_PASSWORD}}\" || true);{extra_conn_str}"'
 
             airflow_env = {
-                "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN": "postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow",
+                "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN": "${AIRFLOW_DATABASE_URL:?Set AIRFLOW_DATABASE_URL in .env}",
                 "AIRFLOW_USER": f"${{AIRFLOW_USER:-{user}}}",
-                "AIRFLOW_PASSWORD": f"${{AIRFLOW_PASSWORD:-{password}}}",
+                "AIRFLOW_PASSWORD": "${AIRFLOW_PASSWORD:?Set AIRFLOW_PASSWORD in .env}",
                 "_AIRFLOW_WWW_USER_CREATE": "true",
                 "_AIRFLOW_WWW_USER_USERNAME": f"${{AIRFLOW_USER:-{user}}}",
-                "_AIRFLOW_WWW_USER_PASSWORD": f"${{AIRFLOW_PASSWORD:-{password}}}",
+                "_AIRFLOW_WWW_USER_PASSWORD": "${AIRFLOW_PASSWORD:?Set AIRFLOW_PASSWORD in .env}",
                 "AIRFLOW__CORE__LOAD_EXAMPLES": "false",
                 "AIRFLOW__CORE__EXECUTOR": executor,
-                "AIRFLOW__CORE__ENABLE_XCOM_PICKLING": "true",
+                "AIRFLOW__CORE__ENABLE_XCOM_PICKLING": "false",
                 "AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION": "true",
                 "AIRFLOW__WEBSERVER__WEB_SERVER_WORKER_TIMEOUT": "300",
                 "AIRFLOW__WEBSERVER__WORKERS": "2",
@@ -718,7 +721,7 @@ class ProjectScaffolder:
                 airflow_vols.append(f"./{spark_apps}:/opt/spark/work-dir/apps")
 
             services["airflow-init"] = {
-                "image": "apache/airflow:2.9.2-python3.11",
+                "build": {"context": "./airflow"},
                 "container_name": f"{self.project_name}-airflow-init",
                 "depends_on": {
                     "airflow-db": {"condition": "service_healthy"}
@@ -729,7 +732,7 @@ class ProjectScaffolder:
             }
 
             services["airflow-webserver"] = {
-                "image": "apache/airflow:2.9.2-python3.11",
+                "build": {"context": "./airflow"},
                 "container_name": f"{self.project_name}-airflow-webserver",
                 "ports": [f"{port}:8080"],
                 "depends_on": {
@@ -743,7 +746,7 @@ class ProjectScaffolder:
             }
 
             services["airflow-scheduler"] = {
-                "image": "apache/airflow:2.9.2-python3.11",
+                "build": {"context": "./airflow"},
                 "container_name": f"{self.project_name}-airflow-scheduler",
                 "depends_on": {
                     "airflow-db": {"condition": "service_healthy"},
@@ -786,7 +789,7 @@ class ProjectScaffolder:
                 "image": "temporalio/auto-setup:1.24.1",
                 "container_name": f"{self.project_name}-temporal",
                 "ports": ["7233:7233"],
-                "environment": {"DB": "postgresql", "POSTGRES_USER": "temporal", "POSTGRES_PWD": "temporalpassword", "POSTGRES_SEEDS": "postgres" if "postgres" in self.tools else "temporal-db"},
+                "environment": {"DB": "postgresql", "POSTGRES_USER": "temporal", "POSTGRES_PWD": "${TEMPORAL_DB_PASSWORD:?Set TEMPORAL_DB_PASSWORD in .env}", "POSTGRES_SEEDS": "postgres" if "postgres" in self.tools else "temporal-db"},
                 "networks": [network_name]
             }
             services["temporal-ui"] = {
@@ -819,7 +822,7 @@ class ProjectScaffolder:
                 "container_name": f"{self.project_name}-vault",
                 "ports": [f"{port}:8200"],
                 "environment": {
-                    "VAULT_DEV_ROOT_TOKEN_ID": "${VAULT_DEV_ROOT_TOKEN_ID:-root}",
+                    "VAULT_DEV_ROOT_TOKEN_ID": "${VAULT_DEV_ROOT_TOKEN_ID:?Set VAULT_DEV_ROOT_TOKEN_ID in .env}",
                     "VAULT_DEV_LISTEN_ADDRESS": "0.0.0.0:8200"
                 },
                 "cap_add": ["IPC_LOCK"],
@@ -834,8 +837,15 @@ class ProjectScaffolder:
                 "image": "ghcr.io/mlflow/mlflow:v2.13.0",
                 "container_name": f"{self.project_name}-mlflow",
                 "ports": [f"{port}:5000"],
-                "command": "mlflow server --backend-store-uri sqlite:///mlflow.db --default-artifact-root /mlflow/artifacts --host 0.0.0.0 --port 5000",
+                "command": "mlflow server --backend-store-uri sqlite:///mlflow.db --default-artifact-root s3://mlflow/ --host 0.0.0.0 --port 5000",
                 "volumes": ["./mlflow/artifacts:/mlflow/artifacts"],
+                "environment": {
+                    "AWS_ACCESS_KEY_ID": f"${{MINIO_ROOT_USER:-{user}}}",
+                    "AWS_SECRET_ACCESS_KEY": "${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD in .env}",
+                    "AWS_DEFAULT_REGION": "us-east-1",
+                    "MLFLOW_S3_ENDPOINT_URL": "http://minio:9000",
+                } if "minio" in self.tools else {},
+                "depends_on": {"minio-init": {"condition": "service_completed_successfully"}} if "minio" in self.tools else [],
                 "networks": [network_name]
             }
 
@@ -846,7 +856,7 @@ class ProjectScaffolder:
                 "image": "jupyter/scipy-notebook:latest",
                 "container_name": f"{self.project_name}-jupyterlab",
                 "ports": [f"{port}:8888"],
-                "environment": {"JUPYTER_ENABLE_LAB": "yes", "NOTEBOOK_ARGS": "--NotebookApp.token=''"},
+                "environment": {"JUPYTER_ENABLE_LAB": "yes", "JUPYTER_TOKEN": "${JUPYTER_TOKEN:?Set JUPYTER_TOKEN in .env}"},
                 "volumes": ["./notebooks:/home/jovyan/work"],
                 "networks": [network_name]
             }
@@ -940,8 +950,8 @@ class ProjectScaffolder:
                 "container_name": f"{self.project_name}-rabbitmq",
                 "ports": ["5673:5672", f"{mgmt_port}:15672"],
                 "environment": {
-                    "RABBITMQ_DEFAULT_USER": "${RABBITMQ_DEFAULT_USER:-guest}",
-                    "RABBITMQ_DEFAULT_PASS": "${RABBITMQ_DEFAULT_PASS:-guest}"
+                    "RABBITMQ_DEFAULT_USER": "${RABBITMQ_DEFAULT_USER:-admin}",
+                    "RABBITMQ_DEFAULT_PASS": "${RABBITMQ_DEFAULT_PASS:?Set RABBITMQ_DEFAULT_PASS in .env}"
                 },
                 "volumes": ["rabbitmq_data:/var/lib/rabbitmq"],
                 "networks": [network_name]
@@ -958,7 +968,7 @@ class ProjectScaffolder:
                 "ports": [f"{port}:8080"],
                 "environment": {
                     "KEYCLOAK_ADMIN": f"${{KEYCLOAK_ADMIN:-{user}}}",
-                    "KEYCLOAK_ADMIN_PASSWORD": f"${{KEYCLOAK_ADMIN_PASSWORD:-{password}}}"
+                    "KEYCLOAK_ADMIN_PASSWORD": "${KEYCLOAK_ADMIN_PASSWORD:?Set KEYCLOAK_ADMIN_PASSWORD in .env}"
                 },
                 "volumes": ["keycloak_data:/opt/keycloak/data"],
                 "networks": [network_name]
@@ -973,10 +983,10 @@ class ProjectScaffolder:
                 "container_name": f"{self.project_name}-hasura",
                 "ports": [f"{port}:8080"],
                 "environment": {
-                    "HASURA_GRAPHQL_DATABASE_URL": f"postgres://{user}:{password}@postgres:5432/{project_db}",
+                    "HASURA_GRAPHQL_DATABASE_URL": "${HASURA_DATABASE_URL:?Set HASURA_DATABASE_URL in .env}",
                     "HASURA_GRAPHQL_ENABLE_CONSOLE": "true",
                     "HASURA_GRAPHQL_DEV_MODE": "true",
-                    "HASURA_GRAPHQL_ADMIN_SECRET": f"{password}"
+                    "HASURA_GRAPHQL_ADMIN_SECRET": "${HASURA_GRAPHQL_ADMIN_SECRET:?Set HASURA_GRAPHQL_ADMIN_SECRET in .env}"
                 },
                 "networks": [network_name]
             }
@@ -992,7 +1002,7 @@ class ProjectScaffolder:
                 "ports": [f"{port}:3000"],
                 "environment": {
                     "GF_SECURITY_ADMIN_USER": f"${{GF_SECURITY_ADMIN_USER:-{user}}}",
-                    "GF_SECURITY_ADMIN_PASSWORD": f"${{GF_SECURITY_ADMIN_PASSWORD:-{password}}}"
+                    "GF_SECURITY_ADMIN_PASSWORD": "${GF_SECURITY_ADMIN_PASSWORD:?Set GF_SECURITY_ADMIN_PASSWORD in .env}"
                 },
                 "volumes": ["grafana_data:/var/lib/grafana"],
                 "networks": [network_name]
@@ -1097,7 +1107,7 @@ class ProjectScaffolder:
                 "ports": [f"{port}:8000", "8088:8088", "9997:9997"],
                 "environment": {
                     "SPLUNK_START_ARGS": "${SPLUNK_START_ARGS:---accept-license}",
-                    "SPLUNK_PASSWORD": f"${{SPLUNK_PASSWORD:-{password}}}"
+                    "SPLUNK_PASSWORD": "${SPLUNK_PASSWORD:?Set SPLUNK_PASSWORD in .env}"
                 },
                 "volumes": ["splunk_data:/opt/splunk/var", "./splunk/apps:/opt/splunk/etc/apps"],
                 "networks": [network_name]
@@ -1122,7 +1132,7 @@ class ProjectScaffolder:
                 "image": "strangebee/thehive:5.2",
                 "container_name": f"{self.project_name}-thehive",
                 "ports": [f"{hive_port}:9000"],
-                "environment": {"SECRET": "thehivesecretkey123456789"},
+                "environment": {"SECRET": "${THEHIVE_SECRET:?Set THEHIVE_SECRET in .env}"},
                 "volumes": ["thehive_data:/etc/thehive/application.conf", "./thehive/data:/data"],
                 "networks": [network_name]
             }
@@ -1130,7 +1140,7 @@ class ProjectScaffolder:
                 "image": "thehiveproject/cortex:3.1.8",
                 "container_name": f"{self.project_name}-cortex",
                 "ports": ["9005:9001"],
-                "environment": {"SECRET": "cortexsecretkey123456789"},
+                "environment": {"SECRET": "${CORTEX_SECRET:?Set CORTEX_SECRET in .env}"},
                 "volumes": ["./cortex/analyzers:/opt/cortex/analyzers"],
                 "networks": [network_name]
             }
@@ -1143,7 +1153,7 @@ class ProjectScaffolder:
                 "image": "coolacid/misp-docker:core-latest",
                 "container_name": f"{self.project_name}-misp",
                 "ports": [f"{port}:80"],
-                "environment": {"ADMIN_EMAIL": "admin@admin.test", "ADMIN_PASSPHRASE": "adminpass123"},
+                "environment": {"ADMIN_EMAIL": "admin@admin.test", "ADMIN_PASSPHRASE": "${MISP_ADMIN_PASSPHRASE:?Set MISP_ADMIN_PASSPHRASE in .env}"},
                 "volumes": ["misp_data:/var/www/MISP", "./misp/feeds:/feeds"],
                 "networks": [network_name]
             }
@@ -1252,7 +1262,7 @@ class ProjectScaffolder:
                 "ports": [f"{port}:8080"],
                 "environment": {
                     "DD_ADMIN_USER": f"${{DEFECT_DOJO_ADMIN_USER:-{user}}}",
-                    "DD_ADMIN_PASSWORD": f"${{DEFECT_DOJO_ADMIN_PASSWORD:-{password}}}"
+                    "DD_ADMIN_PASSWORD": "${DEFECT_DOJO_ADMIN_PASSWORD:?Set DEFECT_DOJO_ADMIN_PASSWORD in .env}"
                 },
                 "volumes": ["defectdojo_media:/app/media", "./defectdojo/imports:/imports"],
                 "networks": [network_name]
@@ -1312,7 +1322,7 @@ class ProjectScaffolder:
                 "command": "server",
                 "ports": [f"{port}:9000", "9443:9443"],
                 "environment": {
-                    "AUTHENTIK_SECRET_KEY": "${AUTHENTIK_SECRET_KEY:-authentiksecretkey123}",
+                    "AUTHENTIK_SECRET_KEY": "${AUTHENTIK_SECRET_KEY:?Set AUTHENTIK_SECRET_KEY in .env}",
                     "AUTHENTIK_REDIS__HOST": "redis" if "redis" in self.tools else "localhost"
                 },
                 "volumes": ["authentik_media:/media", "./authentik/custom_templates:/templates"],
@@ -1323,7 +1333,7 @@ class ProjectScaffolder:
                 "container_name": f"{self.project_name}-authentik-worker",
                 "command": "worker",
                 "environment": {
-                    "AUTHENTIK_SECRET_KEY": "${AUTHENTIK_SECRET_KEY:-authentiksecretkey123}",
+                    "AUTHENTIK_SECRET_KEY": "${AUTHENTIK_SECRET_KEY:?Set AUTHENTIK_SECRET_KEY in .env}",
                     "AUTHENTIK_REDIS__HOST": "redis" if "redis" in self.tools else "localhost"
                 },
                 "networks": [network_name]
@@ -1351,7 +1361,7 @@ class ProjectScaffolder:
                 "ports": [f"{port}:80"],
                 "environment": {
                     "PGADMIN_DEFAULT_EMAIL": "${PGADMIN_DEFAULT_EMAIL:-admin@example.com}",
-                    "PGADMIN_DEFAULT_PASSWORD": f"${{PGADMIN_DEFAULT_PASSWORD:-{password}}}"
+                    "PGADMIN_DEFAULT_PASSWORD": "${PGADMIN_DEFAULT_PASSWORD:?Set PGADMIN_DEFAULT_PASSWORD in .env}"
                 },
                 "volumes": ["pgadmin_data:/var/lib/pgadmin"],
                 "networks": [network_name]
@@ -1380,7 +1390,7 @@ class ProjectScaffolder:
                     "DB_HOST": "postgres",
                     "DB_PORT": "5432",
                     "DB_USER": f"${{POSTGRES_USER:-{user}}}",
-                    "DB_USER_PASSWORD": f"${{POSTGRES_PASSWORD:-{password}}}",
+                    "DB_USER_PASSWORD": "${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}",
                     "DB_SCHEME": "postgresql"
                 },
                 "depends_on": ["postgres"] if "postgres" in self.tools else [],
@@ -1472,7 +1482,7 @@ class ProjectScaffolder:
                     "HIVE_CORE_CONF_javax_jdo_option_ConnectionURL": "jdbc:postgresql://postgres:5432/metastore_db",
                     "HIVE_CORE_CONF_javax_jdo_option_ConnectionDriverName": "org.postgresql.Driver",
                     "HIVE_CORE_CONF_javax_jdo_option_ConnectionUserName": f"${{POSTGRES_USER:-{user}}}",
-                    "HIVE_CORE_CONF_javax_jdo_option_ConnectionPassword": f"${{POSTGRES_PASSWORD:-{password}}}",
+                    "HIVE_CORE_CONF_javax_jdo_option_ConnectionPassword": "${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}",
                     "CORE_CONF_fs_defaultFS": "hdfs://namenode:9000" if "hdfs" in self.tools else "file:///tmp/warehouse"
                 },
                 "ports": ["9083:9083"],
@@ -1486,7 +1496,7 @@ class ProjectScaffolder:
                     "HIVE_CORE_CONF_javax_jdo_option_ConnectionURL": "jdbc:postgresql://postgres:5432/metastore_db",
                     "HIVE_CORE_CONF_javax_jdo_option_ConnectionDriverName": "org.postgresql.Driver",
                     "HIVE_CORE_CONF_javax_jdo_option_ConnectionUserName": f"${{POSTGRES_USER:-{user}}}",
-                    "HIVE_CORE_CONF_javax_jdo_option_ConnectionPassword": f"${{POSTGRES_PASSWORD:-{password}}}",
+                    "HIVE_CORE_CONF_javax_jdo_option_ConnectionPassword": "${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}",
                     "CORE_CONF_fs_defaultFS": "hdfs://namenode:9000" if "hdfs" in self.tools else "file:///tmp/warehouse"
                 },
                 "ports": [f"{hive_ui_port}:10002", "10000:10000"],
@@ -1594,7 +1604,7 @@ class ProjectScaffolder:
                 "image": "codercom/code-server:latest",
                 "container_name": f"{self.project_name}-vscode",
                 "entrypoint": ["/bin/sh", "/home/coder/project/vscode/entrypoint.sh"],
-                "environment": {"AUTO_INSTALL_EXTENSIONS": auto_ext},
+                "environment": {"AUTO_INSTALL_EXTENSIONS": auto_ext, "PASSWORD": "${PASSWORD:?Set PASSWORD in .env}"},
                 "ports": [f"{port}:8080"],
                 "volumes": ["./:/home/coder/project"],
                 "networks": [network_name]
@@ -1627,6 +1637,39 @@ class ProjectScaffolder:
                 for vol in plugin.volumes:
                     volumes[vol] = None
 
+        # All generated host publications default to the local machine.
+        for service in services.values():
+            bind_local_ports(service)
+        if "kafka-connect" in services and "postgres" in self.tools:
+            services["kafka-connect"]["environment"].update({
+                "CONFIG_PROVIDERS": "env",
+                "CONFIG_PROVIDERS_ENV_CLASS": "org.apache.kafka.common.config.provider.EnvVarConfigProvider",
+                "CONFIG_PROVIDERS_ENV_PARAM_ALLOWLIST_PATTERN": "POSTGRES_(USER|PASSWORD|DB)",
+                "POSTGRES_USER": f"${{POSTGRES_USER:-{user}}}",
+                "POSTGRES_PASSWORD": "${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}",
+                "POSTGRES_DB": f"${{POSTGRES_DB:-{project_db}}}",
+            })
+        storage_env = {
+            "AWS_ACCESS_KEY_ID": f"${{MINIO_ROOT_USER:-{user}}}",
+            "AWS_SECRET_ACCESS_KEY": "${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD in .env}",
+            "AWS_REGION": "us-east-1",
+        }
+        for name in ("trino", "spark-master", "spark-worker"):
+            if name in services and "minio" in self.tools:
+                services[name].setdefault("environment", {}).update(storage_env)
+        if "trino" in services and "postgres" in self.tools:
+            services["trino"].setdefault("environment", {}).update({
+                "POSTGRES_USER": f"${{POSTGRES_USER:-{user}}}",
+                "POSTGRES_PASSWORD": "${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}",
+            })
+        for name, service in services.items():
+            if name.startswith("airflow-") and name != "airflow-db":
+                env = service.setdefault("environment", {})
+                if "postgres" in self.tools:
+                    env["AIRFLOW_CONN_POSTGRES_DEFAULT"] = "${AIRFLOW_CONN_POSTGRES_DEFAULT:?Set AIRFLOW_CONN_POSTGRES_DEFAULT in .env}"
+                if "minio" in self.tools:
+                    env["AIRFLOW_CONN_AWS_DEFAULT"] = "${AIRFLOW_CONN_AWS_DEFAULT:?Set AIRFLOW_CONN_AWS_DEFAULT in .env}"
+
         compose_dict = {
             "name": self.project_name,
             "services": services,
@@ -1640,48 +1683,12 @@ class ProjectScaffolder:
             yaml.dump(compose_dict, f, sort_keys=False, default_flow_style=False)
 
     def _generate_env_files(self):
-        user = getattr(self.request, "default_user", None) or "admin"
-        password = getattr(self.request, "default_password", None) or "admin123"
-        project_db = self.project_name.lower().replace("-", "_")
-
-        env_lines = [
-            f"# =============================================================================",
-            f"# ENVIRONMENT CONFIGURATION: {self.project_name.upper()}",
-            f"# =============================================================================",
-            "",
-            "# Core Defaults",
-            f"DEFAULT_USER={user}",
-            f"DEFAULT_PASSWORD={password}",
-            ""
-        ]
-
-        for tool_id in sorted(self.tools):
-            tool = get_tool_by_id(tool_id)
-            if tool.env_vars:
-                env_lines.append(f"# {tool.name}")
-                for k, v in tool.env_vars.items():
-                    val = v
-                    if "USER" in k or k in ("KEYCLOAK_ADMIN", "GF_SECURITY_ADMIN_USER", "DD_ADMIN_USER", "SPLUNK_USER", "AIRFLOW_USER"):
-                        val = user
-                    elif "PASSWORD" in k or "PASS" in k or k in ("KEYCLOAK_ADMIN_PASSWORD", "GF_SECURITY_ADMIN_PASSWORD", "DD_ADMIN_PASSWORD", "SPLUNK_PASSWORD", "AIRFLOW_PASSWORD"):
-                        val = password
-                    env_lines.append(f"{k}={val}")
-                env_lines.append("")
-
-        if "vscode" in self.tools:
-            env_lines.append(f"# VS Code Web (IDE)")
-            env_lines.append(f"PASSWORD={password}")
-            env_lines.append("")
-
-        if hasattr(self.request, "custom_envs") and self.request.custom_envs:
-            env_lines.append("# Custom Overrides")
-            for k, v in self.request.custom_envs.items():
-                env_lines.append(f"{k}={v}")
-            env_lines.append("")
-
-        env_path = os.path.join(self.project_dir, ".env")
-        with open(env_path, "w", encoding="utf-8") as f:
-            f.write("\n".join(env_lines))
+        self.secrets.populate(self.tools)
+        with open(os.path.join(self.project_dir, "docker-compose.yml"), encoding="utf-8") as f:
+            compose_text = f.read()
+        for key in re.findall(r"\$\{([A-Z0-9_]+):\?", compose_text):
+            self.secrets.require(key)
+        self.secrets.save()
 
     def _create_default_files(self):
         if "postgres" in self.tools:
@@ -1843,7 +1850,8 @@ datasources:
         sup_cfg = """# Superset local configuration
 ROW_LIMIT = 5000
 SUPERSET_WEBSERVER_PORT = 8088
-SECRET_KEY = 'supersecretkey123456789'
+import os
+SECRET_KEY = os.environ['SUPERSET_SECRET_KEY']
 """
         with open(os.path.join(sup_dir, "superset_config.py"), "w", encoding="utf-8") as f:
             f.write(sup_cfg)
@@ -1898,9 +1906,9 @@ INSERT INTO orders (customer_id, amount, status) VALUES
                     "plugin.name": "pgoutput",
                     "database.hostname": "postgres",
                     "database.port": "5432",
-                    "database.user": "admin",
-                    "database.password": "admin123",
-                    "database.dbname": "oltp_db",
+                    "database.user": "${env:POSTGRES_USER}",
+                    "database.password": "${env:POSTGRES_PASSWORD}",
+                    "database.dbname": "${env:POSTGRES_DB}",
                     "database.server.name": f"{self.project_name}_db",
                     "topic.prefix": self.project_name,
                     "table.include.list": "public.customers,public.orders"
@@ -2177,8 +2185,8 @@ iceberg.rest-catalog.uri=http://iceberg-rest:8181
 fs.native-s3.enabled=true
 s3.endpoint=http://minio:9000
 s3.path-style-access=true
-s3.aws-access-key=admin
-s3.aws-secret-key=admin123
+s3.aws-access-key=${ENV:AWS_ACCESS_KEY_ID}
+s3.aws-secret-key=${ENV:AWS_SECRET_ACCESS_KEY}
 s3.region=us-east-1
 """
             with open(os.path.join(cat_dir, "iceberg.properties"), "w", encoding="utf-8") as f:
@@ -2187,8 +2195,8 @@ s3.region=us-east-1
         if "postgres" in self.tools:
             pg_prop = """connector.name=postgresql
 connection-url=jdbc:postgresql://postgres:5432/oltp_db
-connection-user=postgres
-connection-password=postgres
+connection-user=${ENV:POSTGRES_USER}
+connection-password=${ENV:POSTGRES_PASSWORD}
 """
             with open(os.path.join(cat_dir, "postgresql.properties"), "w", encoding="utf-8") as f:
                 f.write(pg_prop)
@@ -2621,7 +2629,7 @@ class TestConfigValidation:
         for service_name, svc in data.get("services", {}).items():
             for p in svc.get("ports", []):
                 if isinstance(p, str) and ":" in p:
-                    host_ports.append(p.split(":")[0])
+                    host_ports.append(p.rsplit(":", 2)[-2])
         duplicates = [p for p in host_ports if host_ports.count(p) > 1]
         assert len(set(duplicates)) == 0, f"Host port collision detected: {duplicates}"
 """
@@ -2750,7 +2758,7 @@ class TestConfigValidation:
                 pass
 
         default_user = getattr(self.request, "default_user", None) or "postgres"
-        default_pass = getattr(self.request, "default_password", None) or "postgres"
+        default_pass = self.secrets.default_password
         project_label = self.project_name.capitalize()
 
         def _clean_val(val: Any, fallback: str = "") -> str:
@@ -2933,7 +2941,7 @@ if [ "$AUTO_INSTALL_EXTENSIONS" = "true" ] && [ -f /home/coder/project/.vscode/e
 fi
 
 echo "Iniciando code-server..."
-exec code-server --auth none --bind-addr 0.0.0.0:8080 /home/coder/project
+exec code-server --auth password --bind-addr 0.0.0.0:8080 /home/coder/project
 """
         with open(os.path.join(vscode_scripts_dir, "entrypoint.sh"), "w", encoding="utf-8", newline="\n") as f:
             f.write(entrypoint_content)

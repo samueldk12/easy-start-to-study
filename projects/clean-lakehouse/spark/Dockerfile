@@ -19,6 +19,7 @@ RUN curl -s -f -L https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-spar
     curl -s -f -L https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/${AWS_SDK_VERSION}/aws-java-sdk-bundle-${AWS_SDK_VERSION}.jar -o /opt/spark/jars/aws-java-sdk-bundle-${AWS_SDK_VERSION}.jar
 
 COPY conf/spark-defaults.conf /opt/spark/conf/spark-defaults.conf
+COPY apps /opt/spark/work-dir/apps
 RUN chmod -R 777 /opt/spark/conf /opt/spark/work-dir /tmp
 
 USER spark

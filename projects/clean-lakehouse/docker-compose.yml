@@ -71,8 +71,8 @@ services:
     depends_on:
     - minio
     entrypoint: /bin/sh -c "until (/usr/bin/mc alias set myminio http://minio:9000
-      admin password123); do echo 'Waiting for MinIO...'; sleep 2; done; /usr/bin/mc
-      mb --ignore-existing myminio/lakehouse; /usr/bin/mc mb --ignore-existing myminio/warehouse;
+      admin ${MINIO_ROOT_PASSWORD:-password123}); do echo 'Waiting for MinIO...'; sleep 2; done; /usr/bin/mc
+      mb --ignore-existing myminio/lakehouse; /usr/bin/mc mb --ignore-existing myminio/warehouse; /usr/bin/mc mb --ignore-existing myminio/mlflow;
       echo 'Buckets created successfully!'; exit 0;"
     networks:
     - clean-lakehouse-net
@@ -90,7 +90,7 @@ services:
       CATALOG_S3_ENDPOINT: http://minio:9000
       CATALOG_S3_PATH__STYLE__ACCESS: 'true'
       AWS_ACCESS_KEY_ID: admin
-      AWS_SECRET_ACCESS_KEY: password123
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-password123}
       AWS_REGION: us-east-1
     networks:
     - clean-lakehouse-net
@@ -104,6 +104,8 @@ services:
     - 8082:8080
     environment:
       SPARK_NO_DAEMONIZE: 'true'
+      AWS_REGION: us-east-1
+      AWS_DEFAULT_REGION: us-east-1
     volumes:
     - ./spark/apps:/opt/spark/work-dir/apps
     networks:
@@ -115,6 +117,8 @@ services:
     command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
     environment:
       SPARK_NO_DAEMONIZE: 'true'
+      AWS_REGION: us-east-1
+      AWS_DEFAULT_REGION: us-east-1
       SPARK_WORKER_CORES: 2
       SPARK_WORKER_MEMORY: 2g
     volumes:
@@ -154,7 +158,8 @@ services:
     networks:
     - clean-lakehouse-net
   airflow-init:
-    image: apache/airflow:2.9.2-python3.11
+    build:
+      context: ./airflow
     container_name: clean-lakehouse-airflow-init
     depends_on:
       airflow-db:
@@ -166,8 +171,27 @@ services:
       admin || true"
     networks:
     - clean-lakehouse-net
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.14.1
+    container_name: clean-lakehouse-mlflow
+    ports:
+    - 5000:5000
+    depends_on:
+    - minio
+    - minio-init
+    environment:
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-password123}
+      AWS_DEFAULT_REGION: us-east-1
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:///mlflow.db --default-artifact-root s3://mlflow/
+    networks:
+    - clean-lakehouse-net
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
   airflow-webserver:
-    image: apache/airflow:2.9.2-python3.11
+    build:
+      context: ./airflow
     container_name: clean-lakehouse-airflow-webserver
     ports:
     - 8088:8080
@@ -181,11 +205,13 @@ services:
     volumes:
     - ./airflow/dags:/opt/airflow/dags
     - ./airflow/plugins:/opt/airflow/plugins
+    - /var/run/docker.sock:/var/run/docker.sock
     command: airflow webserver
     networks:
     - clean-lakehouse-net
   airflow-scheduler:
-    image: apache/airflow:2.9.2-python3.11
+    build:
+      context: ./airflow
     container_name: clean-lakehouse-airflow-scheduler
     depends_on:
       airflow-init:
@@ -197,6 +223,7 @@ services:
     volumes:
     - ./airflow/dags:/opt/airflow/dags
     - ./airflow/plugins:/opt/airflow/plugins
+    - /var/run/docker.sock:/var/run/docker.sock
     command: airflow scheduler
     networks:
     - clean-lakehouse-net
